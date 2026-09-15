@@ -1,6 +1,30 @@
 <!doctype html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>Elementbound Alpha 0.3</title>
 <style>
 :root{--bg:#090e1b;--p:#151d31;--p2:#1d2944;--line:#35415f;--txt:#f6f8ff;--mut:#aab5d1;--a:#7fc4ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -10%,#1c2949,#090e1b 45%);color:var(--txt);font:14px system-ui,-apple-system,sans-serif}button{font:inherit;color:inherit}.app{max-width:760px;margin:auto;min-height:100vh;padding:calc(env(safe-area-inset-top) + 14px) 12px calc(env(safe-area-inset-bottom) + 20px)}.screen{display:none}.screen.on{display:block}.hero{text-align:center;padding:14vh 8px 30px}.logo{font-size:38px;font-weight:950;letter-spacing:2px}.sub{color:var(--mut);margin:8px 0 30px}.primary,.ghost{width:100%;border:1px solid var(--line);border-radius:14px;padding:15px;background:var(--p2);font-weight:800}.primary{background:linear-gradient(135deg,#315c9d,#553b93);border-color:#7696ce}.ghost{margin-top:9px}.title{font-size:26px;font-weight:900;margin:8px 0}.deckgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.deck{background:var(--p);border:1px solid var(--line);border-radius:14px;padding:12px;min-height:120px}.deck.sel{outline:2px solid var(--a)}.deck b{font-size:17px}.small{font-size:12px;color:var(--mut);margin-top:5px}.diffs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.diff{border:1px solid var(--line);background:var(--p);border-radius:12px;padding:12px 5px}.diff.sel{outline:2px solid var(--a)}.top{position:sticky;top:0;z-index:5;background:#090e1bea;backdrop-filter:blur(10px);padding:7px 0}.row{display:flex;align-items:center;justify-content:space-between;gap:8px}.pill{display:inline-block;background:var(--p);border:1px solid var(--line);border-radius:999px;padding:6px 9px}.stats{display:flex;gap:6px;flex-wrap:wrap;margin:7px 0}.side{background:var(--p);border:1px solid var(--line);border-radius:16px;padding:10px;margin:10px 0}.side.active{outline:2px solid var(--a)}.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.slot{min-height:105px;border:1px dashed #53617d;border-radius:11px;padding:5px;background:#0c1324}.card{position:relative;border:1px solid #53617d;border-radius:10px;padding:7px;min-height:92px;background:linear-gradient(145deg,#202c49,#141d32)}.card.play{border-color:#8ed1ff}.card b{font-size:12px;display:block;padding-right:22px}.cost{position:absolute;right:5px;top:5px;border-radius:50%;width:22px;height:22px;display:grid;place-items:center;background:#0c1324;font-weight:900}.fire{box-shadow:inset 0 0 0 1px #a65240}.water{box-shadow:inset 0 0 0 1px #3f87aa}.nature{box-shadow:inset 0 0 0 1px #4f915b}.earth{box-shadow:inset 0 0 0 1px #927a57}.lightning{box-shadow:inset 0 0 0 1px #aaa04c}.air{box-shadow:inset 0 0 0 1px #7d9dac}.hand{display:flex;overflow:auto;gap:7px;padding:7px 0 12px}.hand .card{min-width:145px}.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}.actions button{border:1px solid var(--line);background:var(--p2);border-radius:11px;padding:12px}.actions button:disabled{opacity:.35}.log{height:120px;overflow:auto;background:#060a12;border:1px solid var(--line);border-radius:12px;padding:7px;font:11px ui-monospace,monospace}.win{text-align:center;font-size:20px;font-weight:900;padding:10px}.modalw{position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:20px;z-index:20}.modalw.hide{display:none}.modal{width:min(420px,100%);background:var(--p);border:1px solid var(--line);border-radius:16px;padding:14px}.modal button{width:100%;margin:4px 0;border:1px solid var(--line);background:var(--p2);border-radius:10px;padding:11px}.rules{font-size:12px;line-height:1.35;color:#dbe4fb;margin-top:6px}.tag{display:inline-block;padding:3px 7px;border:1px solid var(--line);border-radius:999px;margin:2px 3px 2px 0;font-size:11px}.codexCard{text-align:left;cursor:pointer}.why{color:#9fd2ff;font-size:11px;margin-top:5px}
+
+/* Alpha 0.5.2 — mobile help/modal scrolling */
+.modalWrap,.modal-wrap,#mw{
+  overscroll-behavior:contain;
+}
+.modal{
+  width:min(92vw,460px);
+  max-height:min(82vh,720px);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+#mb{
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  max-height:calc(82vh - 78px);
+  padding-right:4px;
+  touch-action:pan-y;
+}
+#mb button{
+  flex:0 0 auto;
+}
+
 </style><style>
 .main-logo{
  display:block;width:min(94%,560px);height:auto;max-height:44vh;
@@ -8,6 +32,14 @@
  filter:drop-shadow(0 12px 24px rgba(0,0,0,.38));
 }
 
+.card.play,.dragging-card{
+-webkit-user-select:none!important;user-select:none!important;
+-webkit-touch-callout:none!important;touch-action:none;
+}
+.card.play *,.dragging-card *{
+-webkit-user-select:none!important;user-select:none!important;
+-webkit-touch-callout:none!important;pointer-events:none;
+}
 .dragging-card{position:fixed!important;z-index:9999;pointer-events:none;opacity:.9;transform:scale(.96) rotate(1deg);box-shadow:0 18px 45px rgba(0,0,0,.5);width:min(42vw,190px)}
 .slot.drop-ready{outline:2px solid #8bd3ff;outline-offset:-3px;background:rgba(100,190,255,.10)}
 .slot.drop-hover{outline:3px solid #fff;transform:scale(1.015);background:rgba(100,190,255,.20)}
@@ -22,7 +54,7 @@
   <div id="codexList" class="deckgrid"></div>
 </section>
 <section id="setup" class="screen"><div class="title">Choose Your Bender</div><div class="small">Your name stays customizable; your deck determines your Prime affinity.</div><div id="decks" class="deckgrid"></div><div class="title" style="font-size:20px;margin-top:18px">Opponent Difficulty</div><div id="diffs" class="diffs"></div><button id="start" class="primary" disabled onclick="startMatch()">START DUEL</button><button class="ghost" onclick="go('home')">BACK</button></section>
-<section id="battle" class="screen"><div class="top"><div class="row"><b>ELEMENTBOUND <span class="small">Alpha 0.5 · EB-1.5</span></b><span id="rev" class="pill"></span></div><div class="stats"><span id="turn" class="pill"></span><span id="chain" class="pill"></span><span id="difficulty" class="pill"></span></div></div><div id="winner"></div>
+<section id="battle" class="screen"><div class="top"><div class="row"><b>ELEMENTBOUND <span class="small">Alpha 0.5.2 · EB-1.5</span></b><span id="rev" class="pill"></span></div><div class="stats"><span id="turn" class="pill"></span><span id="chain" class="pill"></span><span id="difficulty" class="pill"></span></div></div><div id="winner"></div>
 <div id="enemy" class="side"><div class="row"><b id="ename"></b><b id="evit"></b></div><div id="estats" class="stats"></div><div id="eslots" class="slots"></div></div>
 <div id="you" class="side"><div class="row"><b id="pname"></b><b id="pvit"></b></div><div id="pstats" class="stats"></div><div id="pslots" class="slots"></div><b>Hand</b><div id="hand" class="hand"></div></div>
 <div class="actions"><button id="attack" onclick="attackPick()">Attack</button><button id="end" onclick="endTurn()">End Turn</button><button onclick="go('setup')">Exit</button></div><h3>Event Log</h3><div id="log" class="log"></div></section>
@@ -80,7 +112,7 @@ if(c.type==='TECHNIQUE'){c.zone='WAKE';p.wake.push(c);
  else if(c.el==='WATER'){let t=foe().slots.find(Boolean);if(t&&!t.marks.includes('Soaked'))t.marks.push('Soaked');add(`${c.n}: Flow 1${t?' + applies Soaked':''}`)}
  else if(c.el==='LIGHTNING'){if(G.chain>=2){foe().vit-=1;add(`${c.n}: Chain ${G.chain} → Charged pressure 1`)}else add(`${c.n}: Flow 1 · sequence another card for Charged payoff`)}
  else if(c.el==='AIR'){let arr=foe().slots,from=arr.findIndex(Boolean),to=arr.findIndex(x=>!x);if(from>=0&&to>=0){let m=arr[from];arr[from]=null;arr[to]=m;add(`${c.n}: moves ${m.n} M${from+1}→M${to+1}`)}else add(`${c.n}: Flow 1 (no legal movement)`)}
-}else{let i=slotIndex;c.zone='FIELD';c.ready=true;c.sick=true;c.marks=c.marks||[];if(c.el==='FIRE'&&!foe().slots.find(Boolean)){/* no forced mark */}if(c.el==='NATURE'&&c.n==='Sproutling'&&!c.marks.includes('Seeded'))c.marks.push('Seeded');if(c.el==='EARTH'&&c.n==='Stone Initiate')c.armor=Math.min(3,c.armor+1);if(c.el==='AIR'&&c.n==='Breeze Disciple'&&!c.marks.includes('Momentum'))c.marks.push('Momentum');p.slots[i]=c;add(`SUMMON ${c.n} → M${i+1}`)}bump()}
+}else{let i=p.slots.findIndex(x=>!x);if(i<0)return;c.zone='FIELD';c.ready=true;c.sick=true;c.marks=c.marks||[];if(c.el==='FIRE'&&!foe().slots.find(Boolean)){/* no forced mark */}if(c.el==='NATURE'&&c.n==='Sproutling'&&!c.marks.includes('Seeded'))c.marks.push('Seeded');if(c.el==='EARTH'&&c.n==='Stone Initiate')c.armor=Math.min(3,c.armor+1);if(c.el==='AIR'&&c.n==='Breeze Disciple'&&!c.marks.includes('Momentum'))c.marks.push('Momentum');p.slots[i]=c;add(`SUMMON ${c.n} → M${i+1}`)}bump()}
 function hit(m,n){let block=Math.min(m.armor,n);m.armor-=block;m.h-=n-block;return n-block}function death(p){p.slots.forEach((m,i)=>{if(m&&m.h<=0){p.slots[i]=null;m.zone='WAKE';p.wake.push(m);add(`${m.n} destroyed`)}})}
 function attackPick(){let a=me().slots.filter(x=>x&&x.ready&&!x.sick);if(!a.length)return;modal('Choose attacker',a.map(m=>[`${m.n} · ${m.a} ATK`,()=>targetPick(m)]))}
 function targetPick(att){let e=foe(),guards=e.slots.filter(x=>x&&x.guard&&x.ready),targets=guards.length?guards:e.slots.filter(Boolean),b=targets.map(m=>[`Attack ${m.n}`,()=>attack(att,m)]);if(!guards.length)b.push([`Attack Bender · ${e.vit} Vitality`,()=>attack(att,null)]);modal('Choose target',b)}
@@ -101,7 +133,7 @@ for(let step=0;step<budget;step++){let legal=p.hand.filter(c=>c.c<=p.e&&(c.type=
    else if(c.el==='WATER'){let t=e.slots.find(Boolean);if(t&&!t.marks.includes('Soaked'))t.marks.push('Soaked');add(`Rival Current Shift: Flow 1${t?' + Soaked':''}`)}
    else if(c.el==='LIGHTNING'){if(G.chain>=2){e.vit-=1;add(`Rival Static Step: Chain ${G.chain} pressure 1`)}else add(`Rival Static Step: Flow 1`)}
    else if(c.el==='AIR'){let from=e.slots.findIndex(Boolean),to=e.slots.findIndex(x=>!x);if(from>=0&&to>=0){let m=e.slots[from];e.slots[from]=null;e.slots[to]=m;add(`Rival Crosswind moves ${m.n}`)}else add(`Rival Crosswind: Flow 1`)}
- }else{let i=slotIndex;c.zone='FIELD';c.sick=true;c.ready=true;c.marks=c.marks||[];if(c.el==='NATURE'&&c.n==='Sproutling'&&!c.marks.includes('Seeded'))c.marks.push('Seeded');if(c.el==='EARTH'&&c.n==='Stone Initiate')c.armor=Math.min(3,c.armor+1);if(c.el==='AIR'&&c.n==='Breeze Disciple'&&!c.marks.includes('Momentum'))c.marks.push('Momentum');p.slots[i]=c;add(`Rival summons ${c.n}`)}
+ }else{let i=p.slots.findIndex(x=>!x);if(i<0)continue;c.zone='FIELD';c.sick=true;c.ready=true;c.marks=c.marks||[];if(c.el==='NATURE'&&c.n==='Sproutling'&&!c.marks.includes('Seeded'))c.marks.push('Seeded');if(c.el==='EARTH'&&c.n==='Stone Initiate')c.armor=Math.min(3,c.armor+1);if(c.el==='AIR'&&c.n==='Breeze Disciple'&&!c.marks.includes('Momentum'))c.marks.push('Momentum');p.slots[i]=c;add(`Rival summons ${c.n}`)}
 }
 let attackers=p.slots.filter(x=>x&&x.ready&&!x.sick);if(diff==='Easy')attackers=attackers.slice(0,1);for(const m of attackers){m.ready=false;let guards=e.slots.filter(x=>x&&x.guard&&x.ready),targets=guards.length?guards:e.slots.filter(Boolean),t=null;
  if(targets.length){if(diff==='Difficult'){let kills=targets.filter(x=>x.h<=m.a).sort((a,b)=>b.a-a.a);t=kills[0]||targets.sort((a,b)=>(b.a+b.h)-(a.a+a.h))[0]}else t=targets[0]}
@@ -115,11 +147,70 @@ let selectedCardId=null,dragState=null;
 function selectForSlot(c){if(!playable(c)||c.type==='TECHNIQUE')return;selectedCardId=c.id;document.querySelectorAll('#pslots .slot').forEach(x=>{let i=+x.dataset.slot;if(!me().slots[i])x.classList.add('drop-ready')});add(`Selected ${c.n} · choose or drag to an open slot`);renderSelectionOnly()}
 function renderSelectionOnly(){document.querySelectorAll('#hand .card').forEach(x=>x.style.outline=(+x.dataset.id===selectedCardId?'2px solid #fff':''));document.querySelectorAll('#pslots .slot').forEach(x=>{let i=+x.dataset.slot;x.classList.toggle('drop-ready',selectedCardId!==null&&!me().slots[i])})}
 function wireDropSlots(){document.querySelectorAll('#pslots .slot').forEach(slot=>{slot.onclick=()=>{if(selectedCardId===null)return;let c=me().hand.find(x=>x.id===selectedCardId),i=+slot.dataset.slot;if(c&&!me().slots[i]){selectedCardId=null;play(c,i)}}});renderSelectionOnly()}
-function beginCardDrag(ev,c,el){if(!playable(c)||c.type==='TECHNIQUE')return;selectedCardId=c.id;let startX=ev.clientX,startY=ev.clientY,moved=false,ghost=null;try{el.setPointerCapture(ev.pointerId)}catch(_){};renderSelectionOnly();
- const move=e=>{if(!moved&&Math.hypot(e.clientX-startX,e.clientY-startY)>8){moved=true;ghost=el.cloneNode(true);ghost.classList.add('dragging-card');document.body.appendChild(ghost)}if(ghost){ghost.style.left=(e.clientX-ghost.offsetWidth/2)+'px';ghost.style.top=(e.clientY-35)+'px';document.querySelectorAll('#pslots .slot').forEach(z=>z.classList.remove('drop-hover'));let under=document.elementFromPoint(e.clientX,e.clientY);let sl=under&&under.closest&&under.closest('#pslots .slot');if(sl&&!me().slots[+sl.dataset.slot])sl.classList.add('drop-hover')}};
- const up=e=>{el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);let under=document.elementFromPoint(e.clientX,e.clientY),sl=under&&under.closest&&under.closest('#pslots .slot');if(ghost)ghost.remove();document.querySelectorAll('#pslots .slot').forEach(z=>z.classList.remove('drop-hover'));if(moved&&sl&&!me().slots[+sl.dataset.slot]){selectedCardId=null;play(c,+sl.dataset.slot)}else renderSelectionOnly()};el.addEventListener('pointermove',move);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up)}
+function beginCardDrag(ev,c,el){
+ if(!playable(c)||c.type==='TECHNIQUE')return;
+ if(ev.pointerType==='mouse'&&ev.button!==0)return;
+ ev.preventDefault();
+ selectedCardId=c.id;
+ let startX=ev.clientX,startY=ev.clientY,moved=false,ghost=null,lastX=startX,lastY=startY;
+ try{el.setPointerCapture(ev.pointerId)}catch(_){}
+ renderSelectionOnly();
+
+ const move=e=>{
+   e.preventDefault(); lastX=e.clientX; lastY=e.clientY;
+   if(!moved&&Math.hypot(lastX-startX,lastY-startY)>10){
+     moved=true;
+     ghost=el.cloneNode(true);
+     ghost.classList.add('dragging-card');
+     ghost.removeAttribute('data-id');
+     document.body.appendChild(ghost);
+   }
+   if(ghost){
+     ghost.style.left=(lastX-ghost.offsetWidth/2)+'px';
+     ghost.style.top=(lastY-45)+'px';
+     document.querySelectorAll('#pslots .slot').forEach(z=>z.classList.remove('drop-hover'));
+     let under=document.elementFromPoint(lastX,lastY);
+     let sl=under&&under.closest&&under.closest('#pslots .slot');
+     if(sl&&!me().slots[+sl.dataset.slot])sl.classList.add('drop-hover');
+   }
+ };
+ const finish=e=>{
+   e.preventDefault();
+   el.removeEventListener('pointermove',move);
+   el.removeEventListener('pointerup',finish);
+   el.removeEventListener('pointercancel',cancel);
+   try{el.releasePointerCapture(ev.pointerId)}catch(_){}
+   let x=e.clientX??lastX,y=e.clientY??lastY;
+   if(ghost)ghost.remove();
+   document.querySelectorAll('#pslots .slot').forEach(z=>z.classList.remove('drop-hover'));
+   if(moved){
+     let under=document.elementFromPoint(x,y);
+     let sl=under&&under.closest&&under.closest('#pslots .slot');
+     if(sl&&!me().slots[+sl.dataset.slot]){
+       selectedCardId=null;
+       play(c,+sl.dataset.slot);
+       return;
+     }
+   }
+   // A short press acts as the accessibility fallback: select card, then tap a slot.
+   selectedCardId=c.id;
+   renderSelectionOnly();
+ };
+ const cancel=e=>{
+   if(e)e.preventDefault();
+   el.removeEventListener('pointermove',move);
+   el.removeEventListener('pointerup',finish);
+   el.removeEventListener('pointercancel',cancel);
+   if(ghost)ghost.remove();
+   document.querySelectorAll('#pslots .slot').forEach(z=>z.classList.remove('drop-hover'));
+   renderSelectionOnly();
+ };
+ el.addEventListener('pointermove',move,{passive:false});
+ el.addEventListener('pointerup',finish,{passive:false});
+ el.addEventListener('pointercancel',cancel,{passive:false});
+}
 function validateState(){if(!G)return true;let ok=true,seen=new Set();for(const p of G.p){if(p.e<0||p.e>p.maxE||p.maxE>7||p.slots.length!==3)ok=false;for(const c of [...p.deck,...p.hand,...p.wake,...p.slots.filter(Boolean)]){if(seen.has(c.id))ok=false;seen.add(c.id)}}if(!ok)console.error('ELEMENTBOUND invariant violation',G);return ok}
-function render(){if(!G)return;let p=me(),e=foe();document.getElementById('rev').textContent=`REV ${G.rev}`;document.getElementById('turn').textContent=`Turn ${G.turn} · ${G.active?'RIVAL':'YOU'}`;document.getElementById('chain').textContent=`Chain ${G.chain}`;document.getElementById('difficulty').textContent=diff;document.getElementById('pname').textContent=`${E[p.el]} ${p.name}`;document.getElementById('ename').textContent=`${E[e.el]} ${e.name}`;document.getElementById('pvit').textContent=`❤️ ${p.vit}`;document.getElementById('evit').textContent=`❤️ ${e.vit}`;document.getElementById('pstats').innerHTML=`<span class=pill>Essence ${p.e}/${p.maxE}</span><span class=pill>Hand ${p.hand.length}</span><span class=pill>Deck ${p.deck.length}</span><span class=pill>Wake ${p.wake.length}</span><div class=stathelp>Essence = spendable energy · Hand = playable cards · Deck = draw pile · Wake = used/destroyed cards</div>`;document.getElementById('estats').innerHTML=`<span class=pill>Essence ${e.e}/${e.maxE}</span><span class=pill>Hand ${e.hand.length}</span><span class=pill>Deck ${e.deck.length}</span><span class=pill>Wake ${e.wake.length}</span>`;slots('pslots',p);slots('eslots',e);let h=document.getElementById('hand');h.innerHTML=p.hand.map(c=>card(c,playable(c))).join('');h.querySelectorAll('.play').forEach(x=>{let c=p.hand.find(c=>c.id==x.dataset.id);if(c.type==='TECHNIQUE')x.onclick=()=>play(c);else{x.onclick=()=>selectForSlot(c);x.onpointerdown=ev=>beginCardDrag(ev,c,x)}});wireDropSlots();document.getElementById('attack').disabled=G.active||G.winner||!p.slots.some(x=>x&&x.ready&&!x.sick);document.getElementById('end').disabled=G.active||G.winner;document.getElementById('you').classList.toggle('active',G.active===0);document.getElementById('enemy').classList.toggle('active',G.active===1);document.getElementById('winner').innerHTML=G.winner?`<div class=win>🏆 ${G.winner} wins</div>`:'';let l=document.getElementById('log');l.innerHTML=G.logs.map(x=>`<div>${x}</div>`).join('');l.scrollTop=l.scrollHeight}
+function render(){if(!G)return;let p=me(),e=foe();document.getElementById('rev').textContent=`REV ${G.rev}`;document.getElementById('turn').textContent=`Turn ${G.turn} · ${G.active?'RIVAL':'YOU'}`;document.getElementById('chain').textContent=`Chain ${G.chain}`;document.getElementById('difficulty').textContent=diff;document.getElementById('pname').textContent=`${E[p.el]} ${p.name}`;document.getElementById('ename').textContent=`${E[e.el]} ${e.name}`;document.getElementById('pvit').textContent=`❤️ ${p.vit}`;document.getElementById('evit').textContent=`❤️ ${e.vit}`;document.getElementById('pstats').innerHTML=`<span class=pill>Essence ${p.e}/${p.maxE}</span><span class=pill>Hand ${p.hand.length}</span><span class=pill>Deck ${p.deck.length}</span><span class=pill>Wake ${p.wake.length}</span><div class=stathelp>Essence = spendable energy · Hand = playable cards · Deck = draw pile · Wake = used/destroyed cards</div>`;document.getElementById('estats').innerHTML=`<span class=pill>Essence ${e.e}/${e.maxE}</span><span class=pill>Hand ${e.hand.length}</span><span class=pill>Deck ${e.deck.length}</span><span class=pill>Wake ${e.wake.length}</span>`;slots('pslots',p);slots('eslots',e);let h=document.getElementById('hand');h.innerHTML=p.hand.map(c=>card(c,playable(c))).join('');h.querySelectorAll('.play').forEach(x=>{let c=p.hand.find(c=>c.id==x.dataset.id);if(c.type==='TECHNIQUE')x.onclick=()=>play(c);else{x.onclick=null;x.onpointerdown=ev=>beginCardDrag(ev,c,x)}});wireDropSlots();document.getElementById('attack').disabled=G.active||G.winner||!p.slots.some(x=>x&&x.ready&&!x.sick);document.getElementById('end').disabled=G.active||G.winner;document.getElementById('you').classList.toggle('active',G.active===0);document.getElementById('enemy').classList.toggle('active',G.active===1);document.getElementById('winner').innerHTML=G.winner?`<div class=win>🏆 ${G.winner} wins</div>`:'';let l=document.getElementById('log');l.innerHTML=G.logs.map(x=>`<div>${x}</div>`).join('');l.scrollTop=l.scrollHeight}
 function allCodexCards(){let out=[];Object.keys(BASE).forEach(el=>{BASE[el].forEach(z=>out.push({el,n:z[0],c:z[1],type:'MANIFESTATION',a:z[2],h:z[3],text:z[4],tip:z[5]}));let t=TECH[el];out.push({el,n:t[0],c:'1–3',type:'TECHNIQUE',text:t[1],tip:t[2]})});return out}
 let codexFilter='ALL';
 function goCodex(){codexFilter='ALL';renderCodex();go('codex')}
