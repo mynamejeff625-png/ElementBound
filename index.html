@@ -25,6 +25,27 @@
   flex:0 0 auto;
 }
 
+
+/* Alpha 0.5.3 — iOS card interaction hardening */
+#battle, #battle .card, #battle .card *, #pslots, #pslots * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+#battle .card.play {
+  touch-action: none !important;
+  -webkit-user-drag: none !important;
+  cursor: grab;
+}
+#battle .card.play.drag-source {
+  opacity: .45;
+}
+#mb, #mb * {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
 </style><style>
 .main-logo{
  display:block;width:min(94%,560px);height:auto;max-height:44vh;
@@ -54,7 +75,7 @@
   <div id="codexList" class="deckgrid"></div>
 </section>
 <section id="setup" class="screen"><div class="title">Choose Your Bender</div><div class="small">Your name stays customizable; your deck determines your Prime affinity.</div><div id="decks" class="deckgrid"></div><div class="title" style="font-size:20px;margin-top:18px">Opponent Difficulty</div><div id="diffs" class="diffs"></div><button id="start" class="primary" disabled onclick="startMatch()">START DUEL</button><button class="ghost" onclick="go('home')">BACK</button></section>
-<section id="battle" class="screen"><div class="top"><div class="row"><b>ELEMENTBOUND <span class="small">Alpha 0.5.2 · EB-1.5</span></b><span id="rev" class="pill"></span></div><div class="stats"><span id="turn" class="pill"></span><span id="chain" class="pill"></span><span id="difficulty" class="pill"></span></div></div><div id="winner"></div>
+<section id="battle" class="screen"><div class="top"><div class="row"><b>ELEMENTBOUND <span class="small">Alpha 0.5.3 · EB-1.5</span></b><span id="rev" class="pill"></span></div><div class="stats"><span id="turn" class="pill"></span><span id="chain" class="pill"></span><span id="difficulty" class="pill"></span></div></div><div id="winner"></div>
 <div id="enemy" class="side"><div class="row"><b id="ename"></b><b id="evit"></b></div><div id="estats" class="stats"></div><div id="eslots" class="slots"></div></div>
 <div id="you" class="side"><div class="row"><b id="pname"></b><b id="pvit"></b></div><div id="pstats" class="stats"></div><div id="pslots" class="slots"></div><b>Hand</b><div id="hand" class="hand"></div></div>
 <div class="actions"><button id="attack" onclick="attackPick()">Attack</button><button id="end" onclick="endTurn()">End Turn</button><button onclick="go('setup')">Exit</button></div><h3>Event Log</h3><div id="log" class="log"></div></section>
@@ -150,67 +171,76 @@ function wireDropSlots(){document.querySelectorAll('#pslots .slot').forEach(slot
 function beginCardDrag(ev,c,el){
  if(!playable(c)||c.type==='TECHNIQUE')return;
  if(ev.pointerType==='mouse'&&ev.button!==0)return;
- ev.preventDefault();
- selectedCardId=c.id;
- let startX=ev.clientX,startY=ev.clientY,moved=false,ghost=null,lastX=startX,lastY=startY;
- try{el.setPointerCapture(ev.pointerId)}catch(_){}
- renderSelectionOnly();
+ ev.preventDefault(); ev.stopPropagation();
 
- const move=e=>{
-   e.preventDefault(); lastX=e.clientX; lastY=e.clientY;
-   if(!moved&&Math.hypot(lastX-startX,lastY-startY)>10){
-     moved=true;
-     ghost=el.cloneNode(true);
-     ghost.classList.add('dragging-card');
-     ghost.removeAttribute('data-id');
-     document.body.appendChild(ghost);
-   }
-   if(ghost){
-     ghost.style.left=(lastX-ghost.offsetWidth/2)+'px';
-     ghost.style.top=(lastY-45)+'px';
-     document.querySelectorAll('#pslots .slot').forEach(z=>z.classList.remove('drop-hover'));
-     let under=document.elementFromPoint(lastX,lastY);
-     let sl=under&&under.closest&&under.closest('#pslots .slot');
+ const pid=ev.pointerId, sx=ev.clientX, sy=ev.clientY;
+ let x=sx,y=sy,moved=false,ghost=null,ended=false;
+ selectedCardId=c.id;
+ el.classList.add('drag-source');
+
+ function clearHover(){document.querySelectorAll('#pslots .slot').forEach(z=>z.classList.remove('drop-hover'))}
+ function makeGhost(){
+   if(ghost)return;
+   ghost=el.cloneNode(true);
+   ghost.classList.add('dragging-card');
+   ghost.classList.remove('drag-source');
+   ghost.removeAttribute('data-id');
+   ghost.style.width=el.getBoundingClientRect().width+'px';
+   document.body.appendChild(ghost);
+ }
+ function positionGhost(){
+   if(!ghost)return;
+   ghost.style.left=(x-ghost.offsetWidth/2)+'px';
+   ghost.style.top=(y-Math.min(55,ghost.offsetHeight/3))+'px';
+ }
+ function slotAt(px,py){
+   let under=document.elementFromPoint(px,py);
+   return under&&under.closest ? under.closest('#pslots .slot') : null;
+ }
+ function move(e){
+   if(e.pointerId!==pid)return;
+   e.preventDefault();
+   x=e.clientX;y=e.clientY;
+   if(!moved&&Math.hypot(x-sx,y-sy)>7){moved=true;makeGhost()}
+   if(moved){
+     positionGhost();clearHover();
+     let sl=slotAt(x,y);
      if(sl&&!me().slots[+sl.dataset.slot])sl.classList.add('drop-hover');
    }
- };
- const finish=e=>{
+ }
+ function cleanup(){
+   if(ended)return;ended=true;
+   document.removeEventListener('pointermove',move,true);
+   document.removeEventListener('pointerup',up,true);
+   document.removeEventListener('pointercancel',cancel,true);
+   el.classList.remove('drag-source');
+   clearHover();
+   if(ghost)ghost.remove();
+ }
+ function up(e){
+   if(e.pointerId!==pid)return;
    e.preventDefault();
-   el.removeEventListener('pointermove',move);
-   el.removeEventListener('pointerup',finish);
-   el.removeEventListener('pointercancel',cancel);
-   try{el.releasePointerCapture(ev.pointerId)}catch(_){}
-   let x=e.clientX??lastX,y=e.clientY??lastY;
-   if(ghost)ghost.remove();
-   document.querySelectorAll('#pslots .slot').forEach(z=>z.classList.remove('drop-hover'));
-   if(moved){
-     let under=document.elementFromPoint(x,y);
-     let sl=under&&under.closest&&under.closest('#pslots .slot');
-     if(sl&&!me().slots[+sl.dataset.slot]){
-       selectedCardId=null;
-       play(c,+sl.dataset.slot);
-       return;
-     }
+   x=e.clientX;y=e.clientY;
+   let sl=moved?slotAt(x,y):null;
+   cleanup();
+   if(sl&&!me().slots[+sl.dataset.slot]){
+     selectedCardId=null;
+     play(c,+sl.dataset.slot);
+   }else{
+     selectedCardId=c.id;
+     renderSelectionOnly();
    }
-   // A short press acts as the accessibility fallback: select card, then tap a slot.
-   selectedCardId=c.id;
-   renderSelectionOnly();
- };
- const cancel=e=>{
-   if(e)e.preventDefault();
-   el.removeEventListener('pointermove',move);
-   el.removeEventListener('pointerup',finish);
-   el.removeEventListener('pointercancel',cancel);
-   if(ghost)ghost.remove();
-   document.querySelectorAll('#pslots .slot').forEach(z=>z.classList.remove('drop-hover'));
-   renderSelectionOnly();
- };
- el.addEventListener('pointermove',move,{passive:false});
- el.addEventListener('pointerup',finish,{passive:false});
- el.addEventListener('pointercancel',cancel,{passive:false});
+ }
+ function cancel(e){
+   if(e.pointerId!==pid)return;
+   e.preventDefault();cleanup();selectedCardId=c.id;renderSelectionOnly();
+ }
+ document.addEventListener('pointermove',move,{capture:true,passive:false});
+ document.addEventListener('pointerup',up,{capture:true,passive:false});
+ document.addEventListener('pointercancel',cancel,{capture:true,passive:false});
 }
 function validateState(){if(!G)return true;let ok=true,seen=new Set();for(const p of G.p){if(p.e<0||p.e>p.maxE||p.maxE>7||p.slots.length!==3)ok=false;for(const c of [...p.deck,...p.hand,...p.wake,...p.slots.filter(Boolean)]){if(seen.has(c.id))ok=false;seen.add(c.id)}}if(!ok)console.error('ELEMENTBOUND invariant violation',G);return ok}
-function render(){if(!G)return;let p=me(),e=foe();document.getElementById('rev').textContent=`REV ${G.rev}`;document.getElementById('turn').textContent=`Turn ${G.turn} · ${G.active?'RIVAL':'YOU'}`;document.getElementById('chain').textContent=`Chain ${G.chain}`;document.getElementById('difficulty').textContent=diff;document.getElementById('pname').textContent=`${E[p.el]} ${p.name}`;document.getElementById('ename').textContent=`${E[e.el]} ${e.name}`;document.getElementById('pvit').textContent=`❤️ ${p.vit}`;document.getElementById('evit').textContent=`❤️ ${e.vit}`;document.getElementById('pstats').innerHTML=`<span class=pill>Essence ${p.e}/${p.maxE}</span><span class=pill>Hand ${p.hand.length}</span><span class=pill>Deck ${p.deck.length}</span><span class=pill>Wake ${p.wake.length}</span><div class=stathelp>Essence = spendable energy · Hand = playable cards · Deck = draw pile · Wake = used/destroyed cards</div>`;document.getElementById('estats').innerHTML=`<span class=pill>Essence ${e.e}/${e.maxE}</span><span class=pill>Hand ${e.hand.length}</span><span class=pill>Deck ${e.deck.length}</span><span class=pill>Wake ${e.wake.length}</span>`;slots('pslots',p);slots('eslots',e);let h=document.getElementById('hand');h.innerHTML=p.hand.map(c=>card(c,playable(c))).join('');h.querySelectorAll('.play').forEach(x=>{let c=p.hand.find(c=>c.id==x.dataset.id);if(c.type==='TECHNIQUE')x.onclick=()=>play(c);else{x.onclick=null;x.onpointerdown=ev=>beginCardDrag(ev,c,x)}});wireDropSlots();document.getElementById('attack').disabled=G.active||G.winner||!p.slots.some(x=>x&&x.ready&&!x.sick);document.getElementById('end').disabled=G.active||G.winner;document.getElementById('you').classList.toggle('active',G.active===0);document.getElementById('enemy').classList.toggle('active',G.active===1);document.getElementById('winner').innerHTML=G.winner?`<div class=win>🏆 ${G.winner} wins</div>`:'';let l=document.getElementById('log');l.innerHTML=G.logs.map(x=>`<div>${x}</div>`).join('');l.scrollTop=l.scrollHeight}
+function render(){if(!G)return;let p=me(),e=foe();document.getElementById('rev').textContent=`REV ${G.rev}`;document.getElementById('turn').textContent=`Turn ${G.turn} · ${G.active?'RIVAL':'YOU'}`;document.getElementById('chain').textContent=`Chain ${G.chain}`;document.getElementById('difficulty').textContent=diff;document.getElementById('pname').textContent=`${E[p.el]} ${p.name}`;document.getElementById('ename').textContent=`${E[e.el]} ${e.name}`;document.getElementById('pvit').textContent=`❤️ ${p.vit}`;document.getElementById('evit').textContent=`❤️ ${e.vit}`;document.getElementById('pstats').innerHTML=`<span class=pill>Essence ${p.e}/${p.maxE}</span><span class=pill>Hand ${p.hand.length}</span><span class=pill>Deck ${p.deck.length}</span><span class=pill>Wake ${p.wake.length}</span><div class=stathelp>Essence = spendable energy · Hand = playable cards · Deck = draw pile · Wake = used/destroyed cards</div>`;document.getElementById('estats').innerHTML=`<span class=pill>Essence ${e.e}/${e.maxE}</span><span class=pill>Hand ${e.hand.length}</span><span class=pill>Deck ${e.deck.length}</span><span class=pill>Wake ${e.wake.length}</span>`;slots('pslots',p);slots('eslots',e);let h=document.getElementById('hand');h.innerHTML=p.hand.map(c=>card(c,playable(c))).join('');h.querySelectorAll('.play').forEach(x=>{let c=p.hand.find(c=>c.id==x.dataset.id);if(c.type==='TECHNIQUE')x.onclick=()=>play(c);else{x.onclick=null;x.draggable=false;x.ondragstart=ev=>ev.preventDefault();x.onpointerdown=ev=>beginCardDrag(ev,c,x)}});wireDropSlots();document.getElementById('attack').disabled=G.active||G.winner||!p.slots.some(x=>x&&x.ready&&!x.sick);document.getElementById('end').disabled=G.active||G.winner;document.getElementById('you').classList.toggle('active',G.active===0);document.getElementById('enemy').classList.toggle('active',G.active===1);document.getElementById('winner').innerHTML=G.winner?`<div class=win>🏆 ${G.winner} wins</div>`:'';let l=document.getElementById('log');l.innerHTML=G.logs.map(x=>`<div>${x}</div>`).join('');l.scrollTop=l.scrollHeight}
 function allCodexCards(){let out=[];Object.keys(BASE).forEach(el=>{BASE[el].forEach(z=>out.push({el,n:z[0],c:z[1],type:'MANIFESTATION',a:z[2],h:z[3],text:z[4],tip:z[5]}));let t=TECH[el];out.push({el,n:t[0],c:'1–3',type:'TECHNIQUE',text:t[1],tip:t[2]})});return out}
 let codexFilter='ALL';
 function goCodex(){codexFilter='ALL';renderCodex();go('codex')}
