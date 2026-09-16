@@ -99,7 +99,7 @@
   <div id="codexList" class="deckgrid"></div>
 </section>
 <section id="setup" class="screen"><div class="title">Choose Your Bender</div><div class="small">Your name stays customizable; choose a Prime or Hybrid bending path.</div><div id="decks" class="deckgrid"></div><div class="title" style="font-size:20px;margin-top:18px">Opponent Difficulty</div><div id="diffs" class="diffs"></div><button id="start" class="primary" disabled onclick="startMatch()">START DUEL</button><button class="ghost" onclick="go('home')">BACK</button></section>
-<section id="battle" class="screen"><div class="top"><div class="row"><b>ELEMENTBOUND <span class="small">Alpha 0.7.3 · EB-1.7</span></b><span id="rev" class="pill"></span></div><div class="stats"><span id="turn" class="pill"></span><span id="chain" class="pill"></span><span id="difficulty" class="pill"></span></div></div><div id="trialObjective" class="trialObjective"></div><div id="winner"></div>
+<section id="battle" class="screen"><div class="top"><div class="row"><b>ELEMENTBOUND <span class="small">Alpha 0.7.4 · EB-1.7</span></b><span id="rev" class="pill"></span></div><div class="stats"><span id="turn" class="pill"></span><span id="chain" class="pill"></span><span id="difficulty" class="pill"></span></div></div><div id="trialObjective" class="trialObjective"></div><div id="winner"></div>
 <div id="enemy" class="side"><div class="row"><b id="ename"></b><b id="evit"></b></div><div id="estats" class="stats"></div><div id="eslots" class="slots"></div></div>
 <div id="you" class="side"><div class="row"><b id="pname"></b><b id="pvit"></b></div><div id="pstats" class="stats"></div><div id="pslots" class="slots"></div><b>Hand</b><div id="hand" class="hand"></div></div>
 <div class="actions"><button id="attack" onclick="attackPick()">Attack</button><button id="end" onclick="endTurn()">End Turn</button><button onclick="exitBattle()">Exit</button></div><h3>Event Log</h3><div id="log" class="log"></div></section>
@@ -252,10 +252,10 @@ function startTrial(el){
       element:'NATURE',
       title:'Trial of Roots',
       icon:'🌿',
-      objective:'Heal Root Keeper to create Growth, then let Grove Beast finish the rival.',
-      fail:'Build Growth before the finishing strike.',
+      objective:'Use your Nature Technique on Root Keeper → gain Growth → attack with Grove Beast.',
+      fail:'Use the Technique first. Growth must be created before Grove Beast can finish.',
       mastered:'GROW → STRIKE',
-      progress:{grew:false}
+      progress:{grew:false,techniqueApplied:false}
     };
   }else{
     p=player('Your Bender','WATER');
@@ -330,28 +330,34 @@ function renderTrialUI(){
   let failed=!G.winner && p.hand.length===0 && e.vit>0 &&
     ((t.element==='FIRE') ||
      (t.element==='WATER' && (!t.progress.soaked || !e.slots.some(Boolean))) ||
-     (t.element==='NATURE' && !t.progress.grew));
+     (t.element==='NATURE' && !t.progress.techniqueApplied && !t.progress.grew));
 
   box.innerHTML=failed
     ? `<b>${t.icon} ${t.title} · Sequence missed</b><span class="small">${t.fail}</span><button class="ghost" style="margin-top:8px" onclick="resetTrial()">↻ TRY AGAIN</button>`
     : `<b>${t.icon} ${t.title}</b><span class="small">${t.objective}</span>${G.winner?'<button class="ghost" style="margin-top:8px" onclick="resetTrial()">↻ TRY AGAIN</button>':''}`;
 }
 
-function resolveNatureTrialGrowth(){
-  if(!G||!G.trial||G.trial.element!=='NATURE')return;
+function resolveNatureTrialGrowth(target){
+  if(!G||!G.trial||G.trial.element!=='NATURE')return false;
   let p=me();
   let keeper=p.slots.find(x=>x&&x.n==='Root Keeper');
   let beast=p.slots.find(x=>x&&x.n==='Grove Beast');
-  if(!keeper||!beast)return;
+  if(!keeper||!beast)return false;
 
-  // The lesson is explicit: healing converts into Growth, then Growth powers the payoff.
-  if(keeper.h<keeper.max){
-    keeper.h=Math.min(keeper.max,keeper.h+1);
-    keeper.growth=Math.min(3,(keeper.growth||0)+1);
-    beast.growth=Math.min(3,(beast.growth||0)+1);
-    G.trial.progress.grew=true;
-    add('ROOTS · Heal → Growth +1');
+  // Trial rule: the Nature Technique must actually be applied to Root Keeper.
+  // No attack can substitute for this step.
+  if(target && target.n!=='Root Keeper'){
+    add('ROOTS · Apply the Technique to Root Keeper.');
+    return false;
   }
+
+  keeper.h=Math.min(keeper.max,(keeper.h||0)+1);
+  keeper.growth=Math.min(3,(keeper.growth||0)+1);
+  beast.growth=Math.min(3,(beast.growth||0)+1);
+  G.trial.progress.grew=true;
+  G.trial.progress.techniqueApplied=true;
+  add('ROOTS · Technique applied → Root Keeper heals → Growth +1');
+  return true;
 }
 
 function registerAffinity(p,c){let h=HYBRIDS[p.el];if(!h||c.el===p.el)return;let r=p.turnState.resonance;if(c.el===h.parents[0])r.a=true;if(c.el===h.parents[1])r.b=true;let was=r.active;r.active=r.a&&r.b;p.turnState.resolved.push(c.id);if(r.active&&!was)add(`${E[p.el]} ${INFO[p.el][0]} RESONANCE ACTIVE`)}
@@ -382,7 +388,15 @@ function applyQuickAfterDamage(owner,target){if(!target||!target.quick)return;if
 function hybridAttackBonus(att,p){let bonus=0;if(att.el==='STORM'&&att.n==='Tempest Striker'&&p.turnState.moved.includes(att.id)&&!att.turnFlags?.stormBonus){bonus=1;att.turnFlags={...(att.turnFlags||{}),stormBonus:true}}return bonus}
 function attackPick(){let a=me().slots.filter(x=>x&&x.ready&&!x.sick);if(!a.length)return;modal('Choose attacker',a.map(m=>[`${m.n} · ${m.a} ATK`,()=>targetPick(m)]))}
 function targetPick(att){let e=foe(),guards=e.slots.filter(x=>x&&x.guard&&x.ready),targets=guards.length?guards:e.slots.filter(Boolean),b=targets.map(m=>[`Attack ${m.n}`,()=>attack(att,m)]);if(!guards.length)b.push([`Attack Bender · ${e.vit} Vitality`,()=>attack(att,null)]);modal('Choose target',b)}
-function attack(att,t){hideModal();att.ready=false;if(t){applyQuickBeforeAttack(foe(),t);let q=t.quick&&t.quick.kind==='REDUCE'?t.quick.value:0;if(q)t.quick=null;let power=Math.max(0,att.a+hybridAttackBonus(att,me())-q);let d=hit(t,power);add(`${att.n} attacks ${t.n} for ${d}`);applyQuickAfterDamage(foe(),t);death(foe());if(G.trial&&G.trial.element==='WATER'&&G.trial.progress.soaked&&!foe().slots.some(Boolean)){foe().vit=0;add('TIDE TRIAL · Soak → Strike complete')}if(G.trial&&G.trial.element==='NATURE'&&G.trial.progress.grew&&att.n==='Grove Beast'&&!foe().slots.some(Boolean)){foe().vit=0;add('ROOTS TRIAL · Grow → Strike complete')}}else{foe().vit-=att.a;add(`${att.n} hits rival Bender for ${att.a}`)}bump()}
+function attack(att,t){hideModal();att.ready=false;if(t){applyQuickBeforeAttack(foe(),t);let q=t.quick&&t.quick.kind==='REDUCE'?t.quick.value:0;if(q)t.quick=null;let power=Math.max(0,att.a+hybridAttackBonus(att,me())-q);
+if(G.trial&&G.trial.element==='NATURE'&&att.n==='Grove Beast'){
+  if(!G.trial.progress.techniqueApplied){
+    power=0;
+    add('ROOTS · Technique first → then strike.');
+  }else{
+    power+=(att.growth||0);
+  }
+}let d=hit(t,power);add(`${att.n} attacks ${t.n} for ${d}`);applyQuickAfterDamage(foe(),t);death(foe());if(G.trial&&G.trial.element==='WATER'&&G.trial.progress.soaked&&!foe().slots.some(Boolean)){foe().vit=0;add('TIDE TRIAL · Soak → Strike complete')}if(G.trial&&G.trial.element==='NATURE'&&G.trial.progress.techniqueApplied&&G.trial.progress.grew&&att.n==='Grove Beast'&&!foe().slots.some(Boolean)){foe().vit=0;add('ROOTS TRIAL · Grow → Strike complete')}}else{foe().vit-=att.a;add(`${att.n} hits rival Bender for ${att.a}`)}bump()}
 function endTurn(){if(!G||G.winner||G.active!==0||G.trial)return;G.active=1;turnStart();setTimeout(ai,350)}
 function turnStart(){let p=current();p.slots.filter(Boolean).forEach(m=>{m.quick=null;m.turnFlags={}});p.turnState=freshTurnState(p.el);p.maxE=Math.min(7,2+Math.floor((G.turn-1)));p.e=p.maxE;p.slots.filter(Boolean).forEach(m=>{m.ready=true;m.sick=false});draw(p,true);G.chain=0;bump(`${p.name} turn begins`)}
 function ai(){if(G.winner)return;let p=foe(),e=me(),budget=diff==='Difficult'?5:diff==='Medium'?3:2;
