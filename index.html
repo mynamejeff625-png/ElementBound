@@ -139,6 +139,8 @@ BLOOM:[
  {n:'Flourishing Current',c:3,type:'TECHNIQUE',role:'PAYOFF',text:'Heal a friendly Manifestation 2. Resonance — if it is Seeded, give it 1 Growth, max 3.',tip:'Turns established Bloom setup into durable value.'},
  {n:'Reclaiming Tide',c:2,type:'TECHNIQUE',role:'QUICK',text:'Choose a Seeded friendly Manifestation with Growth. Until your next turn, the first lethal attack removes Seeded and 1 Growth and leaves it at 1 HP.',tip:'A setup-dependent survival shield, not resurrection.'}]
 };
+// Alpha 0.7.8 Exhaustion Help hotfix — one source of truth for rules + gameplay.
+const EXHAUSTION_DAMAGE=2;
 const GLOSSARY={
 'Technique':'A one-use card. Pay its Essence cost, resolve its effect, then place it in the Wake.',
 'Summoning sickness':'A Manifestation cannot attack on the turn it enters the field. It can still provide passive effects such as Guard.',
@@ -154,7 +156,7 @@ const GLOSSARY={
 'Chain':'Counts consecutive Prime Manifestation/Technique plays during your turn. Lightning especially rewards higher Chains.',
 'Resonance':'Hybrid turn state. Successfully resolve one card from each parent Prime affinity in the same turn. Hybrid cards do not activate it.',
 'Quick':'A Technique that prepares an effect lasting until your next turn; Alpha 0.6 does not use live response chains.',
-'Wake':'Your used-card zone: resolved Techniques and destroyed Manifestations are placed here.','Deck':'Your remaining draw pile. When it reaches 0, attempting to draw causes Exhaustion Damage.','Hand':'Cards currently available for you to play. Your rival’s hand count is visible, but its cards remain hidden.'
+'Wake':'Your used-card zone: resolved Techniques and destroyed Manifestations are placed here.','Deck':'Your remaining draw pile. When it reaches 0, attempting to draw causes Exhaustion Damage.','Exhaustion':`When your Deck is empty and you would draw a card, your Bender takes ${EXHAUSTION_DAMAGE} damage instead. This can defeat either Bender, so running out of cards becomes a late-game pressure mechanic.`,'Hand':'Cards currently available for you to play. Your rival’s hand count is visible, but its cards remain hidden.'
 };
 let choice=null,diff=null,G=null,uid=0;
 function go(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('on'));document.getElementById(id).classList.add('on')}
@@ -167,7 +169,7 @@ function deck(el){if(!HYBRIDS[el]){let b=BASE[el],a=[];for(let i=0;i<13;i++){let
 function shuffle(a){for(let i=a.length-1;i;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}}
 function freshTurnState(el){let h=HYBRIDS[el];return{resonance:{a:false,b:false,active:false},resolved:[],moved:[],triggered:[],quick:[],parents:h?h.parents:[]}}
 function player(name,el){let d=deck(el);shuffle(d);return{name,el,vit:30,maxE:2,e:2,deck:d,hand:[],wake:[],slots:[null,null,null],marks:[],turnState:freshTurnState(el)}}
-function draw(p,ex=true){if(!p.deck.length){if(ex){p.vit-=2;add(`${p.name} takes 2 Exhaustion Damage`);winCheck()}return}let c=p.deck.shift();c.zone='HAND';p.hand.push(c)}
+function draw(p,ex=true){if(!p.deck.length){if(ex){p.vit-=EXHAUSTION_DAMAGE;add(`${p.name} takes ${EXHAUSTION_DAMAGE} Exhaustion Damage`);winCheck()}return}let c=p.deck.shift();c.zone='HAND';p.hand.push(c)}
 function startMatch(){let keys=Object.keys(INFO),pool=keys.filter(x=>x!==choice&&x!==window.lastOpp);if(!pool.length)pool=keys.filter(x=>x!==choice);let opp=pool[Math.floor(Math.random()*pool.length)];window.lastOpp=opp;G={rev:0,turn:1,active:0,chain:0,winner:null,p:[player('Your Bender',choice),player(`${diff} ${INFO[opp][0]} Rival`,opp)],logs:[]};G.p.forEach(p=>{for(let i=0;i<4;i++)draw(p,false)});add(`MATCH START · ${INFO[choice][0]} vs ${INFO[opp][0]}`);go('battle');render()}
 
 let activeTrial=null;
@@ -703,7 +705,7 @@ let codexFilter='ALL';
 function goCodex(){codexFilter='ALL';renderCodex();go('codex')}
 function renderCodex(){let f=document.getElementById('codexFilters');f.innerHTML=['ALL',...Object.keys(INFO)].map(k=>`<button class="diff ${codexFilter===k?'sel':''}" style="padding:7px 9px" onclick="codexFilter='${k}';renderCodex()">${k==='ALL'?'All':E[k]+' '+INFO[k][0]}</button>`).join('');let cards=allCodexCards().filter(c=>codexFilter==='ALL'||c.el===codexFilter);document.getElementById('codexList').innerHTML=cards.map((c,i)=>`<button class="deck codexCard ${c.el.toLowerCase()}" onclick="codexDetail('${c.el}','${c.n.replace(/'/g,"\\'")}')"><b>${E[c.el]} ${c.n}</b><div class=small>${c.type} · ${c.c} Essence${c.a!=null?` · ${c.a} ATK / ${c.h} HP`:''}</div><div class=rules>${c.text}</div></button>`).join('')}
 function codexDetail(el,name){let c=allCodexCards().find(x=>x.el===el&&x.n===name);if(!c)return;let terms=Object.keys(GLOSSARY).filter(k=>(c.text+' '+c.type).toLowerCase().includes(k.toLowerCase()));let body=document.getElementById('mb');document.getElementById('mt').textContent=`${E[el]} ${c.n}`;body.innerHTML=`<div class=rules><b>${c.type} · ${c.c} Essence</b>${c.a!=null?`<br>${c.a} ATK · ${c.h} HP`:''}<p>${c.text}</p><p><b>How to use it:</b> ${c.tip}</p>${terms.map(k=>`<p><b>${k}:</b> ${GLOSSARY[k]}</p>`).join('')}</div><button onclick="hideModal()">CLOSE</button>`;document.getElementById('mw').classList.remove('hide')}
-function showRules(){let entries=['Hand','Deck','Wake','Technique','Resonance','Quick','Summoning sickness','Guard','Armor','Flow','Chain'];modal('How to Play',[[`30 Vitality · 3 field slots · Essence grows from 2 to 7`,hideModal],[`Manifestations: tap a card, then tap an open slot — or press and drag the card directly into M1, M2, or M3.`,hideModal],[`Techniques resolve when tapped because they do not occupy a field slot.`,hideModal],[`Both Benders show the same Essence · Hand · Deck · Wake information.`,hideModal],[`Cards show their actual effect text directly in battle.`,hideModal],[`Open CODEX from the title screen for every current Alpha card and tactical notes.`,hideModal],...entries.map(k=>[`${k}: ${GLOSSARY[k]}`,hideModal])])}
+function showRules(){let entries=['Hand','Deck','Wake','Exhaustion','Technique','Resonance','Quick','Summoning sickness','Guard','Armor','Flow','Chain'];modal('How to Play',[[`30 Vitality · 3 field slots · Essence grows from 2 to 7`,hideModal],[`Manifestations: tap a card, then tap an open slot — or press and drag the card directly into M1, M2, or M3.`,hideModal],[`Techniques resolve when tapped because they do not occupy a field slot.`,hideModal],[`Both Benders show the same Essence · Hand · Deck · Wake information.`,hideModal],[`Cards show their actual effect text directly in battle.`,hideModal],[`Open CODEX from the title screen for every current Alpha card and tactical notes.`,hideModal],...entries.map(k=>[`${k}: ${GLOSSARY[k]}`,hideModal])])}
 setup();
 
 // ROOTS TRIAL 0.7.5 — deterministic mobile target hook.
