@@ -99,7 +99,7 @@
   <div id="codexList" class="deckgrid"></div>
 </section>
 <section id="setup" class="screen"><div class="title">Choose Your Bender</div><div class="small">Your name stays customizable; choose a Prime or Hybrid bending path.</div><div id="decks" class="deckgrid"></div><div class="title" style="font-size:20px;margin-top:18px">Opponent Difficulty</div><div id="diffs" class="diffs"></div><button id="start" class="primary" disabled onclick="startMatch()">START DUEL</button><button class="ghost" onclick="go('home')">BACK</button></section>
-<section id="battle" class="screen"><div class="top"><div class="row"><b>ELEMENTBOUND <span class="small">Alpha 0.7 · EB-1.7</span></b><span id="rev" class="pill"></span></div><div class="stats"><span id="turn" class="pill"></span><span id="chain" class="pill"></span><span id="difficulty" class="pill"></span></div></div><div id="trialObjective" class="trialObjective"></div><div id="winner"></div>
+<section id="battle" class="screen"><div class="top"><div class="row"><b>ELEMENTBOUND <span class="small">Alpha 0.7.1 · EB-1.7</span></b><span id="rev" class="pill"></span></div><div class="stats"><span id="turn" class="pill"></span><span id="chain" class="pill"></span><span id="difficulty" class="pill"></span></div></div><div id="trialObjective" class="trialObjective"></div><div id="winner"></div>
 <div id="enemy" class="side"><div class="row"><b id="ename"></b><b id="evit"></b></div><div id="estats" class="stats"></div><div id="eslots" class="slots"></div></div>
 <div id="you" class="side"><div class="row"><b id="pname"></b><b id="pvit"></b></div><div id="pstats" class="stats"></div><div id="pslots" class="slots"></div><b>Hand</b><div id="hand" class="hand"></div></div>
 <div class="actions"><button id="attack" onclick="attackPick()">Attack</button><button id="end" onclick="endTurn()">End Turn</button><button onclick="exitBattle()">Exit</button></div><h3>Event Log</h3><div id="log" class="log"></div></section>
@@ -266,7 +266,7 @@ if(c.type==='TECHNIQUE'){c.zone='WAKE';p.wake.push(c);
  else if(c.el==='WATER'){let t=foe().slots.find(Boolean);if(t&&!t.marks.includes('Soaked'))t.marks.push('Soaked');add(`${c.n}: Flow 1${t?' + applies Soaked':''}`)}
  else if(c.el==='LIGHTNING'){if(G.chain>=2){foe().vit-=1;add(`${c.n}: Chain ${G.chain} → Charged pressure 1`)}else add(`${c.n}: Flow 1 · sequence another card for Charged payoff`)}
  else if(c.el==='AIR'){let arr=foe().slots,from=arr.findIndex(Boolean),to=arr.findIndex(x=>!x);if(from>=0&&to>=0){let m=arr[from];arr[from]=null;arr[to]=m;add(`${c.n}: moves ${m.n} M${from+1}→M${to+1}`)}else add(`${c.n}: Flow 1 (no legal movement)`)}
-}else{let i=slotIndex;if(i==null||i<0||i>2||p.slots[i])return;c.zone='FIELD';c.ready=true;c.sick=true;c.marks=c.marks||[];if(HYBRIDS[c.el]){/* hybrid avatar enters normally */}if(c.el==='FIRE'&&c.n==='Cinder Adept'){addMark(foe(),'Burning');add(`${c.n}: applies Burning to rival Bender`)}if(c.el==='FIRE'&&c.n==='Cinder Adept'){addMark(e,'Burning');add(`Rival ${c.n}: applies Burning to your Bender`)}if(c.el==='NATURE'&&c.n==='Sproutling'&&!c.marks.includes('Seeded'))c.marks.push('Seeded');if(c.el==='EARTH'&&c.n==='Stone Initiate')c.armor=Math.min(3,c.armor+1);if(c.el==='AIR'&&c.n==='Breeze Disciple'&&!c.marks.includes('Momentum'))c.marks.push('Momentum');p.slots[i]=c;add(`SUMMON ${c.n} → M${i+1}`)}registerAffinity(p,c);bump()}
+}else{let i=slotIndex;if(i==null||i<0||i>2||p.slots[i])return;c.zone='FIELD';c.ready=true;c.sick=true;c.marks=c.marks||[];if(HYBRIDS[c.el]){/* hybrid avatar enters normally */}if(c.el==='FIRE'&&c.n==='Cinder Adept'){addMark(foe(),'Burning');add(`${c.n}: applies Burning to rival Bender`)}if(c.el==='NATURE'&&c.n==='Sproutling'&&!c.marks.includes('Seeded'))c.marks.push('Seeded');if(c.el==='EARTH'&&c.n==='Stone Initiate')c.armor=Math.min(3,c.armor+1);if(c.el==='AIR'&&c.n==='Breeze Disciple'&&!c.marks.includes('Momentum'))c.marks.push('Momentum');p.slots[i]=c;add(`SUMMON ${c.n} → M${i+1}`)}registerAffinity(p,c);bump()}
 function hit(m,n){let block=Math.min(m.armor,n);m.armor-=block;m.h-=n-block;return n-block}function death(p){p.slots.forEach((m,i)=>{if(m&&m.h<=0){p.slots[i]=null;m.zone='WAKE';p.wake.push(m);add(`${m.n} destroyed`)}})}
 function addMark(m,x){m.marks=m.marks||[];if(!m.marks.includes(x))m.marks.push(x)}
 function grow(m){if((m.growth||0)>=3)return false;m.growth=(m.growth||0)+1;m.max++;m.h++;m.a++;return true}
@@ -372,6 +372,7 @@ function beginCardDrag(ev,c,el){
      selectedCardId=null;
      play(c,+sl.dataset.slot);
    }else{
+     // iPhone fallback: a short press selects the card, then tapping M1/M2/M3 commits it.
      selectedCardId=c.id;
      renderSelectionOnly();
    }
