@@ -87,7 +87,7 @@
     <button class="trial water" onclick="startTrial('WATER')"><b>💧 Trial of Tides</b><div class="small">Soak → Strike</div><div class="rules">Set Soaked before committing your attack.</div></button>
     <button class="trial nature" onclick="startTrial('NATURE')"><b>🌿 Trial of Roots</b><div class="small">Grow → Strike</div><div class="rules">Build Growth first, then turn it into your finishing attack.</div></button>
     <button class="trial earth" onclick="startTrial('EARTH')"><b>🪨 Trial of Stone</b><div class="small">Guard → Survive</div><div class="rules">Build Armor, then survive a heavy counterattack.</div></button>
-    <button class="trial lightning" onclick="startTrial('LIGHTNING')"><b>⚡ Trial of Storms</b><div class="small">Charge → Release</div><div class="rules">Build Charge, then release it with Spark Striker.</div></button>
+    <button class="trial lightning" onclick="startTrial('LIGHTNING')"><b>⚡ Trial of Storms</b><div class="small">Charge → Release</div><div class="rules">Build Charge, then release it with Spark Runner.</div></button>
     <button class="trial locked" disabled><b>🌪️ Trial of Winds</b><div class="small">Move → Exploit · Coming next</div></button>
   </div>
 </section>
@@ -99,7 +99,7 @@
   <div id="codexList" class="deckgrid"></div>
 </section>
 <section id="setup" class="screen"><div class="title">Choose Your Bender</div><div class="small">Your name stays customizable; choose a Prime or Hybrid bending path.</div><div id="decks" class="deckgrid"></div><div class="title" style="font-size:20px;margin-top:18px">Opponent Difficulty</div><div id="diffs" class="diffs"></div><button id="start" class="primary" disabled onclick="startMatch()">START DUEL</button><button class="ghost" onclick="go('home')">BACK</button></section>
-<section id="battle" class="screen"><div class="top"><div class="row"><b>ELEMENTBOUND <span class="small">Alpha 0.7.7a · EB-1.7</span></b><span id="rev" class="pill"></span></div><div class="stats"><span id="turn" class="pill"></span><span id="chain" class="pill"></span><span id="difficulty" class="pill"></span></div></div><div id="trialObjective" class="trialObjective"></div><div id="winner"></div>
+<section id="battle" class="screen"><div class="top"><div class="row"><b>ELEMENTBOUND <span class="small">Alpha 0.7.7b · EB-1.7</span></b><span id="rev" class="pill"></span></div><div class="stats"><span id="turn" class="pill"></span><span id="chain" class="pill"></span><span id="difficulty" class="pill"></span></div></div><div id="trialObjective" class="trialObjective"></div><div id="winner"></div>
 <div id="enemy" class="side"><div class="row"><b id="ename"></b><b id="evit"></b></div><div id="estats" class="stats"></div><div id="eslots" class="slots"></div></div>
 <div id="you" class="side"><div class="row"><b id="pname"></b><b id="pvit"></b></div><div id="pstats" class="stats"></div><div id="pslots" class="slots"></div><b>Hand</b><div id="hand" class="hand"></div></div>
 <div class="actions"><button id="attack" onclick="attackPick()">Attack</button><button id="end" onclick="endTurn()">End Turn</button><button onclick="exitBattle()">Exit</button></div><h3>Event Log</h3><div id="log" class="log"></div></section>
@@ -232,7 +232,7 @@ function startTrial(el){
     p.vit=26; p.maxE=1; p.e=1;
     e.vit=1; e.maxE=0; e.e=0;
 
-    let striker=trialManifestation('LIGHTNING','Spark Striker');
+    let striker=trialManifestation('LIGHTNING','Spark Runner');
     striker.zone='FIELD'; striker.ready=true; striker.sick=false;
     striker.charge=0;
     p.slots[0]=striker;
@@ -244,8 +244,8 @@ function startTrial(el){
       element:'LIGHTNING',
       title:'Trial of Storms',
       icon:'⚡',
-      objective:'Use Static Step → build Charge → attack with Spark Striker to release it.',
-      fail:'Charge first. Then release it with Spark Striker.',
+      objective:'Use Static Step → build Charge → attack with Spark Runner to release it.',
+      fail:'Charge first. Then release it with Spark Runner.',
       mastered:'CHARGE → RELEASE',
       progress:{step:0,charged:false,released:false}
     };
@@ -434,13 +434,13 @@ function resolveNatureTrialGrowth(target){
 
 function resolveStormTrial(){
   if(!G||!G.trial||G.trial.element!=='LIGHTNING')return false;
-  let striker=me().slots.find(x=>x&&x.n==='Spark Striker');
+  let striker=me().slots.find(x=>x&&x.n==='Spark Runner');
   if(!striker)return false;
   if(G.trial.progress.step===0){
     striker.charge=1;
     G.trial.progress.charged=true;
     G.trial.progress.step=1;
-    add('STORMS · CHARGE READY → attack with Spark Striker.');
+    add('STORMS · CHARGE READY → attack with Spark Runner.');
   }
   return true;
 }
@@ -519,7 +519,7 @@ function hybridAttackBonus(att,p){let bonus=0;if(att.el==='STORM'&&att.n==='Temp
 function attackPick(){let a=me().slots.filter(x=>x&&x.ready&&!x.sick);if(!a.length)return;modal('Choose attacker',a.map(m=>[`${m.n} · ${m.a} ATK`,()=>targetPick(m)]))}
 function targetPick(att){let e=foe(),guards=e.slots.filter(x=>x&&x.guard&&x.ready),targets=guards.length?guards:e.slots.filter(Boolean),b=targets.map(m=>[`Attack ${m.n}`,()=>attack(att,m)]);if(!guards.length)b.push([`Attack Bender · ${e.vit} Vitality`,()=>attack(att,null)]);modal('Choose target',b)}
 function attack(att,t){hideModal();att.ready=false;if(t){applyQuickBeforeAttack(foe(),t);let q=t.quick&&t.quick.kind==='REDUCE'?t.quick.value:0;if(q)t.quick=null;let power=Math.max(0,att.a+hybridAttackBonus(att,me())-q);
-if(G.trial&&G.trial.element==='LIGHTNING'&&att.n==='Spark Striker'){
+if(G.trial&&G.trial.element==='LIGHTNING'&&att.n==='Spark Runner'){
   if(G.trial.progress.step!==1){
     power=0;
     add('STORMS · Use Static Step first.');
