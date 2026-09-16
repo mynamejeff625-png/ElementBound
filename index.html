@@ -86,7 +86,7 @@
     <button class="trial fire" onclick="startTrial('FIRE')"><b>🔥 Trial of Flame</b><div class="small">Setup → Payoff</div><div class="rules">Use Burning to turn efficient damage into a finisher.</div></button>
     <button class="trial water" onclick="startTrial('WATER')"><b>💧 Trial of Tides</b><div class="small">Soak → Strike</div><div class="rules">Set Soaked before committing your attack.</div></button>
     <button class="trial nature" onclick="startTrial('NATURE')"><b>🌿 Trial of Roots</b><div class="small">Grow → Strike</div><div class="rules">Build Growth first, then turn it into your finishing attack.</div></button>
-    <button class="trial locked" disabled><b>🪨 Trial of Stone</b><div class="small">Guard → Survive · Coming next</div></button>
+    <button class="trial earth" onclick="startTrial('EARTH')"><b>🪨 Trial of Stone</b><div class="small">Guard → Survive</div><div class="rules">Build Armor, then survive a heavy counterattack.</div></button>
     <button class="trial locked" disabled><b>⚡ Trial of Storms</b><div class="small">Build your Chain · Coming next</div></button>
     <button class="trial locked" disabled><b>🌪️ Trial of Winds</b><div class="small">Move → Exploit · Coming next</div></button>
   </div>
@@ -99,7 +99,7 @@
   <div id="codexList" class="deckgrid"></div>
 </section>
 <section id="setup" class="screen"><div class="title">Choose Your Bender</div><div class="small">Your name stays customizable; choose a Prime or Hybrid bending path.</div><div id="decks" class="deckgrid"></div><div class="title" style="font-size:20px;margin-top:18px">Opponent Difficulty</div><div id="diffs" class="diffs"></div><button id="start" class="primary" disabled onclick="startMatch()">START DUEL</button><button class="ghost" onclick="go('home')">BACK</button></section>
-<section id="battle" class="screen"><div class="top"><div class="row"><b>ELEMENTBOUND <span class="small">Alpha 0.7.5 · EB-1.7</span></b><span id="rev" class="pill"></span></div><div class="stats"><span id="turn" class="pill"></span><span id="chain" class="pill"></span><span id="difficulty" class="pill"></span></div></div><div id="trialObjective" class="trialObjective"></div><div id="winner"></div>
+<section id="battle" class="screen"><div class="top"><div class="row"><b>ELEMENTBOUND <span class="small">Alpha 0.7.6 · EB-1.7</span></b><span id="rev" class="pill"></span></div><div class="stats"><span id="turn" class="pill"></span><span id="chain" class="pill"></span><span id="difficulty" class="pill"></span></div></div><div id="trialObjective" class="trialObjective"></div><div id="winner"></div>
 <div id="enemy" class="side"><div class="row"><b id="ename"></b><b id="evit"></b></div><div id="estats" class="stats"></div><div id="eslots" class="slots"></div></div>
 <div id="you" class="side"><div class="row"><b id="pname"></b><b id="pvit"></b></div><div id="pstats" class="stats"></div><div id="pslots" class="slots"></div><b>Hand</b><div id="hand" class="hand"></div></div>
 <div class="actions"><button id="attack" onclick="attackPick()">Attack</button><button id="end" onclick="endTurn()">End Turn</button><button onclick="exitBattle()">Exit</button></div><h3>Event Log</h3><div id="log" class="log"></div></section>
@@ -192,7 +192,7 @@ function trialTechnique(el,name,cost){
 }
 
 function startTrial(el){
-  if(!['FIRE','WATER','NATURE'].includes(el))return;
+  if(!['FIRE','WATER','NATURE','EARTH'].includes(el))return;
   activeTrial=el;
 
   let p,e,trial;
@@ -221,6 +221,41 @@ function startTrial(el){
       fail:'Burning needed to come before the payoff.',
       mastered:'SETUP → PAYOFF',
       progress:{}
+    };
+  }else if(el==='EARTH'){
+    p=player('Your Bender','EARTH');
+    e=player('Trial Colossus','FIRE');
+
+    p.deck=[]; p.hand=[]; p.wake=[]; p.slots=[null,null,null]; p.marks=[];
+    e.deck=[]; e.hand=[]; e.wake=[]; e.slots=[null,null,null]; e.marks=[];
+
+    p.vit=30; p.maxE=1; p.e=1;
+    e.vit=1; e.maxE=0; e.e=0;
+
+    // Earthen Guard starts exposed. Fortify is the lesson: Armor must be built
+    // before the scripted Colossus strike lands.
+    let guard=trialManifestation('EARTH','Earthen Guard');
+    guard.zone='FIELD'; guard.ready=true; guard.sick=false;
+    guard.h=3; guard.max=5; guard.armor=0;
+    p.slots[0]=guard;
+
+    let ram=trialManifestation('EARTH','Boulder Ram');
+    ram.n='Trial Colossus';
+    ram.zone='FIELD'; ram.ready=true; ram.sick=false;
+    ram.a=3; ram.h=6; ram.max=6; ram.armor=0;
+    e.slots[1]=ram;
+
+    p.hand=[trialTechnique('EARTH',TECH.EARTH[0],1)];
+
+    trial={
+      id:'EARTH_01',
+      element:'EARTH',
+      title:'Trial of Stone',
+      icon:'🪨',
+      objective:'Use Fortify → gain Armor → survive the Trial Colossus strike.',
+      fail:'Armor first. Without it, Earthen Guard cannot hold the line.',
+      mastered:'GUARD → SURVIVE',
+      progress:{step:0,armored:false,survived:false}
     };
   }else if(el==='NATURE'){
     p=player('Your Bender','NATURE');
@@ -330,6 +365,7 @@ function renderTrialUI(){
   let failed=!G.winner && p.hand.length===0 && e.vit>0 &&
     ((t.element==='FIRE') ||
      (t.element==='WATER' && (!t.progress.soaked || !e.slots.some(Boolean))) ||
+     (t.element==='EARTH' && !t.progress.survived) ||
      false);
 
   box.innerHTML=failed
@@ -368,6 +404,44 @@ function resolveNatureTrialGrowth(target){
   return true;
 }
 
+
+function resolveStoneTrial(){
+  if(!G||!G.trial||G.trial.element!=='EARTH')return false;
+  let t=G.trial,p=me(),e=foe();
+  if(t.progress.step!==0)return true;
+
+  let guard=p.slots.find(x=>x&&x.n==='Earthen Guard');
+  let colossus=e.slots.find(x=>x&&x.n==='Trial Colossus');
+  if(!guard||!colossus)return false;
+
+  // Fortify has already resolved through the normal Earth technique path.
+  if((guard.armor||0)<1){
+    add('STONE · Build Armor before the counterattack.');
+    return false;
+  }
+
+  t.progress.armored=true;
+  t.progress.step=1;
+  add(`STONE · ARMOR READY (${guard.armor}) → Trial Colossus strikes!`);
+
+  // Script the lesson using the normal damage/Armor function.
+  let before=guard.h;
+  let blocked=Math.min(guard.armor,colossus.a);
+  let dealt=hit(guard,colossus.a);
+  add(`Trial Colossus attacks Earthen Guard · Armor blocks ${blocked} · ${dealt} damage`);
+
+  if(guard.h>0){
+    t.progress.survived=true;
+    t.progress.step=2;
+    e.vit=0;
+    add(`STONE TRIAL · Guard → Survive complete · ${guard.h} HP remains`);
+  }else{
+    death(p);
+    add('STONE · The Guard fell. Try again and Armor first.');
+  }
+  return t.progress.survived;
+}
+
 function registerAffinity(p,c){let h=HYBRIDS[p.el];if(!h||c.el===p.el)return;let r=p.turnState.resonance;if(c.el===h.parents[0])r.a=true;if(c.el===h.parents[1])r.b=true;let was=r.active;r.active=r.a&&r.b;p.turnState.resolved.push(c.id);if(r.active&&!was)add(`${E[p.el]} ${INFO[p.el][0]} RESONANCE ACTIVE`)}
 function resonant(p){return !!(p.turnState&&p.turnState.resonance.active)}
 function add(s){G.logs.push(`T${G.turn} ${s}`)}function bump(s){G.rev++;if(s)add(s);winCheck();validateState();render()}
@@ -377,7 +451,7 @@ function play(c,slotIndex=null){if(!playable(c))return;if(c.type!=='TECHNIQUE'&&
 if(c.type==='TECHNIQUE'){c.zone='WAKE';p.wake.push(c);
  if(HYBRIDS[c.el]){resolveHybridTechnique(p,foe(),c)}
  else if(c.el==='FIRE'){let t=foe().slots.find(Boolean);if(t){let burn=(t.marks||[]).includes('Burning');let d=hit(t,burn?3:2);add(`${c.n}: ${d} damage${burn?' (Burning bonus)':''}`);death(foe())}else{let burn=(foe().marks||[]).includes('Burning'),d=burn?3:2;foe().vit-=d;add(`${c.n}: ${d} damage to rival Bender${burn?' (Burning bonus)':''}`)}}
- else if(c.el==='EARTH'){let t=p.slots.find(Boolean);if(t){t.armor=Math.min(3,(t.armor||0)+1);add(`${c.n}: ${t.n} gains 1 Armor`)}else add(`${c.n}: no friendly target`)}
+ else if(c.el==='EARTH'){let t=p.slots.find(Boolean);if(t){t.armor=Math.min(3,(t.armor||0)+1);add(`${c.n}: ${t.n} gains 1 Armor`);if(G.trial&&G.trial.element==='EARTH')resolveStoneTrial()}else add(`${c.n}: no friendly target`)}
  else if(c.el==='NATURE'){let t=p.slots.find(Boolean);if(t){t.h=Math.min(t.max,t.h+2);if((t.marks||[]).includes('Seeded')&&t.growth<3){t.growth++;t.max++;t.h++;t.a++;add(`${c.n}: heal + Seeded → Growth ${t.growth}`)}else add(`${c.n}: heals ${t.n} for up to 2`)}}
  else if(c.el==='WATER'){let t=foe().slots.find(Boolean);if(t&&!t.marks.includes('Soaked'))t.marks.push('Soaked');if(G.trial&&G.trial.element==='WATER'&&t)G.trial.progress.soaked=true;add(`${c.n}: Flow 1${t?' + applies Soaked':''}`)}
  else if(c.el==='LIGHTNING'){if(G.chain>=2){foe().vit-=1;add(`${c.n}: Chain ${G.chain} → Charged pressure 1`)}else add(`${c.n}: Flow 1 · sequence another card for Charged payoff`)}
