@@ -6,6 +6,7 @@
 .effect-badge.temp{border-style:dashed}
 .bender-effects{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
 .effect-pop{animation:effectPop .32s ease-out}
+.recycleBtn{border:1px solid #7fc4ff;border-radius:999px;padding:6px 10px;background:#15233d;font-weight:900;font-size:11px;white-space:nowrap;box-shadow:0 0 10px #7fc4ff20}.recycleBtn:disabled{opacity:.38;box-shadow:none}.benderHeadRight{display:flex;align-items:center;gap:8px}.card.recycle-selected{outline:2px solid #fff;outline-offset:1px;box-shadow:0 0 18px #7fc4ff55}.recycleHint{font-size:11px;color:#9fd2ff;margin:2px 0 6px;min-height:15px}
 @keyframes effectPop{0%{transform:scale(.92);filter:brightness(1.8)}100%{transform:scale(1);filter:brightness(1)}}.codexCard{text-align:left;cursor:pointer}.why{color:#9fd2ff;font-size:11px;margin-top:5px}
 
 /* Alpha 0.5.2 — mobile help/modal scrolling */
@@ -222,7 +223,7 @@ body{
 <section id="setup" class="screen"><div class="title">Choose Your Element Deck</div><div class="small">Choose a Prime or Hybrid bending path.</div><div id="decks" class="deckgrid"></div><div class="title" style="font-size:20px;margin-top:18px">Opponent Difficulty</div><div id="diffs" class="diffs"></div><button id="start" class="primary" disabled onclick="startMatch()">START DUEL</button><button class="ghost" onclick="go('home')">BACK</button></section>
 <div id="battleFx" aria-hidden="true"></div><div id="battleFocus" aria-live="polite"></div><section id="battle" class="screen"><div class="top"><div class="row"><b>ELEMENTBOUND <span class="small">Alpha 0.8.23 · EB-1.8.23</span></b><span id="rev" class="pill"></span></div><div class="stats"><span id="turn" class="pill"></span><span id="chain" class="pill"></span><span id="difficulty" class="pill"></span></div></div><div id="trialObjective" class="trialObjective"></div><div id="winner"></div>
 <div id="enemy" class="side"><div class="row"><b id="ename"></b><b id="evit"></b></div><div id="estats" class="stats"></div><div id="eslots" class="slots"></div></div>
-<div id="you" class="side"><div class="row"><b id="pname"></b><b id="pvit"></b></div><div id="pstats" class="stats"></div><div id="pslots" class="slots"></div><b>Hand</b><div id="hand" class="hand"></div></div>
+<div id="you" class="side"><div class="row"><b id="pname"></b><div class="benderHeadRight"><button id="recycle" class="recycleBtn" onclick="requestRecycle()">Card Re-cycle 3/3</button><b id="pvit"></b></div></div><div id="pstats" class="stats"></div><div id="pslots" class="slots"></div><b>Hand</b><div id="recycleHint" class="recycleHint"></div><div id="hand" class="hand"></div></div>
 <div class="actions"><button id="attack" onclick="attackPick()">Attack</button><button id="end" onclick="endTurn()">End Turn</button><button onclick="exitBattle()">Exit</button></div><h3>Event Log</h3><div id="log" class="log"></div></section>
 </div><div id="mw" class="modalw hide"><div class="modal"><h3 id="mt"></h3><div id="mb"></div><button onclick="hideModal()">Cancel</button></div></div>
 <script>
@@ -306,9 +307,9 @@ function hybridCard(el,z){if(z.type==='MANIFESTATION'){let c=mk(el,z.n,z.c,z.a,z
 function deck(el){if(!HYBRIDS[el]){let b=BASE[el],a=[];for(let i=0;i<13;i++){let z=b[i%3];a.push(mk(el,z[0],z[1],z[2],z[3],/\bGuard\b/.test(z[4]||''),z[4],z[5]))}for(let i=0;i<7;i++){let t=TECH[el];a.push({id:++uid,el,n:t[0],c:t[3],type:'TECHNIQUE',zone:'DECK',text:t[1],tip:t[2]})}return a}let h=HYBRIDS[el],a=[...primeCards(h.parents[0],8),...primeCards(h.parents[1],8)];HYBRID_CARDS[el].forEach(z=>a.push(hybridCard(el,z)));return a}
 function shuffle(a){for(let i=a.length-1;i;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}}
 function freshTurnState(el){let h=HYBRIDS[el];return{resonance:{a:false,b:false,active:false},resolved:[],moved:[],triggered:[],quick:[],parents:h?h.parents:[]}}
-function player(name,el){let d=deck(el);shuffle(d);return{name,el,vit:30,maxE:2,e:2,deck:d,hand:[],wake:[],slots:[null,null,null],marks:[],turnState:freshTurnState(el)}}
+function player(name,el){let d=deck(el);shuffle(d);return{name,el,vit:30,maxE:2,e:2,deck:d,hand:[],wake:[],slots:[null,null,null],marks:[],recycles:3,turnState:freshTurnState(el)}}
 function draw(p,ex=true){if(!p.deck.length){if(ex){p.vit-=EXHAUSTION_DAMAGE;add(`${p.name} takes ${EXHAUSTION_DAMAGE} Exhaustion Damage`);winCheck()}return}let c=p.deck.shift();c.zone='HAND';p.hand.push(c)}
-function startMatch(){let keys=Object.keys(INFO),pool=keys.filter(x=>x!==choice&&x!==window.lastOpp);if(!pool.length)pool=keys.filter(x=>x!==choice);let opp=pool[Math.floor(Math.random()*pool.length)];window.lastOpp=opp;G={rev:0,turn:1,active:0,chain:0,winner:null,p:[player('Your Bender',choice),player(`${diff} ${INFO[opp][0]} Rival`,opp)],logs:[]};G.p.forEach(p=>{for(let i=0;i<4;i++)draw(p,false)});add(`MATCH START · ${INFO[choice][0]} vs ${INFO[opp][0]}`);go('battle');render()}
+function startMatch(){selectedCardId=null;let keys=Object.keys(INFO),pool=keys.filter(x=>x!==choice&&x!==window.lastOpp);if(!pool.length)pool=keys.filter(x=>x!==choice);let opp=pool[Math.floor(Math.random()*pool.length)];window.lastOpp=opp;G={rev:0,turn:1,active:0,chain:0,winner:null,p:[player('Your Bender',choice),player(`${diff} ${INFO[opp][0]} Rival`,opp)],logs:[]};G.p.forEach(p=>{for(let i=0;i<4;i++)draw(p,false)});add(`MATCH START · ${INFO[choice][0]} vs ${INFO[opp][0]}`);go('battle');render()}
 
 let activeTrial=null;
 
@@ -764,7 +765,7 @@ function resolvePrimeSummonGift(p,c,isAI=false){
  return true;
 }
 
-function play(c,slotIndex=null,techTarget=undefined){if(!playable(c))return;if(c.type==='TECHNIQUE'&&techTarget===undefined){chooseTechniqueTarget(c);return}if(c.type!=='TECHNIQUE'&&(slotIndex===null||slotIndex<0||slotIndex>2||me().slots[slotIndex]))return;let p=me();p.e-=c.c;p.hand=p.hand.filter(x=>x.id!==c.id);G.chain++;
+function play(c,slotIndex=null,techTarget=undefined){if(!playable(c))return;if(c.type==='TECHNIQUE'&&techTarget===undefined){chooseTechniqueTarget(c);return}if(c.type!=='TECHNIQUE'&&(slotIndex===null||slotIndex<0||slotIndex>2||me().slots[slotIndex]))return;selectedCardId=null;let p=me();p.e-=c.c;p.hand=p.hand.filter(x=>x.id!==c.id);G.chain++;
 if(c.type==='TECHNIQUE'){c.zone='WAKE';p.wake.push(c);
  if(HYBRIDS[c.el]){resolveHybridTechnique(p,foe(),c,false,techTarget)}
  else if(c.el==='FIRE'){let t=techTarget&&techTarget.enemy;if(t){let burn=(t.marks||[]).includes('Burning');let d=hit(t,burn?3:2,c.el,c.n);add(`${c.n}: ${d} damage to ${t.n}${burn?' (Burning bonus)':''}`);death(foe())}else if(techTarget&&techTarget.bender&&activeGuards(foe()).length){add(`GUARD · ${activeGuards(foe())[0].n} blocks ${c.n} from targeting the rival Bender`)}else{let burn=(foe().marks||[]).includes('Burning'),d=burn?3:2;foe().vit-=d;ebQueueFx({kind:'benderHit',side:1,damage:d,el:c.el,label:c.n});add(`${c.n}: ${d} damage to rival Bender${burn?' (Burning bonus)':''}`)}}
@@ -1241,11 +1242,45 @@ function benderEffects(p){
 function card(c,can=false){let state=effectBadges(c);let summary=c.text?`<div class=rules>${c.text}</div>`:'';return `<div class="card ${c.el.toLowerCase()} ${can?'play':''}" data-id="${c.id}"><span class=cost>${c.c}</span><b>${E[c.el]} ${c.n}</b><div class=small>${c.type==='TECHNIQUE'?`Technique${c.role?' · '+c.role:''}`:`${c.a} ATK · ${c.h}/${c.max} HP${c.guard?' · Guard':''}`}</div>${summary}${state}${c.sick?'<div class=small>Summoning sickness</div>':''}<div class=why>ⓘ Tap name/card in Codex for full strategy</div></div>`}
 function slots(id,p){let own=p===me();document.getElementById(id).innerHTML=p.slots.map((m,i)=>`<div class="slot" data-slot="${i}" data-own="${own?'1':'0'}">${m?card(m):`<span class=small>M${i+1} · empty</span>`}</div>`).join('')}
 let selectedCardId=null,dragState=null;
-function selectForSlot(c){if(!playable(c)||c.type==='TECHNIQUE')return;selectedCardId=c.id;document.querySelectorAll('#pslots .slot').forEach(x=>{let i=+x.dataset.slot;if(!me().slots[i])x.classList.add('drop-ready')});add(`Selected ${c.n} · choose or drag to an open slot`);renderSelectionOnly()}
-function renderSelectionOnly(){document.querySelectorAll('#hand .card').forEach(x=>x.style.outline=(+x.dataset.id===selectedCardId?'2px solid #fff':''));document.querySelectorAll('#pslots .slot').forEach(x=>{let i=+x.dataset.slot;x.classList.toggle('drop-ready',selectedCardId!==null&&!me().slots[i])})}
+function selectedHandCard(){return G&&selectedCardId!==null?me().hand.find(c=>c.id===selectedCardId)||null:null}
+function recycleEligible(c){return !!(G&&!G.trial&&!G.winner&&G.active===0&&c&&me().recycles>0&&me().deck.some(x=>x.n!==c.n))}
+function selectHandCard(c){if(!G||G.active!==0||G.winner)return;selectedCardId=c.id;renderSelectionOnly()}
+function requestRecycle(){
+ let c=selectedHandCard();
+ if(!c){modal('Card Re-cycle · Select a card in your Hand first.',[['OK',hideModal]]);return}
+ if(G.trial){modal('Card Re-cycle is available in standard matches.',[['OK',hideModal]]);return}
+ if(me().recycles<=0){modal('Card Re-cycle · No uses remaining (0/3).',[['OK',hideModal]]);return}
+ if(!me().deck.length){modal(`Card Re-cycle · ${c.n} cannot be re-cycled because your Deck is empty.`,[['OK',hideModal]]);return}
+ let eligible=me().deck.filter(x=>x.n!==c.n);
+ if(!eligible.length){modal(`Card Re-cycle · ${c.n} cannot be re-cycled because your Deck contains no different card.`,[['OK',hideModal]]);return}
+ modal(`Are you sure you want to re-cycle ${c.n} for a random card from your Deck?`,[
+  ['YES',()=>commitRecycle(c.id)],['CANCEL',hideModal]
+ ]);
+}
+function commitRecycle(cardId){
+ if(!G||G.trial||G.winner||G.active!==0)return hideModal();
+ let p=me(),c=p.hand.find(x=>x.id===cardId);
+ if(!c||p.recycles<=0)return hideModal();
+ let eligibleIndexes=[];p.deck.forEach((x,i)=>{if(x.n!==c.n)eligibleIndexes.push(i)});
+ if(!eligibleIndexes.length)return hideModal();
+ // Atomic zone swap: no win/depletion check occurs until the replacement is safely in Hand.
+ let di=eligibleIndexes[Math.floor(Math.random()*eligibleIndexes.length)],replacement=p.deck.splice(di,1)[0];
+ p.hand=p.hand.filter(x=>x.id!==c.id);c.zone='WAKE';p.wake.push(c);
+ replacement.zone='HAND';p.hand.push(replacement);p.recycles--;selectedCardId=replacement.id;
+ hideModal();G.rev++;add(`CARD RE-CYCLE · ${c.n} → ${replacement.n} · ${p.recycles}/3 remaining`);winCheck();validateState();render();
+}
+function selectForSlot(c){if(!playable(c)||c.type==='TECHNIQUE')return;selectedCardId=c.id;document.querySelectorAll('#pslots .slot').forEach(x=>{let i=+x.dataset.slot;if(!me().slots[i])x.classList.add('drop-ready')});renderSelectionOnly()}
+function renderSelectionOnly(){
+ let c=selectedHandCard();
+ document.querySelectorAll('#hand .card').forEach(x=>x.classList.toggle('recycle-selected',+x.dataset.id===selectedCardId));
+ document.querySelectorAll('#pslots .slot').forEach(x=>{let i=+x.dataset.slot;x.classList.toggle('drop-ready',!!c&&c.type!=='TECHNIQUE'&&playable(c)&&!me().slots[i])});
+ let hint=document.getElementById('recycleHint');if(hint)hint.textContent=c?`${c.n} selected · ${c.type==='TECHNIQUE'?'tap it again to play, or use Card Re-cycle':'drag/tap an open slot to play, or use Card Re-cycle'}`:'Tap a Hand card to select it.';
+ let rb=document.getElementById('recycle');if(rb){rb.textContent=`Card Re-cycle ${me().recycles??0}/3`;rb.disabled=!!G.trial||G.active!==0||!!G.winner||(me().recycles??0)<=0;}
+}
 function wireDropSlots(){document.querySelectorAll('#pslots .slot').forEach(slot=>{slot.onclick=()=>{if(selectedCardId===null)return;let c=me().hand.find(x=>x.id===selectedCardId),i=+slot.dataset.slot;if(c&&!me().slots[i]){selectedCardId=null;play(c,i)}}});renderSelectionOnly()}
 function beginCardDrag(ev,c,el){
- if(!playable(c)||c.type==='TECHNIQUE')return;
+ if(!G||G.active!==0||G.winner||c.type==='TECHNIQUE')return;
+ if(!playable(c)){selectHandCard(c);return;}
  if(ev.pointerType==='mouse'&&ev.button!==0)return;
  ev.preventDefault(); ev.stopPropagation();
 
@@ -1318,7 +1353,7 @@ function beginCardDrag(ev,c,el){
 }
 function validateState(){if(!G)return true;let ok=true,seen=new Set();for(const p of G.p){if(p.e<0||p.e>p.maxE||p.maxE>7||p.slots.length!==3)ok=false;for(const c of [...p.deck,...p.hand,...p.wake,...p.slots.filter(Boolean)]){if(seen.has(c.id))ok=false;seen.add(c.id)}}if(!ok)console.error('ELEMENTBOUND invariant violation',G);return ok}
 function resUI(p){if(!HYBRIDS[p.el])return '';let r=p.turnState.resonance,h=HYBRIDS[p.el];return `<span class="pill">${r.active?E[p.el]+' RESONANCE ACTIVE':'Resonance '+E[h.parents[0]]+(r.a?'●':'○')+' '+E[h.parents[1]]+(r.b?'●':'○')}</span>`}
-function render(){if(!G)return;let p=me(),e=foe();document.getElementById('rev').textContent=`REV ${G.rev}`;document.getElementById('turn').textContent=`Turn ${G.turn} · ${G.active?'RIVAL':'YOU'}`;document.getElementById('chain').textContent=`Chain ${G.chain}`;document.getElementById('difficulty').textContent=diff;document.getElementById('pname').textContent=`${E[p.el]} ${p.name}`;document.getElementById('ename').textContent=`${E[e.el]} ${e.name}`;document.getElementById('pvit').textContent=`❤️ ${p.vit}`;document.getElementById('evit').textContent=`❤️ ${e.vit}`;document.getElementById('pstats').innerHTML=`<span class=pill>Essence ${p.e}/${p.maxE}</span><span class=pill>Hand ${p.hand.length}</span><span class=pill>Deck ${p.deck.length}</span><span class=pill>Wake ${p.wake.length}</span>${resUI(p)}${benderEffects(p)}<div class=stathelp>Essence = spendable energy · Hand = playable cards · Deck = draw pile · Wake = used/destroyed cards</div>`;document.getElementById('estats').innerHTML=`<span class=pill>Essence ${e.e}/${e.maxE}</span><span class=pill>Hand ${e.hand.length}</span><span class=pill>Deck ${e.deck.length}</span><span class=pill>Wake ${e.wake.length}</span>${resUI(e)}${benderEffects(e)}`;slots('pslots',p);slots('eslots',e);let h=document.getElementById('hand');h.innerHTML=p.hand.map(c=>card(c,playable(c))).join('');h.querySelectorAll('.play').forEach(x=>{let c=p.hand.find(c=>c.id==x.dataset.id);if(c.type==='TECHNIQUE')x.onclick=()=>play(c);else{x.onclick=null;x.draggable=false;x.ondragstart=ev=>ev.preventDefault();x.onpointerdown=ev=>beginCardDrag(ev,c,x)}});wireDropSlots();document.getElementById('attack').disabled=(!!G.trial&&!['WATER','NATURE','LIGHTNING','AIR'].includes(G.trial.element))||G.active||G.winner||!p.slots.some(x=>x&&x.ready&&!x.sick);document.getElementById('end').disabled=!!G.trial||G.active||G.winner;document.getElementById('you').classList.toggle('active',G.active===0);document.getElementById('enemy').classList.toggle('active',G.active===1);document.getElementById('winner').innerHTML=G.winner?(G.trial?`<div class=win>${G.trial.icon} TRIAL COMPLETE · ${G.trial.title.replace('Trial of ','').toUpperCase()} MASTERED<div class=small>${G.trial.mastered}</div></div>`:`<div class=win>🏆 ${G.winner} wins<div class=small>${G.winReason==='CARD_DEPLETION'?'Opponent ran out of cards · Hand 0 / Deck 0':'Opponent reached 0 Vitality'}</div></div>`):'';renderTrialUI();let l=document.getElementById('log');l.innerHTML=G.logs.map(x=>`<div>${x}</div>`).join('');l.scrollTop=l.scrollHeight;requestAnimationFrame(()=>{ebVisualState();ebDrainFx();ebRenderFx()})}
+function render(){if(!G)return;let p=me(),e=foe();document.getElementById('rev').textContent=`REV ${G.rev}`;document.getElementById('turn').textContent=`Turn ${G.turn} · ${G.active?'RIVAL':'YOU'}`;document.getElementById('chain').textContent=`Chain ${G.chain}`;document.getElementById('difficulty').textContent=diff;document.getElementById('pname').textContent=`${E[p.el]} ${p.name}`;document.getElementById('ename').textContent=`${E[e.el]} ${e.name}`;document.getElementById('pvit').textContent=`❤️ ${p.vit}`;document.getElementById('evit').textContent=`❤️ ${e.vit}`;document.getElementById('pstats').innerHTML=`<span class=pill>Essence ${p.e}/${p.maxE}</span><span class=pill>Hand ${p.hand.length}</span><span class=pill>Deck ${p.deck.length}</span><span class=pill>Wake ${p.wake.length}</span>${resUI(p)}${benderEffects(p)}<div class=stathelp>Essence = spendable energy · Hand = playable cards · Deck = draw pile · Wake = used/destroyed cards</div>`;document.getElementById('estats').innerHTML=`<span class=pill>Essence ${e.e}/${e.maxE}</span><span class=pill>Hand ${e.hand.length}</span><span class=pill>Deck ${e.deck.length}</span><span class=pill>Wake ${e.wake.length}</span>${resUI(e)}${benderEffects(e)}`;slots('pslots',p);slots('eslots',e);let h=document.getElementById('hand');h.innerHTML=p.hand.map(c=>card(c,playable(c))).join('');h.querySelectorAll('.card').forEach(x=>{let c=p.hand.find(c=>c.id==x.dataset.id);if(!c)return;if(c.type==='TECHNIQUE'){x.onclick=()=>{if(G.active!==0||G.winner)return;if(selectedCardId===c.id&&playable(c)){selectedCardId=null;play(c)}else selectHandCard(c)}}else{x.onclick=null;x.draggable=false;x.ondragstart=ev=>ev.preventDefault();x.onpointerdown=ev=>beginCardDrag(ev,c,x)}});wireDropSlots();document.getElementById('attack').disabled=(!!G.trial&&!['WATER','NATURE','LIGHTNING','AIR'].includes(G.trial.element))||G.active||G.winner||!p.slots.some(x=>x&&x.ready&&!x.sick);document.getElementById('end').disabled=!!G.trial||G.active||G.winner;document.getElementById('you').classList.toggle('active',G.active===0);document.getElementById('enemy').classList.toggle('active',G.active===1);document.getElementById('winner').innerHTML=G.winner?(G.trial?`<div class=win>${G.trial.icon} TRIAL COMPLETE · ${G.trial.title.replace('Trial of ','').toUpperCase()} MASTERED<div class=small>${G.trial.mastered}</div></div>`:`<div class=win>🏆 ${G.winner} wins<div class=small>${G.winReason==='CARD_DEPLETION'?'Opponent ran out of cards · Hand 0 / Deck 0':'Opponent reached 0 Vitality'}</div></div>`):'';renderTrialUI();let l=document.getElementById('log');l.innerHTML=G.logs.map(x=>`<div>${x}</div>`).join('');l.scrollTop=l.scrollHeight;requestAnimationFrame(()=>{ebVisualState();ebDrainFx();ebRenderFx()})}
 function allCodexCards(){let out=[];Object.keys(BASE).forEach(el=>{BASE[el].forEach(z=>out.push({el,n:z[0],c:z[1],type:'MANIFESTATION',a:z[2],h:z[3],text:z[4],tip:z[5]}));let t=TECH[el];out.push({el,n:t[0],c:t[3],type:'TECHNIQUE',text:t[1],tip:t[2]})});Object.keys(HYBRID_CARDS).forEach(el=>HYBRID_CARDS[el].forEach(z=>out.push({el,...z})));return out}
 let codexFilter='ALL';
 function goCodex(){codexFilter='ALL';renderCodex();go('codex')}
