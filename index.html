@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>Elementbound Alpha 0.8.44 Initiative Tempo Lab VII</title>
+<!doctype html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>Elementbound Alpha 0.8.45 Final Decision Lab VIII</title>
 <style>
 :root{--bg:#090e1b;--p:#151d31;--p2:#1d2944;--line:#35415f;--txt:#f6f8ff;--mut:#aab5d1;--a:#7fc4ff}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px system-ui,-apple-system,sans-serif}button{font:inherit;color:inherit}.app{max-width:760px;margin:auto;min-height:100vh;padding:calc(env(safe-area-inset-top) + 14px) 12px calc(env(safe-area-inset-bottom) + 20px)}.screen{display:none}.screen.on{display:block}.hero{text-align:center;padding:14vh 8px 30px}.logo{font-size:38px;font-weight:950;letter-spacing:2px}.sub{color:var(--mut);margin:8px 0 30px}.primary,.ghost{width:100%;border:1px solid var(--line);border-radius:14px;padding:15px;background:var(--p2);font-weight:800}.primary{background:linear-gradient(135deg,#315c9d,#553b93);border-color:#7696ce}.ghost{margin-top:9px}.title{font-size:26px;font-weight:900;margin:8px 0}.deckgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.deck{background:var(--p);border:1px solid var(--line);border-radius:14px;padding:12px;min-height:120px}.deck.sel{outline:2px solid var(--a)}.deck b{font-size:17px}.small{font-size:12px;color:var(--mut);margin-top:5px}.diffs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.diff{border:1px solid var(--line);background:var(--p);border-radius:12px;padding:12px 5px}.diff.sel{outline:2px solid var(--a)}.top{position:sticky;top:0;z-index:5;background:#090e1bea;backdrop-filter:blur(10px);padding:7px 0}.row{display:flex;align-items:center;justify-content:space-between;gap:8px}.pill{display:inline-block;background:var(--p);border:1px solid var(--line);border-radius:999px;padding:6px 9px}.stats{display:flex;gap:6px;flex-wrap:wrap;margin:7px 0}.side{background:var(--p);border:1px solid var(--line);border-radius:16px;padding:10px;margin:10px 0}.side.active{outline:2px solid var(--a)}.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.slot{min-height:105px;border:1px dashed #53617d;border-radius:11px;padding:5px;background:#0c1324}.card{position:relative;border:1px solid #53617d;border-radius:10px;padding:7px;min-height:92px;background:linear-gradient(145deg,#202c49,#141d32)}.card.play{border-color:#8ed1ff}.card b{font-size:12px;display:block;padding-right:22px}.cost{position:absolute;right:5px;top:5px;border-radius:50%;width:22px;height:22px;display:grid;place-items:center;background:#0c1324;font-weight:900}.fire{box-shadow:inset 0 0 0 1px #a65240}.water{box-shadow:inset 0 0 0 1px #3f87aa}.nature{box-shadow:inset 0 0 0 1px #4f915b}.earth{box-shadow:inset 0 0 0 1px #927a57}.lightning{box-shadow:inset 0 0 0 1px #aaa04c}.air{box-shadow:inset 0 0 0 1px #7d9dac}.hand{display:flex;overflow:auto;gap:7px;padding:7px 0 12px}.hand .card{min-width:145px}.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}.actions button{border:1px solid var(--line);background:var(--p2);border-radius:11px;padding:12px}.actions button:disabled{opacity:.35}.log{height:120px;overflow:auto;background:#060a12;border:1px solid var(--line);border-radius:12px;padding:7px;font:11px ui-monospace,monospace}.win{text-align:center;font-size:20px;font-weight:900;padding:10px}.modalw{position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:20px;z-index:20}.modalw.hide{display:none}.modal{width:min(420px,100%);background:var(--p);border:1px solid var(--line);border-radius:16px;padding:14px}.modal button{width:100%;margin:4px 0;border:1px solid var(--line);background:var(--p2);border-radius:10px;padding:11px}.rules{font-size:12px;line-height:1.35;color:#dbe4fb;margin-top:6px}.tag{display:inline-block;padding:3px 7px;border:1px solid var(--line);border-radius:999px;margin:2px 3px 2px 0;font-size:11px}
 .effect-strip{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
@@ -313,8 +313,8 @@ body{
 </style>
 </head><body><div class="app">
 
-<section id="devcheck" class="screen"><div class="devHead"><div><div class="title">SYSTEM CHECK</div><div class="small">Alpha 0.8.44 · Initiative Diagnostics console</div></div><button class="ghost" style="width:auto;margin:0" onclick="go('home')">BACK</button></div><div id="devSummary" class="devSummary">Ready to verify.</div><div class="devActions"><button onclick="runEBVerification()">RUN ALL CHECKS</button><button onclick="copyEBVerification()">COPY REPORT</button><button onclick="goBalanceLab()">BALANCE LAB</button><button onclick="go('home')">EXIT DEV</button></div><div class="devHint">Developer access: tap the build/version text on the main menu five times. These checks snapshot and restore live globals; they do not alter saved gameplay.</div><div id="devResults"></div></section>
-<section id="balancelab" class="screen"><div class="devHead"><div><div class="title">BALANCE LAB</div><div class="small">Alpha 0.8.44 · Initiative Tempo Lab VII · finalist calibration</div></div><button class="ghost" style="width:auto;margin:0" onclick="go('devcheck')">BACK</button></div><div class="blPanel"><b>SIMULATION DEPTH</b><div class="small">Runs all 9 × 9 directional matchups, including mirrors. Results describe the neutral simulator policy—not player skill.</div><div class="blDepth"><button data-bl-depth="10" onclick="ebBalanceSelectDepth(10,this)">QUICK<small>810 games</small></button><button data-bl-depth="50" onclick="ebBalanceSelectDepth(50,this)">STANDARD<small>4,050 games</small></button><button data-bl-depth="100" onclick="ebBalanceSelectDepth(100,this)">DEEP<small>8,100 games</small></button></div><div class="blActions"><button id="blRun" onclick="ebBalanceRun()">RUN QUICK LAB</button><button id="blCancel" onclick="ebBalanceCancel()" disabled>CANCEL</button></div></div><div id="blProgress" class="blPanel"><b>READY</b><div class="small">No simulation is running.</div><div class="devBar"><i id="blBar"></i></div></div><div id="blSummary" class="blPanel"><b>NO REPORT YET</b><div class="small">Run the lab to generate matchup, turn-length, utilization and stall telemetry.</div></div><div id="blInitiative" class="blPanel"><b>INITIATIVE AUDIT</b><div class="small">Paired mirror testing of the current initiative rules against the second-player +1 opening-card compensation. No card balance changes.</div><div class="blActions"><button id="blInitRun" onclick="ebInitiativeAuditRun()">RUN INITIATIVE AUDIT</button><button id="blInitCopy" onclick="ebInitiativeAuditCopy()" disabled>COPY AUDIT</button></div><div id="blInitSummary" class="blUtil" style="margin-top:10px">No initiative audit yet.</div></div><div id="blTempoLab" class="blPanel"><b>INITIATIVE TEMPO LAB VII</b><div class="small">Finalist calibration for paired mirror matches. Compares baseline, second-player +1 Essence, and graduated first-player Round-2 attack caps while recording role/physical-seat pairing, per-element lifecycle, sequencing, first-removal correlation, and representative traces. Live duel rules and card balance are unchanged.</div><div class="blActions"><button id="blTempoRun" onclick="ebTempoLabRun()">RUN TEMPO LAB VII</button><button id="blTempoCancel" onclick="ebTempoLabCancel()" disabled>CANCEL TEMPO</button><button id="blTempoCopy" onclick="ebTempoLabCopy()" disabled>COPY TEMPO REPORT</button></div><div id="blTempoSummary" class="blUtil" style="margin-top:10px">No tempo report yet.</div></div><div id="blCalibration" class="blPanel">
+<section id="devcheck" class="screen"><div class="devHead"><div><div class="title">SYSTEM CHECK</div><div class="small">Alpha 0.8.45 · Final Lab diagnostics console</div></div><button class="ghost" style="width:auto;margin:0" onclick="go('home')">BACK</button></div><div id="devSummary" class="devSummary">Ready to verify.</div><div class="devActions"><button onclick="runEBVerification()">RUN ALL CHECKS</button><button onclick="copyEBVerification()">COPY REPORT</button><button onclick="goBalanceLab()">BALANCE LAB</button><button onclick="go('home')">EXIT DEV</button></div><div class="devHint">Developer access: tap the build/version text on the main menu five times. These checks snapshot and restore live globals; they do not alter saved gameplay.</div><div id="devResults"></div></section>
+<section id="balancelab" class="screen"><div class="devHead"><div><div class="title">BALANCE LAB</div><div class="small">Alpha 0.8.45 · Final Decision Lab VIII · release calibration</div></div><button class="ghost" style="width:auto;margin:0" onclick="go('devcheck')">BACK</button></div><div class="blPanel"><b>SIMULATION DEPTH</b><div class="small">Runs all 9 × 9 directional matchups, including mirrors. Results describe the neutral simulator policy—not player skill.</div><div class="blDepth"><button data-bl-depth="10" onclick="ebBalanceSelectDepth(10,this)">QUICK<small>810 games</small></button><button data-bl-depth="50" onclick="ebBalanceSelectDepth(50,this)">STANDARD<small>4,050 games</small></button><button data-bl-depth="100" onclick="ebBalanceSelectDepth(100,this)">DEEP<small>8,100 games</small></button></div><div class="blActions"><button id="blRun" onclick="ebBalanceRun()">RUN QUICK LAB</button><button id="blCancel" onclick="ebBalanceCancel()" disabled>CANCEL</button></div></div><div id="blProgress" class="blPanel"><b>READY</b><div class="small">No simulation is running.</div><div class="devBar"><i id="blBar"></i></div></div><div id="blSummary" class="blPanel"><b>NO REPORT YET</b><div class="small">Run the lab to generate matchup, turn-length, utilization and stall telemetry.</div></div><div id="blInitiative" class="blPanel"><b>INITIATIVE AUDIT</b><div class="small">Paired mirror testing of the current initiative rules against the second-player +1 opening-card compensation. No card balance changes.</div><div class="blActions"><button id="blInitRun" onclick="ebInitiativeAuditRun()">RUN INITIATIVE AUDIT</button><button id="blInitCopy" onclick="ebInitiativeAuditCopy()" disabled>COPY AUDIT</button></div><div id="blInitSummary" class="blUtil" style="margin-top:10px">No initiative audit yet.</div></div><div id="blTempoLab" class="blPanel"><b>INITIATIVE TEMPO LAB VII</b><div class="small">Finalist calibration for paired mirror matches. Compares baseline, second-player +1 Essence, and graduated first-player Round-2 attack caps while recording role/physical-seat pairing, per-element lifecycle, sequencing, first-removal correlation, and representative traces. Live duel rules and card balance are unchanged.</div><div class="blActions"><button id="blTempoRun" onclick="ebTempoLabRun()">RUN TEMPO LAB VII</button><button id="blTempoCancel" onclick="ebTempoLabCancel()" disabled>CANCEL TEMPO</button><button id="blTempoCopy" onclick="ebTempoLabCopy()" disabled>COPY TEMPO REPORT</button></div><div id="blTempoSummary" class="blUtil" style="margin-top:10px">No tempo report yet.</div></div><div id="blFinalLab" class="blPanel"><b>FINAL DECISION LAB VIII</b><div class="small">Release-gate validation across all 9 × 9 directional matchups with paired starter flips. It compares the remaining initiative candidates for fairness, matchup distortion, stalls, and duel length using identical calibration seeds. This lab is diagnostic only: it does not silently change live duel rules or card balance.</div><div class="blActions"><button id="blFinalRun" onclick="ebFinalLabRun()">RUN FINAL LAB VIII</button><button id="blFinalCancel" onclick="ebFinalLabCancel()" disabled>CANCEL FINAL LAB</button><button id="blFinalCopy" onclick="ebFinalLabCopy()" disabled>COPY FINAL REPORT</button></div><div id="blFinalSummary" class="blUtil" style="margin-top:10px">No final decision report yet.</div></div><div id="blCalibration" class="blPanel">
 <b>SEAT / FIRST-PLAYER CALIBRATION</b>
 <div class="small">Runs deterministic paired seeds with the decks swapped between Side A and Side B. Mirror controls isolate first-player/seat advantage before card balance conclusions are trusted.</div>
 <div class="blActions">
@@ -1729,7 +1729,7 @@ function copyEBVerification(){
    D: telemetry + matchup aggregation + anomaly detection
    IMPORTANT: this module never reads/writes live G while simulating.
    ================================================================ */
-const EB_BUILD={alpha:'0.8.44',engine:'EB-1.8.44'};
+const EB_BUILD={alpha:'0.8.45',engine:'EB-1.8.45'};
 const EB_BALANCE=(()=>{
  const DECKS=['FIRE','WATER','NATURE','EARTH','LIGHTNING','AIR','MAGMA','STORM','BLOOM'];
  const PRIME=new Set(['FIRE','WATER','NATURE','EARTH','LIGHTNING','AIR']);
@@ -1925,8 +1925,136 @@ async function ebTempoLabRun(){
 }
 function ebTempoLabCancel(){if(EB_BL_RUNNING)EB_BL_CANCEL=true}
 function ebTempoRemovalCorrelationText(o){let f=o.FP,s=o.SP,n=o.NONE;return `first removal FP → winner FP/SP/stall ${f.FP}/${f.SP}/${f.STALL}; first removal SP → ${s.FP}/${s.SP}/${s.STALL}; no removal → ${n.FP}/${n.SP}/${n.STALL}`}
-function ebTempoLabText(){if(!EB_TEMPO_LAST)return'';let r=EB_TEMPO_LAST,lines=[`ELEMENT BOUND Alpha 0.8.44 INITIATIVE TEMPO LAB VII`,`Ruleset: ${r.ruleset}`,`Depth: ${r.depth} paired seeds per mirror`,`Games: ${r.total}`,'','Finalist calibration (first-player win rate / paired-seed diagnostics):'];for(const [k,v] of Object.entries(r.summary))lines.push(`${k}: FP ${v.firstPct}% | role split ${v.roleSplitPct}% | physical-seat flip ${v.seatSplitPct}% | stalls ${v.stalls}/${v.games}`);lines.push('','Definitions: FP/SP are roles relative to the precommitted starting seat. role split = the two seat-flipped games produced different FP/SP winner roles. physical-seat flip = the winning physical simulator seat changed when initiative was flipped. These are intentionally separate metrics. survive-to-first-attack = unit remains on Field when its owner reaches its next legal attack window.','Per-element lifecycle + sequencing:');for(const x of r.rows){lines.push(`${x.mode} | ${x.deck} | FP wins ${x.firstPct}% | summoned ${x.summoned[0]}/${x.summoned[1]} | survive ${x.survivalPct[0]}%/${x.survivalPct[1]}% | attacked ${x.attackPct[0]}%/${x.attackPct[1]}% | removed-before-attack ${x.removed[0]}/${x.removed[1]} | avg action-turns ${x.avgActionTurns[0]}/${x.avgActionTurns[1]} | role split ${x.roleSplitPct}% | physical-seat flip ${x.seatSplitPct}%`);lines.push(`  ${ebTempoRemovalCorrelationText(x.firstRemovalWins)}`);lines.push(`  FP removal sources: ${ebTempoTopSources(x.sources[0])}`);lines.push(`  SP removal sources: ${ebTempoTopSources(x.sources[1])}`)}lines.push('','Representative paired traces (FIRE + LIGHTNING):');for(const z of r.traces){lines.push(`${z.mode} | ${z.deck} | flip ${z.flip} | winner ${z.winner} | ${z.reason}`);lines.push(`  sequence ${z.sequence.map(q=>`R${q.round}:${q.role}#${q.actionTurn}`).join(' > ')}`);for(const e of z.trace)lines.push(`  T${e.turn} ${e.ev} ${JSON.stringify(e)}`)}return lines.join('\n')}
+function ebTempoLabText(){if(!EB_TEMPO_LAST)return'';let r=EB_TEMPO_LAST,lines=[`ELEMENT BOUND Alpha 0.8.45 INITIATIVE TEMPO LAB VII`,`Ruleset: ${r.ruleset}`,`Depth: ${r.depth} paired seeds per mirror`,`Games: ${r.total}`,'','Finalist calibration (first-player win rate / paired-seed diagnostics):'];for(const [k,v] of Object.entries(r.summary))lines.push(`${k}: FP ${v.firstPct}% | role split ${v.roleSplitPct}% | physical-seat flip ${v.seatSplitPct}% | stalls ${v.stalls}/${v.games}`);lines.push('','Definitions: FP/SP are roles relative to the precommitted starting seat. role split = the two seat-flipped games produced different FP/SP winner roles. physical-seat flip = the winning physical simulator seat changed when initiative was flipped. These are intentionally separate metrics. survive-to-first-attack = unit remains on Field when its owner reaches its next legal attack window.','Per-element lifecycle + sequencing:');for(const x of r.rows){lines.push(`${x.mode} | ${x.deck} | FP wins ${x.firstPct}% | summoned ${x.summoned[0]}/${x.summoned[1]} | survive ${x.survivalPct[0]}%/${x.survivalPct[1]}% | attacked ${x.attackPct[0]}%/${x.attackPct[1]}% | removed-before-attack ${x.removed[0]}/${x.removed[1]} | avg action-turns ${x.avgActionTurns[0]}/${x.avgActionTurns[1]} | role split ${x.roleSplitPct}% | physical-seat flip ${x.seatSplitPct}%`);lines.push(`  ${ebTempoRemovalCorrelationText(x.firstRemovalWins)}`);lines.push(`  FP removal sources: ${ebTempoTopSources(x.sources[0])}`);lines.push(`  SP removal sources: ${ebTempoTopSources(x.sources[1])}`)}lines.push('','Representative paired traces (FIRE + LIGHTNING):');for(const z of r.traces){lines.push(`${z.mode} | ${z.deck} | flip ${z.flip} | winner ${z.winner} | ${z.reason}`);lines.push(`  sequence ${z.sequence.map(q=>`R${q.round}:${q.role}#${q.actionTurn}`).join(' > ')}`);for(const e of z.trace)lines.push(`  T${e.turn} ${e.ev} ${JSON.stringify(e)}`)}return lines.join('\n')}
 async function ebTempoLabCopy(){let t=ebTempoLabText();if(!t)return;try{await navigator.clipboard.writeText(t)}catch(e){ebBalanceFallbackCopy(t)}let b=document.getElementById('blTempoCopy');if(b){let old=b.textContent;b.textContent='COPIED';setTimeout(()=>b.textContent=old,900)}}
+
+/* ================================================================
+   Alpha 0.8.45 · FINAL DECISION LAB VIII
+   Release-gate experiment. Simulator-only; never mutates live G.
+   Uses paired starter flips and identical calibration seeds across
+   candidates so initiative changes are compared on like-for-like games.
+   ================================================================ */
+let EB_FINAL_LAST=null;
+function ebFinalCandidateModes(){return[
+ ['BASELINE',{}],
+ ['SP_PLUS_1_ENERGY',{secondPlayerFirstTurnEnergy:1}],
+ ['FP_R2_MAX_2_ATTACKS',{firstPlayerRound2AttackCap:2}],
+ ['FP_R2_MAX_1_ATTACK',{firstPlayerRound2AttackCap:1}],
+ ['FP_R2_NO_ATTACKS',{firstPlayerRound2CombatDelay:true}]
+]}
+function ebFinalMean(a){return a.length?a.reduce((n,x)=>n+x,0)/a.length:0}
+function ebFinalStd(a){if(a.length<2)return 0;let m=ebFinalMean(a);return Math.sqrt(a.reduce((n,x)=>n+(x-m)*(x-m),0)/(a.length-1))}
+function ebFinalAbs(n){return Math.abs(Number(n)||0)}
+function ebFinalPct(n){return +Number(n||0).toFixed(2)}
+function ebFinalLabCancel(){if(EB_BL_RUNNING)EB_BL_CANCEL=true}
+async function ebFinalLabRun(){
+ if(EB_BL_RUNNING)return;
+ EB_BL_RUNNING=true;EB_BL_CANCEL=false;EB_FINAL_LAST=null;
+ let btn=document.getElementById('blFinalRun'),cancel=document.getElementById('blFinalCancel'),copy=document.getElementById('blFinalCopy'),box=document.getElementById('blFinalSummary');
+ btn.disabled=true;if(cancel)cancel.disabled=false;copy.disabled=true;
+ let decks=EB_BALANCE.DECKS,modes=ebFinalCandidateModes(),depth=Math.max(10,EB_BL_DEPTH);
+ let total=modes.length*decks.length*decks.length*depth*2,done=0,started=performance.now(),rows=[];
+ try{
+  box.innerHTML='<b>RUNNING FINAL DECISION LAB VIII…</b><div id="blFinalProgress" class="small">Preparing paired all-matchup release gate…</div><div class="devBar"><i id="blFinalBar"></i></div><div class="small">All 81 directional matchups · alternating starters · identical calibration seeds across candidates.</div>';
+  outer:for(const [mode,opts] of modes){
+   for(const a of decks)for(const b of decks){
+    let games=0,stalls=0,fpWins=0,turns=0,actions=0,deckWins={[a]:0,[b]:0},pairs=0,roleSplits=0;
+    for(let i=0;i<depth;i++){
+     let pair=[];
+     for(let flip=0;flip<2;flip++){
+      if(EB_BL_CANCEL)break outer;
+      let start=flip,base=`EB0845FINAL|${a}|${b}|${i}`;
+      let r=EB_BALANCE.simulate(a,b,{seed:`${base}|${mode}|${flip}`,calibrationSeed:base,startSeat:start,...opts});
+      games++;done++;turns+=r.metrics.turns||0;actions+=r.metrics.actions||0;
+      if(r.stalled)stalls++;
+      else{
+       if(r.winner===start)fpWins++;
+       let winnerDeck=r.winner===0?a:b;deckWins[winnerDeck]=(deckWins[winnerDeck]||0)+1;
+      }
+      pair.push(r.stalled?'STALL':(r.winner===start?'FP':'SP'));
+      if(done%8===0||done===total){
+       let pct=Math.round(done/total*100),bar=document.getElementById('blFinalBar'),p=document.getElementById('blFinalProgress');
+       if(bar)bar.style.width=pct+'%';
+       if(p)p.textContent=`${done.toLocaleString()} / ${total.toLocaleString()} games · ${pct}% · ${mode} · ${a} → ${b}`;
+       await ebBLYield();
+      }
+     }
+     if(pair.length===2){pairs++;if(pair[0]!==pair[1])roleSplits++}
+    }
+    let valid=games-stalls;
+    rows.push({mode,a,b,games,stalls,fpWins,fpPct:ebBLPct(fpWins,valid),turns,actions,avgTurns:games?+(turns/games).toFixed(2):0,avgActions:games?+(actions/games).toFixed(2):0,deckWins,pairs,roleSplitPct:ebBLPct(roleSplits,pairs)});
+   }
+  }
+  if(EB_BL_CANCEL){
+   box.innerHTML=`<b class="devNote">FINAL LAB CANCELLED</b><div class="small">Stopped safely after ${done.toLocaleString()} / ${total.toLocaleString()} games. Live duel rules were untouched.</div>`;
+   return;
+  }
+  let baseline=new Map(rows.filter(x=>x.mode==='BASELINE').map(x=>[`${x.a}|${x.b}`,x]));
+  let summary={};
+  for(const [mode] of modes){
+   let rr=rows.filter(x=>x.mode===mode),valid=rr.reduce((n,x)=>n+x.games-x.stalls,0),fp=rr.reduce((n,x)=>n+x.fpWins,0);
+   let matchupBias=rr.map(x=>ebFinalAbs(x.fpPct-50));
+   let distort=mode==='BASELINE'?rr.map(()=>0):rr.map(x=>{let z=baseline.get(`${x.a}|${x.b}`);if(!z)return 0;let xv=x.games-x.stalls,zv=z.games-z.stalls;if(!xv||!zv)return 0;let xd=(x.deckWins[x.a]||0)/xv*100,zd=(z.deckWins[z.a]||0)/zv*100;return ebFinalAbs(xd-zd)});
+   let avgTurns=rr.reduce((n,x)=>n+x.turns,0)/Math.max(1,rr.reduce((n,x)=>n+x.games,0));
+   let avgActions=rr.reduce((n,x)=>n+x.actions,0)/Math.max(1,rr.reduce((n,x)=>n+x.games,0));
+   summary[mode]={
+    games:rr.reduce((n,x)=>n+x.games,0),stalls:rr.reduce((n,x)=>n+x.stalls,0),
+    fpPct:ebBLPct(fp,valid),globalBias:ebFinalPct(ebFinalAbs(ebBLPct(fp,valid)-50)),
+    matchupBias:ebFinalPct(ebFinalMean(matchupBias)),matchupBiasSd:ebFinalPct(ebFinalStd(matchupBias)),
+    distortion:ebFinalPct(ebFinalMean(distort)),distortionSd:ebFinalPct(ebFinalStd(distort)),
+    avgTurns:+avgTurns.toFixed(2),avgActions:+avgActions.toFixed(2),
+    roleSplitPct:ebFinalPct(ebFinalMean(rr.map(x=>x.roleSplitPct)))
+   };
+  }
+  // Transparent release-gate score: lower is better. Bias is weighted most,
+  // then matchup distortion; stalls and excessive duration are tie-break pressure.
+  for(const [mode,s] of Object.entries(summary)){
+   let stallPct=s.games?100*s.stalls/s.games:0;
+   s.score=ebFinalPct(s.globalBias*2+s.matchupBias+s.distortion*.75+stallPct*.5);
+  }
+  let ranked=Object.entries(summary).sort((a,b)=>a[1].score-b[1].score||a[0].localeCompare(b[0]));
+  let winner=ranked[0][0],runner=ranked[1]&&ranked[1][0],margin=runner?ebFinalPct(summary[runner].score-summary[winner].score):0;
+  let confidence=margin>=2?'CLEAR':margin>=.75?'MODERATE':'CLOSE — REVIEW REPORT';
+  EB_FINAL_LAST={build:'0.8.45',ruleset:ebBalanceRuleset(),depth,total:rows.reduce((n,x)=>n+x.games,0),rows,summary,winner,runner,margin,confidence,elapsedMs:Math.round(performance.now()-started)};
+  let cards=ranked.map(([k,v],i)=>`<div class="blStat"><small>${i===0?'LOWEST DIAGNOSTIC SCORE · ':''}${k.replaceAll('_',' ')}</small><b>${v.score}</b><small>FP ${v.fpPct}% · matchup bias ${v.matchupBias} · distortion ${v.distortion} · stalls ${v.stalls}</small></div>`).join('');
+  box.innerHTML=`<b class="${confidence==='CLEAR'?'blGood':'blWarn'}">FINAL LAB COMPLETE · ${confidence}</b><div class="small">Lowest diagnostic score: <b>${winner.replaceAll('_',' ')}</b>. This is a simulator result, not an automatic live-rule change.</div><div class="blStatGrid">${cards}</div><div class="small">${EB_FINAL_LAST.total.toLocaleString()} games · ${(EB_FINAL_LAST.elapsedMs/1000).toFixed(1)}s · paired all-matchup calibration. Copy the report before making any release-rule decision.</div>`;
+  copy.disabled=false;
+ }catch(e){
+  box.innerHTML=`<b class="devFail">FINAL LAB ERROR</b><div class="small">${esc(e&&e.message?e.message:String(e))}</div>`;
+ }finally{
+  EB_BL_RUNNING=false;btn.disabled=false;if(cancel)cancel.disabled=true;
+ }
+}
+function ebFinalLabText(){
+ if(!EB_FINAL_LAST)return'';
+ let r=EB_FINAL_LAST,lines=[
+  'ELEMENT BOUND Alpha 0.8.45 FINAL DECISION LAB VIII',
+  `Ruleset: ${r.ruleset}`,
+  `Depth: ${r.depth} paired seeds per directional matchup`,
+  `Games: ${r.total}`,
+  `Elapsed: ${(r.elapsedMs/1000).toFixed(1)}s`,
+  '',
+  'METHOD',
+  'All 9 × 9 directional matchups are run with both starter assignments. Candidate modes share calibration seeds. Lower diagnostic score is better: 2× global initiative bias + mean matchup initiative bias + 0.75× mean matchup distortion from baseline + 0.5× stall rate.',
+  'The lab is diagnostic only and does not modify live duel rules.',
+  '',
+  `Lowest diagnostic score: ${r.winner}`,
+  `Runner-up: ${r.runner||'none'}`,
+  `Score margin: ${r.margin}`,
+  `Separation: ${r.confidence}`,
+  '',
+  'CANDIDATE SUMMARY'
+ ];
+ for(const [k,v] of Object.entries(r.summary))lines.push(`${k} | score ${v.score} | FP ${v.fpPct}% | global bias ${v.globalBias} | mean matchup bias ${v.matchupBias} ± ${v.matchupBiasSd} | mean matchup distortion ${v.distortion} ± ${v.distortionSd} | avg turns ${v.avgTurns} | avg actions ${v.avgActions} | role split ${v.roleSplitPct}% | stalls ${v.stalls}/${v.games}`);
+ lines.push('','INTERPRETATION','Treat CLOSE results as unresolved rather than forcing a rule change. Review Lab VII lifecycle/first-removal evidence alongside this report before changing the live initiative rule.');
+ return lines.join('\n');
+}
+async function ebFinalLabCopy(){
+ let t=ebFinalLabText();if(!t)return;
+ try{await navigator.clipboard.writeText(t)}catch(e){ebBalanceFallbackCopy(t)}
+ let b=document.getElementById('blFinalCopy');if(b){let old=b.textContent;b.textContent='COPIED';setTimeout(()=>b.textContent=old,900)}
+}
+
 function ebBalanceClear(){if(EB_BL_RUNNING)return;EB_BL_LAST=null;document.getElementById('blSummary').innerHTML='<b>NO REPORT YET</b><div class="small">Run the lab to generate matchup, turn-length, utilization and stall telemetry.</div>';document.getElementById('blProgress').innerHTML='<b>READY</b><div class="small">No simulation is running.</div><div class="devBar"><i id="blBar"></i></div>';document.getElementById('blMatrixWrap').classList.add('blHidden');document.getElementById('blDetail').classList.add('blHidden');document.getElementById('blCopy').disabled=true}
 
 
