@@ -961,6 +961,14 @@ if(c.type==='TECHNIQUE'){sendToWake(p,c,'technique');
 }
 }else{let i=slotIndex;if(i==null||i<0||i>2||p.slots[i])return;c.zone='FIELD';c.ready=true;c.sick=true;c.marks=c.marks||[];if(HYBRIDS[c.el]){/* hybrid avatar enters normally */}if(c.el==='FIRE'&&c.n==='Cinder Adept'){addMark(foe(),'Burning');add(`${c.n}: applies Burning to rival Bender`)}if(c.el==='WATER'&&c.n==='Mist Adept'){add(`${c.n}: Flow 1`);flow1(p,false)}if(c.el==='LIGHTNING'&&c.n==='Spark Runner'&&G.chain===2){G.chain++;add(`${c.n}: second card → +1 Chain (Chain ${G.chain})`);ebPulseChain()}p.slots[i]=c;ebQueueFx({kind:'summon',id:c.id,el:c.el,label:c.n});add(`SUMMON ${c.n} → M${i+1}`);resolvePrimeSummonGift(p,c,false)}registerAffinity(p,c);bump()}
 function hit(m,n,sourceEl=null,sourceLabel='HIT'){
+ // Combat boundary normalization: malformed/legacy/transient cards must never
+ // poison authoritative HP with NaN. Canonical Manifestations enter with
+ // finite HP/max HP/Armor, but response movement can expose older state.
+ if(!m)return 0;
+ if(!Number.isFinite(m.max))m.max=Number.isFinite(m.h)?m.h:1;
+ if(!Number.isFinite(m.h))m.h=m.max;
+ if(!Number.isFinite(m.armor))m.armor=0;
+ n=Number.isFinite(n)?Math.max(0,n):0;
  let owner=(G&&G.p)?G.p.find(x=>x.slots&&x.slots.includes(m)):null;
  let side=owner&&G&&G.p?G.p.indexOf(owner):-1,slot=owner?owner.slots.indexOf(m):-1;
  let block=Math.min(m.armor,n);m.armor-=block;let dealt=n-block;m.h-=dealt;
@@ -1102,7 +1110,7 @@ function targetPick(att){
  modal('Choose target',b);
 }
 
-/* Alpha 0.8.47 — Response System. One response opportunity per declared attack. */
+/* Alpha 0.8.48 — Response Hotfix. One response opportunity per declared attack. */
 function ebResponseElements(p){return HYBRIDS[p.el]?HYBRIDS[p.el].parents.slice():[p.el]}
 function ebResponseHandCard(p,el){return p.hand.find(c=>c.type==='RESPONSE'&&c.el===el)||null}
 function ebResponseCanPay(p,el,source){if(source==='TOKEN')return !!p.initiationToken&&ebResponseElements(p).includes(el);let c=ebResponseHandCard(p,el);return !!c&&p.e>=c.c}
@@ -1126,7 +1134,13 @@ function ebResolveResponse(opt,defender,attacker,target,pick=null,phase='BEFORE'
  if(!ebResponseCanPay(defender,opt.el,opt.source)||!ebResponseLegal(opt.el,defender,attacker,target,phase))return {ok:false,target,cancel:false};
  if(!ebSpendResponse(defender,opt))return {ok:false,target,cancel:false};let chosen=pick||target,cancel=false,newTarget=target,r=RESPONSES[opt.el];add(`RESPONSE · ${r.n}${opt.source==='TOKEN'?' · Initiation Token':''}`);
  if(opt.el==='FIRE'){attacker.h-=2;ebQueueFx({kind:'damage',id:attacker.id,damage:2,el:'FIRE',label:r.n});let owner=G.p.find(p=>p.slots.includes(attacker));if(owner)death(owner)}
- else if(opt.el==='WATER'){let from=defender.slots.indexOf(target),to=defender.slots.findIndex(x=>!x);if(from>=0&&to>=0){defender.slots[to]=target;defender.slots[from]=null;cancel=true;add(`Undertow moves ${target.n} · attack cancelled`)}}
+ else if(opt.el==='WATER'){let from=defender.slots.indexOf(target),to=defender.slots.findIndex(x=>!x);if(from>=0&&to>=0){
+   // Undertow changes position only. Preserve combat stats exactly and repair
+   // any non-finite legacy/transient values before the card is rendered again.
+   if(!Number.isFinite(target.max))target.max=Number.isFinite(target.h)?target.h:1;
+   if(!Number.isFinite(target.h))target.h=target.max;
+   if(!Number.isFinite(target.armor))target.armor=0;
+   defender.slots[to]=target;defender.slots[from]=null;cancel=true;add(`Undertow moves ${target.n} · attack cancelled`)}}
  else if(opt.el==='NATURE'){if(chosen&&defender.slots.includes(chosen)){let before=chosen.h;chosen.h=Math.min(chosen.max,chosen.h+2);add(`Second Bloom heals ${chosen.n} for ${chosen.h-before}`)}}
  else if(opt.el==='EARTH'){if(chosen&&defender.slots.includes(chosen)){let old=chosen.armor||0;chosen.armor=Math.min(3,old+2);add(`Stonewall → ${chosen.n} gains ${chosen.armor-old} Armor`)}}
  else if(opt.el==='LIGHTNING'){attacker.h-=2;ebQueueFx({kind:'damage',id:attacker.id,damage:2,el:'LIGHTNING',label:r.n});let owner=G.p.find(p=>p.slots.includes(attacker));if(owner){death(owner);if(!owner.slots.includes(attacker)){cancel=true;add(`Flash Step destroys ${attacker.n} · attack cancelled`)}}}
@@ -1701,16 +1715,17 @@ function runEBVerification(){
   test('COMBAT','Trials ignore Card Depletion terminal rule',()=>{let a=ebTestPlayer(),b=ebTestPlayer('WATER');G={p:[a,b],active:0,chain:0,logs:[],winner:null,trial:{element:'AIR'}};ebAssert(resolveDuelEnd()===null,'Scripted trial ended from empty deck')});
   test('RESPONSE','Prime decks contain exactly one Response',()=>{let d=deck('FIRE');ebAssert(d.length===21&&d.filter(c=>c.type==='RESPONSE').length===1,'Prime Response deck construction failed')});
   test('RESPONSE','Hybrid decks contain exactly one selected parent Response',()=>{let d=deck('STORM','AIR'),r=d.filter(c=>c.type==='RESPONSE');ebAssert(d.length===21&&r.length===1&&r[0].el==='AIR','Hybrid Response selection failed')});
-  test('RESPONSE','Flash Step lethal cancels the pending attack',()=>{let a=ebTestPlayer('LIGHTNING'),d=ebTestPlayer('EARTH'),att=mk('LIGHTNING','Test Attacker',1,1,2),tar=mk('EARTH','Test Defender',1,1,3);a.slots[0]=att;d.slots[0]=tar;d.initiationToken=true;G={p:[a,d],active:0,winner:null,trial:null,logs:[]};let r=ebResolveResponse({el:'LIGHTNING',source:'TOKEN'},d,att,tar,null,'BEFORE');ebAssert(r.cancel===true&&!a.slots.includes(att),'Flash Step did not cancel lethal attacker')});
+  test('RESPONSE','Flash Step lethal cancels the pending attack',()=>{let a=ebTestPlayer('FIRE'),d=ebTestPlayer('LIGHTNING'),att=mk('FIRE','Test Attacker',1,1,2),tar=mk('LIGHTNING','Test Defender',1,1,3);a.slots[0]=att;d.slots[0]=tar;d.initiationToken=true;G={p:[a,d],active:0,winner:null,trial:null,logs:[]};let r=ebResolveResponse({el:'LIGHTNING',source:'TOKEN'},d,att,tar,null,'BEFORE');ebAssert(r.cancel===true&&!a.slots.includes(att),'Flash Step did not cancel lethal attacker')});
+  test('RESPONSE','Undertow preserves finite HP and cancels attack',()=>{let a=ebTestPlayer('FIRE'),d=ebTestPlayer('WATER'),att=mk('FIRE','Test Attacker',1,2,2),tar=mk('WATER','Tide Warden',2,1,4,true);a.slots[0]=att;d.slots[0]=tar;d.initiationToken=true;G={p:[a,d],active:0,winner:null,trial:null,logs:[]};let r=ebResolveResponse({el:'WATER',source:'TOKEN'},d,att,tar,null,'BEFORE');ebAssert(r.cancel===true&&Number.isFinite(tar.h)&&tar.h===4&&tar.max===4&&d.slots.includes(tar),'Undertow corrupted HP or failed to cancel')});
   test('RESPONSE','Simultaneous Bender lethal resolves as DRAW',()=>{let a=ebTestPlayer(),b=ebTestPlayer('WATER');a.vit=0;b.vit=0;G={p:[a,b],active:0,winner:null,trial:null};let r=resolveDuelEnd();ebAssert(r&&r.reason==='DRAW'&&r.winnerIndex===null,'Simultaneous lethal was not a draw')});
   test('COMBAT','State validator accepts a clean battle state',()=>{G={p:[ebTestPlayer(),ebTestPlayer('WATER')]};ebAssert(validateState()===true)});
 
-  test('WATER','River Serpent attack resolver applies Soaked after damage',()=>{let x=attack.toString();ebAssert(x.includes("att.n==='River Serpent'")&&x.includes("addMark(t,'Soaked')")&&x.includes('d>0'))});
-  test('WATER','River Serpent newly applied Soaked is not consumed on same hit',()=>{let x=attack.toString();ebAssert(x.includes('wasSoaked')&&x.indexOf("addMark(t,'Soaked')")<x.indexOf('&&wasSoaked'))});
+  test('WATER','River Serpent attack resolver applies Soaked after damage',()=>{let x=ebAttackCore.toString();ebAssert(x.includes("att.n==='River Serpent'")&&x.includes("addMark(t,'Soaked')")&&x.includes('d>0'))});
+  test('WATER','River Serpent newly applied Soaked is not consumed on same hit',()=>{let x=ebAttackCore.toString();ebAssert(x.includes('wasSoaked')&&x.indexOf("addMark(t,'Soaked')")<x.indexOf('&&wasSoaked'))});
   test('WATER','Flow preview exposes readable card type stats and effect',()=>{let c=ebCard('WATER','Tide Warden');let x=flowPreview(c),effect=c.text||c.txt;ebAssert(x.includes('Manifestation')&&x.includes('Guard')&&x.includes('ATK')&&x.includes('HP')&&x.includes('Essence')&&effect&&x.includes(effect)&&!x.includes('<div'))});
   test('WATER','Flow 1 resolver exists and preserves deck size',()=>{let p=ebTestPlayer('WATER');p.deck=[ebCard('WATER','Mist Adept'),ebCard('WATER','Tide Warden')];let n=p.deck.length;G={p:[p,ebTestPlayer()],active:0,chain:0,logs:[],turn:1};ebAssert(typeof flow1==='function'&&p.deck.length===n)});
   test('WATER','Soaked is a registered visible effect',()=>ebAssert(/Water’s setup mark/.test(GLOSSARY.Soaked)&&/Flow 1/.test(GLOSSARY.Soaked)));
-  test('WATER','Soaked payoff is Water-only by rule',()=>ebAssert(/att\.el==='WATER'/.test(attack.toString())&&/Soaked consumed/.test(attack.toString())));
+  test('WATER','Soaked payoff is Water-only by rule',()=>ebAssert(/att\.el==='WATER'/.test(ebAttackCore.toString())&&/Soaked consumed/.test(ebAttackCore.toString())));
   test('EARTH','Boulder Ram gets +1 ATK while Armored',()=>{let p=ebTestPlayer('EARTH'),e=ebTestPlayer();G={p:[p,e],active:0,chain:0,logs:[]};let a=ebCard('EARTH','Boulder Ram');a.armor=1;ebAssert(elementalAttackBonus(a,e,p)===1)});
   test('EARTH','Boulder Ram gets no bonus without Armor',()=>{let p=ebTestPlayer('EARTH'),e=ebTestPlayer();G={p:[p,e],active:0,chain:0,logs:[]};let a=ebCard('EARTH','Boulder Ram');a.armor=0;ebAssert(elementalAttackBonus(a,e,p)===0)});
   test('FIRE','Flare Hawk gets +1 vs Burning Manifestation',()=>{let p=ebTestPlayer('FIRE'),e=ebTestPlayer('WATER');G={p:[p,e],active:0,chain:0,logs:[]};let a=ebCard('FIRE','Flare Hawk'),t={marks:['Burning']};ebAssert(elementalAttackBonus(a,t,p)===1)});
@@ -1780,7 +1795,7 @@ function runEBVerification(){
  const summary=document.getElementById('devSummary');
  summary.innerHTML=`<b>SYSTEM HEALTH: ${pass} / ${total} PASSING</b><div class="small">${pct}% verified · ${total-pass} issue${total-pass===1?'':'s'} detected</div><div class="devBar"><i style="width:${pct}%"></i></div>`;
  document.getElementById('devResults').innerHTML=Object.entries(groups).map(([g,rs])=>`<div class="devGroup"><b>${g} · ${rs.filter(x=>x.ok).length}/${rs.length}</b>${rs.map(r=>`<div class="devTest"><span class="${r.ok?'devPass':'devFail'}">${r.ok?'✓':'✕'}</span><div>${r.name}${r.detail?`<small>${r.detail}</small>`:''}</div></div>`).join('')}</div>`).join('');
- EB_DEV_LAST_REPORT=[`ELEMENT BOUND Alpha 0.8.47 SYSTEM CHECK`,`${pass}/${total} PASSING`,...results.map(r=>`${r.ok?'PASS':'FAIL'} [${r.group}] ${r.name}${r.detail?' — '+r.detail:''}`)].join('\n');
+ EB_DEV_LAST_REPORT=[`ELEMENT BOUND Alpha 0.8.48 SYSTEM CHECK`,`${pass}/${total} PASSING`,...results.map(r=>`${r.ok?'PASS':'FAIL'} [${r.group}] ${r.name}${r.detail?' — '+r.detail:''}`)].join('\n');
  return results;
 }
 function copyEBVerification(){
