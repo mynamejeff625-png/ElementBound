@@ -1,0 +1,107 @@
+name: Verify ElementBound modular migration
+
+on:
+  push:
+    branches:
+      - migration/modular-v1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@v5
+        with:
+          ref: migration/modular-v1
+
+      - name: Verify required structure
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in index.html css/game.css js/game.js MIGRATION_MANIFEST.json; do
+            test -f "$f" || { echo "Missing required file: $f"; exit 1; }
+          done
+          test "$(find assets/images -maxdepth 1 -type f -name '*.png' | wc -l | tr -d ' ')" = "3"
+
+      - name: Verify JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check js/game.js
+
+      - name: Verify HTML module references and CSP
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'href="css/game.css"' index.html
+          grep -Fq 'src="js/game.js"' index.html
+          grep -Fq "style-src 'self'" index.html
+          grep -Fq "script-src 'self'" index.html
+          ! grep -Eiq '<style([[:space:]>])' index.html
+          python3 - <<'PY'
+          import re
+          html = open('index.html', encoding='utf-8').read()
+          script_tags = re.findall(r'<script\\b([^>]*)>', html, flags=re.I)
+          inline = [attrs for attrs in script_tags if not re.search(r'\\bsrc\\s*=', attrs, flags=re.I)]
+          if inline:
+              raise SystemExit('Unexpected inline script block found.')
+          print('HTML external script/style policy verified.')
+          PY
+
+      - name: Verify image references
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in assets/images/*.png; do
+            grep -Fq "$f" index.html css/game.css js/game.js || {
+              echo "Unreferenced image asset: $f"
+              exit 1
+            }
+          done
+
+      - name: Verify migration manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+          root = pathlib.Path('.')
+          manifest = json.loads((root/'MIGRATION_MANIFEST.json').read_text())
+          if manifest.get('intentional_gameplay_changes') is not False:
+              raise SystemExit('Manifest must declare intentional_gameplay_changes=false')
+          required = {'index.html','css/game.css','js/game.js'}
+          missing = required - set(manifest.get('output_files', {}))
+          if missing:
+              raise SystemExit(f'Manifest missing required outputs: {sorted(missing)}')
+          baseline = {'index.html','css/game.css'}
+          for rel in baseline:
+              meta = manifest['output_files'][rel]
+              p = root/rel
+              if not p.is_file():
+                  raise SystemExit(f'Manifest output missing: {rel}')
+              data = p.read_bytes()
+              actual = hashlib.sha256(data).hexdigest()
+              expected = meta['sha256']
+              if actual != expected:
+                  raise SystemExit(f'Unexpected migration drift for {rel}: {actual} != {expected}')
+          game = root/'js/game.js'
+          if not game.is_file():
+              raise SystemExit('Missing installed game script: js/game.js')
+          if game.stat().st_size < 100000:
+              raise SystemExit('Installed game script is unexpectedly small')
+          print('Immutable migration outputs match the import manifest; game.js is present and separately syntax-checked.')
+          print('Manifest hashes verified for installed migration outputs.')
+          PY
+
+      - name: Verify no accidental network dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -En '\b(fetch|XMLHttpRequest|WebSocket)[[:space:]]*\(' js/game.js; then
+            echo "Unexpected network API dependency found."
+            exit 1
+          fi

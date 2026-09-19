@@ -1,0 +1,40 @@
+{
+  "source": "ElementBound_Alpha_0.8.53_Candidate_A.html",
+  "source_bytes": 5136924,
+  "output_files": {
+    "index.html": {
+      "bytes": 10358,
+      "sha256": "5f905f6f96929722f575f5203e273f707e46c411f6d32b9ec1ae013a96badd7a"
+    },
+    "README.md": {
+      "bytes": 1284,
+      "sha256": "3283d59a96ea5ae6e27bf2e76e1dc347675e78376c2ba5f9d0445d547a154382"
+    },
+    "js/game.js": {
+      "bytes": 190383,
+      "sha256": "837d298aa63369727fda89e66bd8ebeb5a43506f689293034e03578e2b8c4212"
+    },
+    "css/game.css": {
+      "bytes": 33306,
+      "sha256": "d396114a945c109644970f916900301f2a18c64aa8482ecd6bb93122f1f2de6a"
+    },
+    "assets/images/image-3-1e85171cb3c1.png": {
+      "bytes": 922243,
+      "sha256": "1e85171cb3c18fac8f5bfd181ced4782b1bc77cd1303d45fbafda73bab0fda63"
+    },
+    "assets/images/image-2-0c2280786476.png": {
+      "bytes": 1402828,
+      "sha256": "0c2280786476cdea518054cca150eeaa4e09350a93e03ca58bd865ff3eb3cc6b"
+    },
+    "assets/images/image-1-de14f0ce02bf.png": {
+      "bytes": 1352212,
+      "sha256": "de14f0ce02bf4a34b18e5a7a35efc25531624435fe53fae883b719d933536325"
+    }
+  },
+  "assets": [
+    "image-1-de14f0ce02bf.png",
+    "image-2-0c2280786476.png",
+    "image-3-1e85171cb3c1.png"
+  ],
+  "intentional_gameplay_changes": false
+}

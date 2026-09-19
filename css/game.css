@@ -1,0 +1,334 @@
+
+:root{--bg:#090e1b;--p:#151d31;--p2:#1d2944;--line:#35415f;--txt:#f6f8ff;--mut:#aab5d1;--a:#7fc4ff}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px system-ui,-apple-system,sans-serif}button{font:inherit;color:inherit}.app{max-width:760px;margin:auto;min-height:100vh;padding:calc(env(safe-area-inset-top) + 14px) 12px calc(env(safe-area-inset-bottom) + 20px)}.screen{display:none}.screen.on{display:block}.hero{text-align:center;padding:14vh 8px 30px}.logo{font-size:38px;font-weight:950;letter-spacing:2px}.sub{color:var(--mut);margin:8px 0 30px}.primary,.ghost{width:100%;border:1px solid var(--line);border-radius:14px;padding:15px;background:var(--p2);font-weight:800}.primary{background:linear-gradient(135deg,#315c9d,#553b93);border-color:#7696ce}.ghost{margin-top:9px}.title{font-size:26px;font-weight:900;margin:8px 0}.deckgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.deck{background:var(--p);border:1px solid var(--line);border-radius:14px;padding:12px;min-height:120px}.deck.sel{outline:2px solid var(--a)}.deck b{font-size:17px}.small{font-size:12px;color:var(--mut);margin-top:5px}.diffs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.diff{border:1px solid var(--line);background:var(--p);border-radius:12px;padding:12px 5px}.diff.sel{outline:2px solid var(--a)}.top{position:sticky;top:0;z-index:5;background:#090e1bea;backdrop-filter:blur(10px);padding:7px 0}.row{display:flex;align-items:center;justify-content:space-between;gap:8px}.pill{display:inline-block;background:var(--p);border:1px solid var(--line);border-radius:999px;padding:6px 9px}.stats{display:flex;gap:6px;flex-wrap:wrap;margin:7px 0}.side{background:var(--p);border:1px solid var(--line);border-radius:16px;padding:10px;margin:10px 0}.side.active{outline:2px solid var(--a)}.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.slot{min-height:105px;border:1px dashed #53617d;border-radius:11px;padding:5px;background:#0c1324}.card{position:relative;border:1px solid #53617d;border-radius:10px;padding:7px;min-height:92px;background:linear-gradient(145deg,#202c49,#141d32)}.card.play{border-color:#8ed1ff}.card b{font-size:12px;display:block;padding-right:22px}.cost{position:absolute;right:5px;top:5px;border-radius:50%;width:22px;height:22px;display:grid;place-items:center;background:#0c1324;font-weight:900}.fire{box-shadow:inset 0 0 0 1px #a65240}.water{box-shadow:inset 0 0 0 1px #3f87aa}.nature{box-shadow:inset 0 0 0 1px #4f915b}.earth{box-shadow:inset 0 0 0 1px #927a57}.lightning{box-shadow:inset 0 0 0 1px #aaa04c}.air{box-shadow:inset 0 0 0 1px #7d9dac}.hand{display:flex;overflow:auto;gap:7px;padding:7px 0 12px}.hand .card{min-width:145px}.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}.actions button{border:1px solid var(--line);background:var(--p2);border-radius:11px;padding:12px}.actions button:disabled{opacity:.35}.log{height:120px;overflow:auto;background:#060a12;border:1px solid var(--line);border-radius:12px;padding:7px;font:11px ui-monospace,monospace}.win{text-align:center;font-size:20px;font-weight:900;padding:10px}.modalw{position:fixed;inset:0;background:#000b;display:grid;place-items:center;padding:20px;z-index:20}.modalw.hide{display:none}.modal{width:min(420px,100%);background:var(--p);border:1px solid var(--line);border-radius:16px;padding:14px}.modal button{width:100%;margin:4px 0;border:1px solid var(--line);background:var(--p2);border-radius:10px;padding:11px}.rules{font-size:12px;line-height:1.35;color:#dbe4fb;margin-top:6px}.tag{display:inline-block;padding:3px 7px;border:1px solid var(--line);border-radius:999px;margin:2px 3px 2px 0;font-size:11px}
+.effect-strip{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.effect-badge{display:inline-flex;align-items:center;gap:3px;padding:4px 7px;border:1px solid #8fa8d6;border-radius:999px;background:#0a1328;font-size:10px;font-weight:900;line-height:1;box-shadow:0 0 8px #7fc4ff24}
+.effect-badge.temp{border-style:dashed}
+.bender-effects{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.effect-pop{animation:effectPop .32s ease-out}
+.recycleBtn{border:1px solid #7fc4ff;border-radius:999px;padding:6px 10px;background:#15233d;font-weight:900;font-size:11px;white-space:nowrap;box-shadow:0 0 10px #7fc4ff20}.recycleBtn:disabled{opacity:.38;box-shadow:none}.benderHeadRight{display:flex;align-items:center;gap:8px}.card.recycle-selected{outline:2px solid #fff;outline-offset:1px;box-shadow:0 0 18px #7fc4ff55}.recycleHint{font-size:11px;color:#9fd2ff;margin:2px 0 6px;min-height:15px}
+@keyframes effectPop{0%{transform:scale(.92);filter:brightness(1.8)}100%{transform:scale(1);filter:brightness(1)}}.codexCard{text-align:left;cursor:pointer}.why{color:#9fd2ff;font-size:11px;margin-top:5px}
+
+/* Alpha 0.5.2 — mobile help/modal scrolling */
+.modalWrap,.modal-wrap,#mw{
+  overscroll-behavior:contain;
+}
+.modal{
+  width:min(92vw,460px);
+  max-height:min(82vh,720px);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+#mb{
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  max-height:calc(82vh - 78px);
+  padding-right:4px;
+  touch-action:pan-y;
+}
+#mb button{
+  flex:0 0 auto;
+}
+
+
+/* Alpha 0.5.3 — iOS card interaction hardening */
+#battle, #battle .card, #battle .card *, #pslots, #pslots * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+#battle .card.play {
+  touch-action: none !important;
+  -webkit-user-drag: none !important;
+  cursor: grab;
+}
+#battle .card.play.drag-source {
+  opacity: .45;
+}
+#mb, #mb * {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+
+/* Alpha 0.8.36 — Initiative Coin. Presentation is decoupled from the precommitted result. */
+#initiativeOverlay{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:24px;background:rgba(3,7,17,.78);backdrop-filter:blur(8px);touch-action:manipulation}
+#initiativeOverlay.hide{display:none}.initPanel{text-align:center;width:min(92vw,390px);padding:24px 18px;border:1px solid #53617d;border-radius:22px;background:linear-gradient(160deg,#111a2e,#080e1c);box-shadow:0 24px 70px #0009}
+.initLabel{font-size:12px;font-weight:950;letter-spacing:.18em;color:#aab5d1}.initCoinStage{height:150px;display:grid;place-items:center;perspective:700px}.initCoin{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;border:3px solid #d9b86c;background:radial-gradient(circle at 34% 28%,#fff1b1 0 5%,#c49a48 18%,#5d431e 58%,#17120b 100%);box-shadow:0 0 0 4px #302612,0 0 30px #e6bd5b55,inset 0 0 18px #fff5;font-size:27px;font-weight:1000;letter-spacing:-2px;text-shadow:0 2px 3px #0008;transform-style:preserve-3d}.initCoin.flip{animation:ebCoinFlip 1.5s cubic-bezier(.2,.72,.18,1)}
+@keyframes ebCoinFlip{0%{transform:translateY(24px) rotateX(0) scale(.82);filter:brightness(.8)}22%{transform:translateY(-42px) rotateX(540deg) scale(1.06);filter:brightness(1.5)}72%{transform:translateY(-10px) rotateX(1260deg) scale(1)}88%{transform:translateY(4px) rotateX(1440deg) scale(1.04)}100%{transform:none;filter:none}}
+.initResult{min-height:54px;font-size:20px;font-weight:950;line-height:1.25}.initBonus{margin-top:7px;color:#9fd2ff;font-size:12px;font-weight:800}.initSkip{margin-top:12px;color:#7f8aa6;font-size:10px;letter-spacing:.06em}.initPanel.land{animation:ebCoinLand .3s ease-out}@keyframes ebCoinLand{0%{transform:scale(.98);box-shadow:0 24px 70px #0009}45%{transform:scale(1.015);box-shadow:0 24px 70px #0009,0 0 32px #d9b86c33}100%{transform:none}}
+@media(prefers-reduced-motion:reduce){.initCoin.flip{animation-duration:.18s}.initPanel.land{animation:none}}
+
+
+/* ---- preserved style block ---- */
+
+.main-logo{
+ display:block;width:min(94%,560px);height:auto;max-height:44vh;
+ object-fit:contain;margin:0 auto 16px;
+ filter:drop-shadow(0 12px 24px rgba(0,0,0,.38));
+}
+
+.card.play,.dragging-card{
+-webkit-user-select:none!important;user-select:none!important;
+-webkit-touch-callout:none!important;touch-action:none;
+}
+.card.play *,.dragging-card *{
+-webkit-user-select:none!important;user-select:none!important;
+-webkit-touch-callout:none!important;pointer-events:none;
+}
+.dragging-card{position:fixed!important;z-index:9999;pointer-events:none;opacity:.9;transform:scale(.96) rotate(1deg);box-shadow:0 18px 45px rgba(0,0,0,.5);width:min(42vw,190px)}
+.slot.drop-ready{outline:2px solid #8bd3ff;outline-offset:-3px;background:rgba(100,190,255,.10)}
+.slot.drop-hover{outline:3px solid #fff;transform:scale(1.015);background:rgba(100,190,255,.20)}
+.stathelp{font-size:11px;color:#aab7d4;margin-top:5px}
+.helpIntro{color:#dbe4fb;line-height:1.5;margin:4px 0 12px}.helpGrid{display:grid;gap:8px}.helpCard{width:100%;text-align:left!important;padding:12px!important}.helpCard b{display:block;font-size:14px;margin-bottom:4px}.helpCard span{display:block;color:#aab5d1;font-size:12px;line-height:1.4}.helpTerm{padding:10px 0;border-bottom:1px solid #35415f}.helpTerm:last-child{border-bottom:0}.helpTerm b{display:block;margin-bottom:3px}.helpWhy{color:#9fd2ff;font-size:12px;line-height:1.4}.helpBack{margin-top:10px!important}
+
+
+/* ---- preserved style block ---- */
+
+.trialgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+.trial{background:var(--p);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:left}
+.trial.locked{opacity:.48}
+.trialObjective{display:none;margin:8px 0 10px;padding:10px 12px;border:1px solid #a65240;border-radius:12px;background:rgba(166,82,64,.12)}
+.trialObjective.on{display:block}
+.trialObjective b{display:block;margin-bottom:3px}
+@media(max-width:520px){.trialgrid{grid-template-columns:1fr}}
+
+
+/* ---- preserved style block ---- */
+
+
+/* Alpha 0.8.0 — Combat Feel Engine. Pure presentation layer: no rule mutations. */
+#battle{position:relative;isolation:isolate;overflow:hidden}
+#battle::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:40;opacity:0;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.12),transparent 42%)}
+#battle.fx-flash::before{animation:ebScreenFlash .28s ease-out}
+@keyframes ebScreenFlash{0%{opacity:.75}100%{opacity:0}}
+#battle.fx-shake{animation:ebBattleShake .24s ease-out}
+@keyframes ebBattleShake{0%,100%{transform:translate3d(0,0,0)}22%{transform:translate3d(-3px,1px,0)}48%{transform:translate3d(3px,-1px,0)}72%{transform:translate3d(-2px,0,0)}}
+.side{position:relative;transition:box-shadow .22s ease,transform .22s ease,filter .22s ease}
+.slot{position:relative;transition:transform .2s ease,box-shadow .2s ease,background .2s ease}
+.card{transform-origin:center;will-change:transform,opacity,filter;transition:box-shadow .2s ease,filter .2s ease}
+.card.fx-summon{animation:ebSummon .48s cubic-bezier(.18,.9,.25,1.25)}
+.card.fx-attack{animation:ebAttack .34s cubic-bezier(.2,.8,.25,1)}
+.card.fx-hit{animation:ebHit .34s ease}
+.card.fx-status{animation:ebStatus .48s ease}
+.card.fx-defeat{animation:ebDefeat .44s ease forwards}
+.slot.fx-move{animation:ebMoveSlot .42s cubic-bezier(.2,.9,.2,1)}
+.slot.fx-defeat-slot{animation:ebDefeatSlot .46s ease-out}
+@keyframes ebDefeatSlot{0%{transform:scale(1);filter:brightness(1)}28%{transform:scale(1.045);filter:brightness(1.8)}100%{transform:scale(.985);filter:brightness(1)}}
+.side.fx-bender-hit{animation:ebBenderHit .38s ease}
+@keyframes ebSummon{0%{opacity:0;transform:translateY(28px) scale(.72);filter:brightness(2)}65%{opacity:1;transform:translateY(-4px) scale(1.04)}100%{transform:none;filter:none}}
+@keyframes ebAttack{0%{transform:none}42%{transform:translateY(-12px) scale(1.07);filter:brightness(1.35)}100%{transform:none}}
+@keyframes ebHit{0%,100%{transform:none}25%{transform:translateX(-6px) rotate(-1.5deg);filter:brightness(1.7)}55%{transform:translateX(5px) rotate(1deg)}75%{transform:translateX(-2px)}}
+@keyframes ebStatus{0%{filter:brightness(1);transform:scale(1)}40%{filter:brightness(1.7);transform:scale(1.045)}100%{filter:none;transform:none}}
+@keyframes ebDefeat{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.72) translateY(16px);filter:blur(3px)}}
+@keyframes ebMoveSlot{0%{transform:scale(.96)}45%{transform:scale(1.035);box-shadow:0 0 22px rgba(127,196,255,.45)}100%{transform:none}}
+@keyframes ebBenderHit{0%,100%{transform:none}22%{transform:translateX(-7px);filter:brightness(1.45)}50%{transform:translateX(5px)}75%{transform:translateX(-2px)}}
+
+/* Element identity is expressed with cheap GPU-friendly glows, not image assets. */
+.card.fire.fx-summon,.card.fire.fx-status{box-shadow:0 0 24px rgba(255,104,62,.55),inset 0 0 0 1px #d66a4e}
+.card.water.fx-summon,.card.water.fx-status{box-shadow:0 0 24px rgba(73,184,255,.5),inset 0 0 0 1px #4aa4ca}
+.card.nature.fx-summon,.card.nature.fx-status{box-shadow:0 0 24px rgba(89,211,111,.5),inset 0 0 0 1px #5ca568}
+.card.earth.fx-summon,.card.earth.fx-status{box-shadow:0 0 24px rgba(208,162,92,.48),inset 0 0 0 1px #a98b61}
+.card.lightning.fx-summon,.card.lightning.fx-status{box-shadow:0 0 26px rgba(255,229,71,.55),inset 0 0 0 1px #c5b955}
+.card.air.fx-summon,.card.air.fx-status{box-shadow:0 0 26px rgba(175,225,255,.5),inset 0 0 0 1px #94b7c8}
+.card.magma.fx-summon,.card.magma.fx-status{box-shadow:0 0 26px rgba(255,88,42,.6),inset 0 0 0 1px #c85d42}
+.card.storm.fx-summon,.card.storm.fx-status{box-shadow:0 0 28px rgba(151,127,255,.58),inset 0 0 0 1px #8f82d4}
+.card.bloom.fx-summon,.card.bloom.fx-status{box-shadow:0 0 28px rgba(95,235,170,.5),inset 0 0 0 1px #67b88e}
+
+#battleFx{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
+.eb-burst{position:absolute;width:12px;height:12px;border-radius:50%;transform:translate(-50%,-50%);animation:ebBurst .58s ease-out forwards;background:currentColor;box-shadow:0 0 18px currentColor}
+.eb-burst::before,.eb-burst::after{content:"";position:absolute;inset:-12px;border:2px solid currentColor;border-radius:50%;opacity:.75}
+.eb-burst::after{inset:-23px;opacity:.38}
+@keyframes ebBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.25)}25%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(2.8)}}
+.eb-damage{position:absolute;transform:translate(-50%,-50%);font-weight:950;font-size:22px;text-shadow:0 3px 10px #000;animation:ebFloat .72s ease-out forwards}
+@keyframes ebFloat{0%{opacity:0;transform:translate(-50%,5%) scale(.35) rotate(-5deg)}18%{opacity:1;transform:translate(-50%,-65%) scale(1.38) rotate(3deg)}38%{transform:translate(-50%,-48%) scale(.96) rotate(-1deg)}62%{opacity:1;transform:translate(-50%,-82%) scale(1.08)}100%{opacity:0;transform:translate(-50%,-150%) scale(.9)}}
+#battleFocus{position:fixed;left:50%;top:max(calc(env(safe-area-inset-top) + 68px),72px);z-index:70;transform:translate(-50%,-10px);max-width:min(88vw,430px);padding:8px 13px;border-radius:999px;border:1px solid rgba(170,205,255,.55);background:rgba(6,12,27,.92);backdrop-filter:blur(10px);font-size:12px;font-weight:900;letter-spacing:.03em;text-align:center;opacity:0;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+#battleFocus.on{animation:ebFocus 1.45s ease both}
+@keyframes ebFocus{0%{opacity:0;transform:translate(-50%,-10px) scale(.96)}12%,72%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-5px)}}
+#battleFocus.fire{border-color:#d66a4e}#battleFocus.water{border-color:#4aa4ca}#battleFocus.nature{border-color:#5ca568}#battleFocus.earth{border-color:#a98b61}#battleFocus.lightning{border-color:#c5b955}#battleFocus.air{border-color:#94b7c8}#battleFocus.magma{border-color:#c85d42}#battleFocus.storm{border-color:#8f82d4}#battleFocus.bloom{border-color:#67b88e}
+.card.play:active{transform:scale(.97)}
+.slot.drop-ready{animation:ebReady 1.15s ease-in-out infinite alternate}
+@keyframes ebReady{from{box-shadow:inset 0 0 0 rgba(127,196,255,0)}to{box-shadow:inset 0 0 18px rgba(127,196,255,.18)}}
+@media (prefers-reduced-motion:reduce){.slot.drop-ready,.card.eb-presence,.side.eb-danger{animation:none!important}#battle,.card,.slot,.side{transition:none!important}.card.fx-summon,.card.fx-attack,.card.fx-hit,.card.fx-status,.side.fx-bender-hit,.eb-burst,.eb-damage,#battleFocus.on{animation-duration:.18s!important;animation-iteration-count:1!important}}
+
+
+/* Alpha 0.8.23 — Visual Engine Phase 1. Presentation only. */
+/* Alpha 0.8.23 — matte battlefield background; remove persistent color wash. */
+#battle::after{display:none!important;background:none!important;opacity:0!important}
+
+#battle{--eb-atmo:rgba(127,196,255,.10);--eb-atmo2:rgba(255,255,255,.025)}
+#battle::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(circle at 18% 72%,var(--eb-atmo),transparent 34%),radial-gradient(circle at 82% 22%,var(--eb-atmo2),transparent 32%);opacity:.72;transition:background .35s ease}
+#battle[data-atmo="FIRE"]{--eb-atmo:rgba(255,91,52,.16);--eb-atmo2:rgba(255,173,70,.06)}
+#battle[data-atmo="WATER"]{--eb-atmo:rgba(55,170,255,.15);--eb-atmo2:rgba(70,225,255,.05)}
+#battle[data-atmo="NATURE"]{--eb-atmo:rgba(73,200,101,.14);--eb-atmo2:rgba(177,235,88,.05)}
+#battle[data-atmo="EARTH"]{--eb-atmo:rgba(191,143,77,.15);--eb-atmo2:rgba(236,194,119,.05)}
+#battle[data-atmo="LIGHTNING"]{--eb-atmo:rgba(255,224,70,.13);--eb-atmo2:rgba(140,110,255,.06)}
+#battle[data-atmo="AIR"]{--eb-atmo:rgba(166,223,255,.14);--eb-atmo2:rgba(255,255,255,.055)}
+#battle[data-atmo="MAGMA"]{--eb-atmo:rgba(255,75,35,.18);--eb-atmo2:rgba(255,176,56,.055)}
+#battle[data-atmo="STORM"]{--eb-atmo:rgba(143,112,255,.17);--eb-atmo2:rgba(102,213,255,.06)}
+#battle[data-atmo="BLOOM"]{--eb-atmo:rgba(77,224,151,.15);--eb-atmo2:rgba(105,190,255,.05)}
+.side.eb-danger{animation:ebDanger 1.45s ease-in-out infinite alternate}
+@keyframes ebDanger{from{box-shadow:0 0 0 rgba(255,75,75,0)}to{box-shadow:0 0 22px rgba(255,75,75,.16),inset 0 0 20px rgba(255,75,75,.035)}}
+.card.eb-presence:not(.fx-summon):not(.fx-hit):not(.fx-attack):not(.fx-status){animation:ebPresence 3.2s ease-in-out infinite}
+@keyframes ebPresence{0%,100%{filter:brightness(1)}50%{filter:brightness(1.055)}}
+.eb-burst.eb-ring{background:transparent;border:2px solid currentColor}.eb-burst.eb-spark{border-radius:2px}.eb-burst.eb-leaf{border-radius:80% 10% 80% 10%}.eb-burst.eb-stone{border-radius:3px}.eb-burst.eb-wind{background:transparent;border:2px solid currentColor}
+#battle.fx-heavy{animation:ebHeavyShake .34s ease-out}
+@keyframes ebHeavyShake{0%,100%{transform:none}16%{transform:translate3d(-5px,2px,0)}34%{transform:translate3d(5px,-2px,0)}54%{transform:translate3d(-4px,1px,0)}72%{transform:translate3d(3px,-1px,0)}}
+@media(prefers-reduced-motion:reduce){.side.eb-danger,.card.eb-presence,#battle.fx-heavy{animation:none!important}}
+
+
+
+/* ---- preserved style block ---- */
+
+/* Alpha 0.8.11 — hidden developer verification console. */
+#devcheck{padding-bottom:40px}.devHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0 14px}.devSummary{background:var(--p);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}.devBar{height:10px;border-radius:999px;background:#0b1222;overflow:hidden;margin-top:9px}.devBar>i{display:block;height:100%;background:#7fc4ff;width:0}.devGroup{background:var(--p);border:1px solid var(--line);border-radius:14px;padding:10px;margin:8px 0}.devTest{display:grid;grid-template-columns:24px 1fr;gap:7px;padding:7px 3px;border-bottom:1px solid #2b3651}.devTest:last-child{border-bottom:0}.devTest small{display:block;color:var(--mut);margin-top:2px}.devPass{color:#9be6ad}.devFail{color:#ff9b9b}.devNote{color:#ffd77a}.devActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.devActions button{border:1px solid var(--line);background:var(--p2);border-radius:12px;padding:12px;font:inherit;color:inherit;font-weight:800}.devHint{color:var(--mut);font-size:12px;line-height:1.45}
+
+
+/* ---- preserved style block ---- */
+
+/* Cosmetic-only background refresh. No gameplay, layout, input, or FX logic changes. */
+html,body{min-height:100%;background:#07101f;}
+body{
+ background-image:url("../assets/images/image-1-de14f0ce02bf.png");
+ background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;
+}
+#home{position:relative;isolation:isolate;}
+#home::before{
+ content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+ background-image:url("../assets/images/image-2-0c2280786476.png");
+ background-size:cover;background-position:center top;background-repeat:no-repeat;
+}
+/* Keep the original logo's exact layout footprint, but let the logo baked into the new art show through. */
+#home .main-logo{visibility:hidden!important;}
+/* Keep controls readable while revealing a little more of the environment during matches. */
+#battle .top{background:rgba(9,14,27,.84);}
+#battle .side{background:rgba(21,29,49,.84);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);}
+#battle .slot{background:rgba(12,19,36,.84);}
+#battle .card{background:linear-gradient(145deg,rgba(32,44,73,.94),rgba(20,29,50,.94));}
+#battle .log{background:rgba(6,10,18,.86);}
+#battle .actions button{background:rgba(29,41,68,.88);}
+/* Background art is never interactive and never participates in hit-testing. */
+#home::before{touch-action:none;user-select:none;-webkit-user-select:none;}
+
+
+/* ---- preserved style block ---- */
+
+/* Alpha 0.8.25 — presentation-only compact cards + larger mobile Hand rail. */
+#battle .hand{gap:10px;padding:10px 2px 22px;min-height:190px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:auto}
+#battle .hand .card{min-width:min(48vw,190px);width:min(48vw,190px);scroll-snap-align:start}
+#battle .card{min-height:148px;height:148px;overflow:hidden;display:flex;flex-direction:column}
+#battle .slot{min-height:160px}
+#battle .card .card-summary{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;line-height:1.32;min-height:3.96em;max-height:3.96em;margin-top:5px}
+#battle .card .effect-strip{max-height:24px;overflow:hidden;margin-top:5px}
+#battle .card .card-status{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#battle .card .card-inspect-hint{margin-top:auto;white-space:nowrap;font-size:10px;opacity:.9}
+#battle .card b{min-height:2.25em;line-height:1.12;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.inspectCardFull{border:1px solid #53617d;border-radius:14px;padding:14px;background:linear-gradient(145deg,#202c49,#141d32);line-height:1.45}
+.inspectMeta{color:#aab5d1;margin-bottom:12px}.inspectRule{font-size:15px;margin:10px 0;padding:10px;border:1px solid #35415f;border-radius:10px;background:#0c1324}.inspectStrategy{margin:10px 0;color:#dbe4fb}.inspectTerms{font-size:12px;color:#aab5d1;display:grid;gap:6px;margin:10px 0}
+@media(max-width:430px){#battle .hand .card{min-width:52vw;width:52vw}#battle .hand{min-height:196px}}
+
+
+/* ---- preserved style block ---- */
+
+/* Alpha 0.8.26 — universal double-tap inspect + explicit Technique activation. UI-only routing. */
+#hand .eb-tech-activate{width:100%;margin-top:7px;border:1px solid #8ed1ff;border-radius:9px;padding:8px 6px;background:#18304d;color:#f6f8ff;font:inherit;font-size:11px;font-weight:950;letter-spacing:.06em;touch-action:manipulation}
+#hand .eb-tech-activate:active{transform:scale(.97)}
+
+
+/* ---- preserved style block ---- */
+
+/* Alpha 0.8.27 — reliable Technique activation + calmer card inspection. */
+#battle #hand .card.tech-selected{height:202px;min-height:202px;overflow:visible}
+#battle #hand .card.tech-selected .card-inspect-hint{margin-top:auto}
+#battle #hand .card.play .eb-tech-activate,
+#battle #hand .card .eb-tech-activate{
+  pointer-events:auto!important;touch-action:manipulation!important;-webkit-user-select:none!important;user-select:none!important;
+  min-height:44px;height:44px;flex:0 0 44px;margin:7px 0 0;padding:0 10px;display:flex;align-items:center;justify-content:center;
+  position:relative;z-index:4;border-radius:10px;overflow:hidden;
+}
+#battle #hand .card.tech-activating .eb-tech-activate{opacity:.55;pointer-events:none!important}
+#mw.cardInspectMode{padding:clamp(24px,7vh,58px) 22px}
+#mw.cardInspectMode .modal{width:min(86vw,400px);max-height:min(76vh,650px);transform-origin:center}
+#mw.cardInspectMode #mb{max-height:calc(76vh - 78px)}
+#mw.cardInspectMode.inspect-enter{animation:ebInspectShadeIn .18s ease-out both}
+#mw.cardInspectMode.inspect-enter .modal{animation:ebInspectPanelIn .20s cubic-bezier(.2,.8,.25,1) both}
+#mw.cardInspectMode.inspect-leave{animation:ebInspectShadeOut .16s ease-in both;pointer-events:none}
+#mw.cardInspectMode.inspect-leave .modal{animation:ebInspectPanelOut .16s ease-in both}
+@keyframes ebInspectShadeIn{from{background:#0000}to{background:#000b}}
+@keyframes ebInspectShadeOut{from{background:#000b}to{background:#0000}}
+@keyframes ebInspectPanelIn{from{opacity:0;transform:scale(.94) translateY(5px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes ebInspectPanelOut{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.965) translateY(3px)}}
+@media(max-width:430px){#mw.cardInspectMode .modal{width:min(87vw,390px);max-height:74vh}#mw.cardInspectMode #mb{max-height:calc(74vh - 78px)}}
+@media(prefers-reduced-motion:reduce){#mw.cardInspectMode,#mw.cardInspectMode .modal{animation-duration:.01ms!important}}
+
+
+/* ---- preserved style block ---- */
+
+/* Alpha 0.8.30 — iPhone Battlefield Rail + Reliable Universal Modal Motion.
+   Presentation/input-shell only: combat, targeting, AI, card, effect, and economy rules are unchanged. */
+#battle .side{min-width:0;max-width:100%;overflow:hidden}
+#battle .slots{
+  display:flex;grid-template-columns:none;gap:7px;width:100%;min-width:0;
+  overflow-x:auto;overflow-y:hidden;padding:2px 1px 8px;
+  -webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
+  scroll-snap-type:x proximity;scroll-padding-inline:1px;touch-action:pan-x pan-y;
+  scrollbar-width:none;
+}
+#battle .slots::-webkit-scrollbar{display:none}
+#battle .slots .slot{
+  flex:0 0 clamp(142px,43vw,166px);width:clamp(142px,43vw,166px);min-width:142px;max-width:166px;
+  min-height:202px;padding:5px;overflow:hidden;scroll-snap-align:start;
+}
+#battle .slots .card{width:100%;max-width:100%;height:190px;min-height:190px;padding:7px 6px;overflow:hidden}
+#battle .slots .card b{font-size:12px;padding-right:22px;overflow-wrap:anywhere}
+#battle .slots .card .card-summary{font-size:11px;line-height:1.28;min-height:3.84em;max-height:3.84em;-webkit-line-clamp:3}
+#battle .slots .card .card-status{font-size:10px;white-space:normal;line-height:1.18}
+#battle .slots .card .effect-strip{
+  display:flex;flex-wrap:wrap;align-content:flex-start;gap:3px;max-height:52px;
+  overflow-y:auto;overflow-x:hidden;margin-top:5px;padding:1px 0 2px;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-y;
+}
+#battle .slots .card .effect-strip::-webkit-scrollbar{display:none}
+#battle .slots .card .effect-badge{max-width:100%;padding:3px 5px;font-size:9px;white-space:normal;line-height:1.05}
+#battle .slots .card .card-inspect-hint{font-size:10px;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:390px){#battle .slots .slot{flex-basis:148px;width:148px}.cost{right:4px;top:4px}}
+
+/* Ordinary duel dialogs use the same visual language as card inspection.
+   Entrance classes remain present for the full animation instead of being removed on the next paint. */
+#mw:not(.hide):not(.cardInspectMode).eb-modal-enter{animation:ebUniversalShadeIn .20s ease-out both}
+#mw:not(.hide):not(.cardInspectMode).eb-modal-enter .modal{animation:ebUniversalPanelIn .22s cubic-bezier(.2,.8,.25,1) both;transform-origin:center}
+#mw:not(.cardInspectMode).eb-modal-leave{animation:ebUniversalShadeOut .17s ease-in both;pointer-events:none}
+#mw:not(.cardInspectMode).eb-modal-leave .modal{animation:ebUniversalPanelOut .17s ease-in both;transform-origin:center}
+@keyframes ebUniversalShadeIn{from{background:#0000}to{background:#000b}}
+@keyframes ebUniversalShadeOut{from{background:#000b}to{background:#0000}}
+@keyframes ebUniversalPanelIn{from{opacity:0;transform:scale(.94) translateY(5px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes ebUniversalPanelOut{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.97) translateY(3px)}}
+@media(prefers-reduced-motion:reduce){#mw.eb-modal-enter,#mw.eb-modal-enter .modal,#mw.eb-modal-leave,#mw.eb-modal-leave .modal{animation-duration:.01ms!important}}
+
+
+/* ---- preserved style block ---- */
+
+/* Alpha 0.8.30 — native two-axis gesture cooperation + contextual Chain + screen motion. */
+#battle .slots{touch-action:pan-x pan-y!important}
+.chainContext[hidden]{display:none!important}.chainContext{animation:none}.chainContext.chainPulse{animation:ebChainPulse .38s ease-out}
+@keyframes ebChainPulse{0%{transform:scale(.92);opacity:.55}55%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:1}}
+.screen.eb-screen-out{pointer-events:none;animation:ebScreenOut .12s ease-in both}.screen.eb-screen-in{animation:ebScreenIn .18s ease-out both}
+@keyframes ebScreenOut{to{opacity:0;transform:scale(.985) translateY(3px)}}@keyframes ebScreenIn{from{opacity:0;transform:scale(.985) translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.screen.eb-screen-out,.screen.eb-screen-in,.chainContext.chainPulse{animation:none!important}}
+
+
+/* ---- preserved style block ---- */
+
+/* Alpha 0.8.32 — Elemental FX 2.0. Presentation only; no game-state mutation. */
+.eb-fx-particle{position:absolute;left:0;top:0;width:7px;height:7px;pointer-events:none;will-change:transform,opacity;background:currentColor;box-shadow:0 0 10px currentColor;animation:ebFxParticle .62s cubic-bezier(.16,.75,.28,1) forwards}.eb-fx-particle.fire{border-radius:70% 20% 70% 30%}.eb-fx-particle.water{border-radius:50%;background:transparent;border:2px solid currentColor}.eb-fx-particle.nature,.eb-fx-particle.bloom{border-radius:85% 12% 85% 12%}.eb-fx-particle.earth{border-radius:2px}.eb-fx-particle.lightning,.eb-fx-particle.storm{width:3px;height:15px;border-radius:2px}.eb-fx-particle.air{width:18px;height:3px;border-radius:999px;background:transparent;border-top:2px solid currentColor}.eb-fx-particle.magma{border-radius:45% 55% 55% 45%}
+@keyframes ebFxParticle{0%{opacity:0;transform:translate(-50%,-50%) scale(.45) rotate(0)}18%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(var(--sc,1)) rotate(var(--rot,90deg))}}
+.eb-fx-wave{position:absolute;pointer-events:none;width:18px;height:18px;border:2px solid currentColor;border-radius:50%;transform:translate(-50%,-50%);opacity:.85;animation:ebFxWave .58s ease-out forwards;box-shadow:0 0 12px currentColor}@keyframes ebFxWave{to{width:96px;height:96px;opacity:0;border-width:1px}}
+.eb-fx-flare{position:absolute;pointer-events:none;width:4px;height:54px;background:linear-gradient(to bottom,transparent,currentColor,transparent);transform:translate(-50%,-50%) rotate(var(--rot,0deg));transform-origin:center;filter:drop-shadow(0 0 6px currentColor);animation:ebFxFlare .38s ease-out forwards}@keyframes ebFxFlare{0%{opacity:0}35%{opacity:1}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.eb-fx-particle,.eb-fx-wave,.eb-fx-flare{display:none!important}}
+
+
+/* ---- preserved style block ---- */
+
+#balancelab{padding-bottom:calc(42px + env(safe-area-inset-bottom));overflow-x:hidden}.blPanel{background:var(--p);border:1px solid var(--line);border-radius:16px;padding:13px;margin:10px 0}.blDepth,.blActions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.blActions{grid-template-columns:1fr 1fr}.blDepth button,.blActions button{min-height:46px;border:1px solid var(--line);background:var(--p2);border-radius:12px;color:inherit;font:inherit;font-weight:900;padding:9px;touch-action:manipulation}.blDepth button small{display:block;color:var(--mut);font-size:10px;margin-top:3px}.blDepth button.active{border-color:#8ed1ff;box-shadow:0 0 0 1px #8ed1ff inset}.blActions button:disabled{opacity:.45}.blHidden{display:none!important}.blMatrix{overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;margin-top:9px;padding-bottom:4px}.blGrid{display:grid;grid-template-columns:70px repeat(9,58px);width:max-content;gap:3px}.blCell{min-height:44px;border:1px solid #35415f;border-radius:8px;background:#111a2c;color:#f6f8ff;font:inherit;font-size:10px;font-weight:850;padding:4px;text-align:center;touch-action:manipulation}.blCell.head{background:#202c49;color:#b9c6e2;display:flex;align-items:center;justify-content:center}.blCell.data{cursor:pointer}.blCell.data span{display:block;font-size:12px}.blCell.stall{border-color:#d8a64d}.blStatGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.blStat{background:#0c1324;border:1px solid #35415f;border-radius:10px;padding:9px}.blStat b{display:block;font-size:17px}.blUtil{font-size:11px;line-height:1.5;color:#cbd5eb;word-break:break-word}.blWarn{color:#ffd77a}.blGood{color:#9be6ad}@media(max-width:430px){#balancelab{padding-left:12px;padding-right:12px}.blDepth{grid-template-columns:1fr}.blDepth button{min-height:42px}.blGrid{grid-template-columns:66px repeat(9,55px)}}@media(prefers-reduced-motion:reduce){#balancelab *{scroll-behavior:auto!important}}
