@@ -41,6 +41,7 @@ jobs:
           grep -Fq 'src="js/game.js"' index.html
           grep -Fq "style-src 'self'" index.html
           grep -Fq "script-src 'self'" index.html
+          grep -Fq "'unsafe-inline'" index.html
           ! grep -Eiq '<style([[:space:]>])' index.html
           python3 - <<'PY'
           import re
