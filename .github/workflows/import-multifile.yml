@@ -6,7 +6,7 @@ on:
       zip_path:
         description: "Path to the uploaded ElementBound multifile ZIP"
         required: false
-        default: "ElementBound_0.8.53_Multifile_Stable(1).zip"
+        default: "ElementBound_0.8.53_Multifile_Stable.zip"
 
 permissions:
   contents: write
