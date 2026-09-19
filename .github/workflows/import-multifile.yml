@@ -1,0 +1,83 @@
+name: Import ElementBound migration package
+
+on:
+  workflow_dispatch:
+    inputs:
+      zip_path:
+        description: "Path to the uploaded ElementBound multifile ZIP"
+        required: false
+        default: "ElementBound_0.8.53_Multifile_Stable(1).zip"
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    if: github.ref == 'refs/heads/migration/modular-v1'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: migration/modular-v1
+
+      - name: Validate and extract package
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP="${{ inputs.zip_path }}"
+          test -f "$ZIP"
+          rm -rf .eb-import
+          mkdir .eb-import
+          unzip -q "$ZIP" -d .eb-import
+          ROOT="$(find .eb-import -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          test -n "$ROOT"
+          for f in index.html css/game.css js/game.js MIGRATION_MANIFEST.json; do test -f "$ROOT/$f"; done
+          test "$(find "$ROOT/assets/images" -maxdepth 1 -type f -name '*.png' | wc -l | tr -d ' ')" = "3"
+          python3 - <<'PY'
+          import json, hashlib, pathlib
+          root = next(pathlib.Path('.eb-import').iterdir())
+          manifest = json.loads((root/'MIGRATION_MANIFEST.json').read_text())
+          for rel, meta in manifest['output_files'].items():
+              p = root/rel
+              if not p.is_file(): raise SystemExit(f"missing: {rel}")
+              data = p.read_bytes()
+              if len(data) != meta['bytes']: raise SystemExit(f"size mismatch: {rel}")
+              if hashlib.sha256(data).hexdigest() != meta['sha256']: raise SystemExit(f"sha256 mismatch: {rel}")
+          print("Manifest integrity verified.")
+          PY
+
+      - name: Install validated multifile build
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$(find .eb-import -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          mkdir -p assets/images css js
+          cp "$ROOT/index.html" index.html
+          cp "$ROOT/css/game.css" css/game.css
+          cp "$ROOT/js/game.js" js/game.js
+          cp "$ROOT/MIGRATION_MANIFEST.json" MIGRATION_MANIFEST.json
+          cp "$ROOT/assets/images/"*.png assets/images/
+          rm -rf .eb-import
+          rm -f "${{ inputs.zip_path }}"
+
+      - name: Verify installed references
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'css/game.css' index.html
+          grep -q 'js/game.js' index.html
+          for f in assets/images/*.png; do grep -q "$f" index.html; done
+          test "$(find assets/images -maxdepth 1 -type f -name '*.png' | wc -l | tr -d ' ')" = "3"
+
+      - name: Commit migration checkpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "ElementBound Migration Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html css/game.css js/game.js assets/images MIGRATION_MANIFEST.json
+          git add -u
+          if git diff --cached --quiet; then echo "No changes to commit."; exit 0; fi
+          git commit -m "refactor: import verified multifile 0.8.53 build"
+          git push origin HEAD:migration/modular-v1
