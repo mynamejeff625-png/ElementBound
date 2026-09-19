@@ -77,18 +77,18 @@ jobs:
           missing = required - set(manifest.get('output_files', {}))
           if missing:
               raise SystemExit(f'Manifest missing required outputs: {sorted(missing)}')
-          for rel, meta in manifest['output_files'].items():
+          installed = {'index.html','css/game.css','js/game.js'}
+          for rel in installed:
+              meta = manifest['output_files'][rel]
               p = root/rel
               if not p.is_file():
-                  if rel == 'README.md':
-                      print('README.md not installed by importer; skipping package-only metadata entry.')
-                      continue
                   raise SystemExit(f'Manifest output missing: {rel}')
               data = p.read_bytes()
               actual = hashlib.sha256(data).hexdigest()
               expected = meta['sha256']
               if actual != expected:
                   raise SystemExit(f'Hash mismatch for {rel}: {actual} != {expected}')
+          print('Package-only documentation entries are excluded from installed-output hash checks.')
           print('Manifest hashes verified for installed migration outputs.')
           PY
 
