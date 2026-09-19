@@ -15,5 +15,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: node --check js/version.js
       - run: node --check js/game.js
       - run: node tests/candidate-b.cjs

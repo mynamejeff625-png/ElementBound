@@ -1,5 +1,9 @@
 # Alpha 0.8.54 — Candidate B
 
+Release metadata now lives in `js/version.js`. The main menu, battle header,
+diagnostics, Balance Lab reports, and browser title read the same release record,
+preventing version labels from drifting apart during future updates.
+
 Builds on Candidate A, retaining its Nature/Earth changes.
 
 - Tide Warden: 2 Essence, **2 ATK**, 4 HP, Guard; its damaged-trigger Flow remains.
