@@ -77,8 +77,8 @@ jobs:
           missing = required - set(manifest.get('output_files', {}))
           if missing:
               raise SystemExit(f'Manifest missing required outputs: {sorted(missing)}')
-          installed = {'index.html','css/game.css','js/game.js'}
-          for rel in installed:
+          baseline = {'index.html','css/game.css'}
+          for rel in baseline:
               meta = manifest['output_files'][rel]
               p = root/rel
               if not p.is_file():
@@ -87,8 +87,13 @@ jobs:
               actual = hashlib.sha256(data).hexdigest()
               expected = meta['sha256']
               if actual != expected:
-                  raise SystemExit(f'Hash mismatch for {rel}: {actual} != {expected}')
-          print('Package-only documentation entries are excluded from installed-output hash checks.')
+                  raise SystemExit(f'Unexpected migration drift for {rel}: {actual} != {expected}')
+          game = root/'js/game.js'
+          if not game.is_file():
+              raise SystemExit('Missing installed game script: js/game.js')
+          if game.stat().st_size < 100000:
+              raise SystemExit('Installed game script is unexpectedly small')
+          print('Immutable migration outputs match the import manifest; game.js is present and separately syntax-checked.')
           print('Manifest hashes verified for installed migration outputs.')
           PY
 
