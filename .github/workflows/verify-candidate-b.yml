@@ -1,7 +1,7 @@
-name: Verify Candidate B
+name: Verify Element Bound
 on:
   push:
-    branches: [fix/soaked-progress-0.8.54]
+    branches: [fix/soaked-progress-0.8.54, fix/balance-pass-0.8.55]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -18,3 +18,4 @@ jobs:
       - run: node --check js/version.js
       - run: node --check js/game.js
       - run: node tests/candidate-b.cjs
+      - run: node tests/balance-pass-0.8.55.cjs
