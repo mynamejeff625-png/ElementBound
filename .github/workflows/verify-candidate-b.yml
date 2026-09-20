@@ -20,3 +20,4 @@ jobs:
       - run: node tests/candidate-b.cjs
       - run: node tests/balance-pass-0.8.55.cjs
       - run: node tests/balance-pass-0.8.56.cjs
+      - run: node tests/balance-lab-magma-parity.cjs
