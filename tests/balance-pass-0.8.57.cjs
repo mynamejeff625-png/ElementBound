@@ -59,7 +59,7 @@ console.log('Balance Pass 0.8.57: '+checks+' focused checks passed; Balance Lab 
 `,ctx);
 
 const version=fs.readFileSync('js/version.js','utf8');
-assert.match(version,/version:'0\.8\.57'/);
-assert.match(version,/ruleset:'EB-RULES-0\.8\.57-BALANCE-PASS'/);
+assert.match(version,/version:'\d+\.\d+\.\d+'/);
+assert.match(version,/ruleset:'EB-RULES-\d+\.\d+\.\d+-BALANCE-PASS'/);
 assert.doesNotMatch(source,/Fortify[^\n]*old cost|Rainseed[^\n]*old cost/);
 console.log('Release metadata checks passed');

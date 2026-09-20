@@ -1,11 +1,11 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'0.8.57',
-  label:'Balance Pass',
-  engine:'EB-1.8.57',
-  balanceLab:'Balance Lab XIV',
-  ruleset:'EB-RULES-0.8.57-BALANCE-PASS',
-  focus:'Earth · Bloom · Magma · Lightning · Air',
+  version:'0.8.58',
+  label:'Parity Fix',
+  engine:'EB-1.8.58',
+  balanceLab:'Balance Lab XV',
+  ruleset:'EB-RULES-0.8.58-BALANCE-PASS',
+  focus:'Growth · Storm · Bloom · Responses · Prime AI',
   audience:'Prime & Hybrid Benders'
 });
 
