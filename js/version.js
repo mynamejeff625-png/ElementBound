@@ -1,11 +1,11 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'0.8.58',
-  label:'Parity Fix',
-  engine:'EB-1.8.58',
-  balanceLab:'Balance Lab XV',
-  ruleset:'EB-RULES-0.8.58-BALANCE-PASS',
-  focus:'Growth · Storm · Bloom · Responses · Prime AI',
+  version:'0.8.59',
+  label:'Calibration Fix',
+  engine:'EB-1.8.59',
+  balanceLab:'Balance Lab XVI',
+  ruleset:'EB-RULES-0.8.59-BALANCE-PASS',
+  focus:'Crossed Seats · Turn Order · Token Reporting',
   audience:'Prime & Hybrid Benders'
 });
 
