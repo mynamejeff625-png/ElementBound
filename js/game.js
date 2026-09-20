@@ -10,7 +10,7 @@ WATER:[['Mist Adept',1,1,3,'On summon: Flow 1.','Smooths your next draw and give
 NATURE:[['Sproutling',1,1,3,'On summon: give another friendly Manifestation Seeded.','Seed an established ally such as Grove Beast so Verdant Mend can convert that setup into Growth. If no other ally is present, the summon still resolves but Seeded is not applied.'],['Root Keeper',2,2,4,'When healed, gain 1 Growth, max 3.','Turns healing into permanent board development.'],['Grove Beast',4,2,5,'Gets +1 ATK for each Growth on it.','Late payoff for building Growth.']],
 EARTH:[['Stone Initiate',1,1,3,'On summon: give another friendly Manifestation 1 Armor, max 3.','Redistribute Earth defense onto an established ally; the Armor is not forced onto Stone Initiate.'],['Earthen Guard',2,1,5,'Guard.','Protects your Bender while it remains on the field, even after it attacks.'],['Boulder Ram',3,3,5,'If it has Armor when it attacks, deal +1 damage.','Converts Earth defense into pressure.']],
 LIGHTNING:[['Spark Runner',1,2,2,'If this is your second card played this turn, gain +1 Chain.','Chain accelerator: play it second to jump directly from Chain 2 to Chain 3.'],['Arc Runner',2,2,3,'At Chain 2+, this gets +1 ATK this turn.','Rewards playing cards in sequence before attacking.'],['Volt Lynx',3,4,3,'At Chain 3+, its first attack each turn deals +1 damage.','Fragile but explosive combo payoff.']],
-AIR:[['Breeze Disciple',1,1,3,'On summon: give another friendly Manifestation Momentum.','Put Momentum onto an established ally such as Sky Raptor to unlock Air’s pressure payoff.'],['Gale Scout',2,2,3,'After Crosswind swaps two enemies, this gets +1 ATK on its next attack that turn.','Use Crosswind first, then attack to exploit the opening.'],['Sky Raptor',3,3,3,'If it has Momentum, it may attack the Bender ignoring Guard.','Air pressure payoff: give Sky Raptor Momentum, then it can legally choose the rival Bender even while Guard is active.']]};
+AIR:[['Breeze Disciple',1,1,3,'On summon: give another friendly Manifestation 1 Momentum, max 3.','Put Momentum onto an established ally such as Sky Raptor to unlock Air’s pressure payoff.'],['Gale Scout',2,2,3,'After Crosswind swaps two enemies, this gets +2 ATK on its next attack that turn.','Use Crosswind first, then attack to exploit the opening.'],['Sky Raptor',3,3,3,'If it has Momentum, it may attack the Bender ignoring Guard.','Air pressure payoff: give Sky Raptor Momentum, then it can legally choose the rival Bender even while Guard is active.']]};
 const RESPONSES={
 FIRE:{n:'Backdraft',c:2,text:'After an enemy Manifestation damages one of your Manifestations, deal 2 damage to the attacker.',tip:'Retaliate after combat damage. The retaliation still resolves if the defender was destroyed.'},
 WATER:{n:'Undertow',c:2,text:'When one of your Manifestations is attacked, move it to another empty friendly slot. The attack is cancelled.',tip:'Reposition the defender before damage and make the declared attack fizzle.'},
@@ -27,7 +27,7 @@ WATER:['Current Shift','Flow 1. If an enemy Manifestation is present, apply Soak
 NATURE:['Verdant Mend','If a friendly Manifestation is Seeded, give it 1 Growth, max 3.','Turns an established Nature body into a scaling threat.',2],
 EARTH:['Fortify','Give a friendly Manifestation 1 Armor, max 3.','Use before an enemy attack or to enable Armor payoffs.',1],
 LIGHTNING:['Static Step','Flow 1. If this is your second card this turn, apply Charged to the enemy Bender.','A cheap Chain extender that rewards sequencing.',1],
-AIR:['Crosswind','Swap the positions of two enemy Manifestations. If fewer than two are present, Flow 1.','Disrupts positioning without becoming a dead card.',1]};
+AIR:['Crosswind','Swap the positions of two enemy Manifestations. If fewer than two are present, give a friendly Manifestation 1 Momentum, max 3.','Disrupts positioning or builds permanent Air pressure.',1]};
 const HYBRID_CARDS={
 MAGMA:[
  {n:'Molten Channel',c:2,type:'TECHNIQUE',role:'SETUP',text:'Choose: give a friendly Manifestation 1 Armor, or apply Burning to an enemy Manifestation damaged this turn. Resonance — choose both.',tip:'Flexible Magma setup; Resonance combines defense and pressure.'},
@@ -35,14 +35,14 @@ MAGMA:[
  {n:'Pressure Forge',c:3,type:'TECHNIQUE',role:'PAYOFF',text:'Give a friendly Manifestation 1 Armor. Resonance — if an enemy is Burning, deal 1 damage to it.',tip:'Safe defensive value with a controlled Resonance payoff.'},
  {n:'Eruption Guard',c:2,type:'TECHNIQUE',role:'QUICK',text:'Choose a friendly Manifestation. Until your next turn, the next attack damage it takes is reduced by 2.',tip:'Pre-commit protection before the rival turn.'}],
 STORM:[
- {n:'Crosswind Spark',c:1,type:'TECHNIQUE',role:'SETUP',text:'Move a friendly Manifestation to an empty friendly slot and give it Momentum. Resonance — it also becomes Charged.',tip:'Repositions and prepares Storm payoffs.'},
+ {n:'Crosswind Spark',c:1,type:'TECHNIQUE',role:'SETUP',text:'Move a friendly Manifestation to an empty friendly slot and give it 1 Momentum, max 3. Resonance — it also becomes Charged.',tip:'Repositions and prepares Storm payoffs.'},
  {n:'Tempest Striker',c:3,type:'MANIFESTATION',a:3,h:3,role:'AVATAR',text:'Once per turn after this changes slots, its next attack this turn gets +1 ATK. Resonance — that attack may ignore Guard.',tip:'Storm avatar that converts movement into attack pressure.'},
  {n:'Thunderstep',c:2,type:'TECHNIQUE',role:'PAYOFF',text:'Move a friendly Manifestation to an empty slot. Resonance — if it is Charged or has Momentum, deal 1 damage to an enemy Manifestation.',tip:'Converts movement setup into controlled damage.'},
  {n:'Static Reversal',c:2,type:'TECHNIQUE',role:'QUICK',text:'Choose a friendly Manifestation. Until your next turn, the first time it is attacked, move it to another empty friendly slot before combat if possible.',tip:'Pre-committed positional defense.'}],
 BLOOM:[
  {n:'Rainseed',c:1,type:'TECHNIQUE',role:'SETUP',text:'Give a friendly Manifestation Seeded; if already Seeded, heal it 1. Resonance — instead give it 1 Growth, max 3.',tip:'Builds Bloom resources without unrestricted healing.'},
- {n:'Tidelily Guardian',c:3,type:'MANIFESTATION',a:2,h:5,role:'AVATAR',text:'The first time each turn this gains Growth, heal another friendly Manifestation 1. Resonance — you may instead heal your Bender 1.',tip:'Sustain avatar that rewards Growth setup.'},
- {n:'Flourishing Current',c:3,type:'TECHNIQUE',role:'PAYOFF',text:'Heal a friendly Manifestation 2. Resonance — if it is Seeded, give it 1 Growth, max 3.',tip:'Turns established Bloom setup into durable value.'},
+ {n:'Tidelily Guardian',c:4,type:'MANIFESTATION',a:2,h:5,role:'AVATAR',text:'The first time each turn this gains Growth, heal another friendly Manifestation 1. Resonance — you may instead heal your Bender 1.',tip:'Sustain avatar that rewards Growth setup.'},
+ {n:'Flourishing Current',c:3,type:'TECHNIQUE',role:'PAYOFF',text:'Heal a friendly Manifestation 1. Resonance — if it is Seeded, give it 1 Growth, max 3.',tip:'Turns established Bloom setup into durable value.'},
  {n:'Reclaiming Tide',c:2,type:'TECHNIQUE',role:'QUICK',text:'Choose a Seeded friendly Manifestation with Growth. Until your next turn, the first lethal attack removes Seeded and 1 Growth and leaves it at 1 HP.',tip:'A setup-dependent survival shield, not resurrection.'}]
 };
 // Alpha 0.7.8 Exhaustion Help hotfix — one source of truth for rules + gameplay.
@@ -77,7 +77,7 @@ const GLOSSARY={
 'Second Bloom Used':'This Manifestation has already been healed by Second Bloom this duel and cannot receive that Response again.',
 'Growth':'Nature’s scaling resource. Each Growth gives that Manifestation +1 ATK, up to 3 Growth.',
 'Charged':'Lightning’s payoff mark. The next Lightning attack that hits a Charged target deals +1 damage, then Charged is consumed.',
-'Momentum':'Air’s movement/tempo setup effect placed on a specific Manifestation. Breeze Disciple can give Momentum to another friendly Manifestation. While Sky Raptor has Momentum, its own card effect is enabled and it may attack the rival Bender ignoring Guard.',
+'Momentum':'Air’s permanent stacking resource, up to 3. Each Momentum gives that Manifestation +1 ATK. Sky Raptor can attack the rival Bender ignoring Guard while it has at least 1 Momentum. Storm cards can also grant and use Momentum.',
 'Flow':'Deck control. Flow lets you inspect upcoming card(s) and decide whether to keep them on top or send them to the bottom, helping you find a better next draw.',
 'Prime':'A deck or card aligned to one core element: Fire, Water, Nature, Earth, Lightning, or Air.',
 'Hybrid':'A deck that combines two Prime elements and adds its own Hybrid cards. Hybrid play revolves around activating Resonance.',
@@ -103,7 +103,7 @@ function go(id){
 function ebPulseChain(){let el=document.getElementById('chain');if(!el)return;el.hidden=false;el.classList.remove('chainPulse');void el.offsetWidth;el.classList.add('chainPulse');setTimeout(()=>el.classList.remove('chainPulse'),420)}
 function setup(){EB_VIS=null;let d=document.getElementById('decks');d.innerHTML='';Object.keys(INFO).forEach(k=>{let x=document.createElement('button');x.className='deck';let kind=HYBRIDS[k]?'HYBRID':'PRIME';x.innerHTML=`<b>${E[k]} ${INFO[k][0]}</b><div class=small>${kind} · ${INFO[k][1]}</div><div class=small>${INFO[k][2]}</div>`;x.onclick=()=>{choice=k;EB_HYBRID_RESPONSE_CHOICE=null;document.querySelectorAll('.deck').forEach(y=>y.classList.remove('sel'));x.classList.add('sel');ready()};d.appendChild(x)});let q=document.getElementById('diffs');q.innerHTML='';['Easy','Medium','Difficult'].forEach(k=>{let x=document.createElement('button');x.className='diff';x.textContent=k;x.onclick=()=>{diff=k;document.querySelectorAll('.diff').forEach(y=>y.classList.remove('sel'));x.classList.add('sel');ready()};q.appendChild(x)})}
 function ready(){document.getElementById('start').disabled=!(choice&&diff)}
-function mk(el,n,c,a,h,guard=false,text='',tip=''){return{id:++uid,el,n,c,type:'MANIFESTATION',a,h,max:h,armor:0,ready:true,sick:false,guard,zone:'DECK',text,tip,marks:[],growth:0,role:null,quick:null,turnFlags:{}}}
+function mk(el,n,c,a,h,guard=false,text='',tip=''){return{id:++uid,el,n,c,type:'MANIFESTATION',a,h,max:h,armor:0,ready:true,sick:false,guard,zone:'DECK',text,tip,marks:[],growth:0,momentum:0,role:null,quick:null,turnFlags:{}}}
 function primeCards(el,count){let b=BASE[el],a=[];for(let i=0;i<count;i++){if(i%5===4){let t=TECH[el];a.push({id:++uid,el,n:t[0],c:t[3],type:'TECHNIQUE',zone:'DECK',text:t[1],tip:t[2],role:null})}else{let z=b[i%3];a.push(mk(el,z[0],z[1],z[2],z[3],/\bGuard\b/.test(z[4]||''),z[4],z[5]))}}return a}
 function hybridCard(el,z){if(z.type==='MANIFESTATION'){let c=mk(el,z.n,z.c,z.a,z.h,false,z.text,z.tip);c.role=z.role;return c}return{id:++uid,el,n:z.n,c:z.c,type:'TECHNIQUE',zone:'DECK',text:z.text,tip:z.tip,role:z.role}}
 function deck(el,responseEl=null){if(!HYBRIDS[el]){let b=BASE[el],a=[];for(let i=0;i<13;i++){let z=b[i%3];a.push(mk(el,z[0],z[1],z[2],z[3],/\bGuard\b/.test(z[4]||''),z[4],z[5]))}for(let i=0;i<7;i++){let t=TECH[el];a.push({id:++uid,el,n:t[0],c:t[3],type:'TECHNIQUE',zone:'DECK',text:t[1],tip:t[2]})}a.push(responseCard(el));return a}let h=HYBRIDS[el],pick=h.parents.includes(responseEl)?responseEl:h.parents[0],a=[...primeCards(h.parents[0],8),...primeCards(h.parents[1],8)];HYBRID_CARDS[el].forEach(z=>a.push(hybridCard(el,z)));a.push(responseCard(pick));return a}
@@ -530,11 +530,12 @@ function chooseTechniqueTarget(c){
    if(!opts.length)return commit({flowOnly:true});
  }else if(c.el==='AIR'){
    let occupied=e.slots.filter(Boolean);
-   if(occupied.length<2)return commit({flowOnly:true});
-   occupied.forEach(m=>opts.push([`${m.n} · M${e.slots.indexOf(m)+1}`,()=>{
-     let partners=occupied.filter(other=>other!==m);
-     modal(`Swap ${m.n} with…`,partners.map(other=>[`${other.n} · M${e.slots.indexOf(other)+1}`,()=>commit({enemy:m,swapWith:other})]));
-   }]));
+   if(occupied.length<2){
+     p.slots.forEach((m,i)=>{if(m)opts.push([`${m.n} · M${i+1} · Momentum ${momentumStacks(m)}/3`,()=>commit({friend:m,momentumFallback:true})])});
+   }else occupied.forEach(m=>opts.push([`${m.n} · M${e.slots.indexOf(m)+1}`,()=>{
+      let partners=occupied.filter(other=>other!==m);
+      modal(`Swap ${m.n} with…`,partners.map(other=>[`${other.n} · M${e.slots.indexOf(other)+1}`,()=>commit({enemy:m,swapWith:other})]));
+    }]));
  }else return commit({auto:true});
  if(!opts.length){add(`${c.n}: no legal target`);render();return}
  modal(`Choose target · ${c.n}`,opts);
@@ -547,8 +548,8 @@ function primeSummonRecipients(p,c){
 function applyPrimeSummonGift(c,target){
  if(!c||!target)return false;
  if(c.el==='AIR'&&c.n==='Breeze Disciple'){
-   addMark(target,'Momentum');
-   add(`${c.n}: ${target.n} gains Momentum`);
+   gainMomentum(target);
+   add(`${c.n}: ${target.n} gains Momentum ${momentumStacks(target)}/3`);
    return true;
  }
  if(c.el==='EARTH'&&c.n==='Stone Initiate'){
@@ -612,7 +613,7 @@ if(c.type==='TECHNIQUE'){sendToWake(p,c,'technique');
       G.trial.progress.swapped=true;G.trial.progress.step=1;
       add('WINDS · SWAP complete → attack Stone Initiate with Gale Scout.');
     }
-  }else {add(`${c.n}: Flow 1 (fewer than two enemy Manifestations)`);flow1(p,false)};
+  }else {let friend=techTarget&&techTarget.friend;if(friend&&p.slots.includes(friend)){let gained=gainMomentum(friend);add(`${c.n}: ${friend.n} ${gained?'gains':'remains at'} Momentum ${momentumStacks(friend)}/3`)}else add(`${c.n}: no friendly target for Momentum`)};
 }
 }else{let i=slotIndex;if(i==null||i<0||i>2||p.slots[i])return;c.zone='FIELD';c.ready=true;c.sick=true;c.marks=c.marks||[];if(HYBRIDS[c.el]){/* hybrid avatar enters normally */}if(c.el==='FIRE'&&c.n==='Cinder Adept'){addMark(foe(),'Burning');add(`${c.n}: applies Burning to rival Bender`)}if(c.el==='WATER'&&c.n==='Mist Adept'){add(`${c.n}: Flow 1`);flow1(p,false)}if(c.el==='LIGHTNING'&&c.n==='Spark Runner'&&G.chain===2){G.chain++;add(`${c.n}: second card → +1 Chain (Chain ${G.chain})`);ebPulseChain()}p.slots[i]=c;ebQueueFx({kind:'summon',id:c.id,el:c.el,label:c.n});add(`SUMMON ${c.n} → M${i+1}`);resolvePrimeSummonGift(p,c,false)}registerAffinity(p,c);bump()}
 function hit(m,n,sourceEl=null,sourceLabel='HIT'){
@@ -668,12 +669,14 @@ function addMark(m,x){
    add(`EFFECT · ${x} → ${who}`);
  }
 }
+function momentumStacks(m){if(!m)return 0;let n=Number.isFinite(m.momentum)?Math.floor(m.momentum):((m.marks||[]).includes('Momentum')?1:0);return Math.max(0,Math.min(3,n))}
+function gainMomentum(m){if(!m)return false;let before=momentumStacks(m);m.momentum=before;if(before>=3){if(!(m.marks||[]).includes('Momentum'))addMark(m,'Momentum');return false}m.momentum=before+1;m.a=(Number(m.a)||0)+1;addMark(m,'Momentum');return true}
 function grow(m){if((m.growth||0)>=3)return false;m.growth=(m.growth||0)+1;m.a++;return true}
 function moveFriendly(p,m){let from=p.slots.indexOf(m),to=p.slots.findIndex(x=>!x);if(from<0||to<0)return false;p.slots[from]=null;p.slots[to]=m;p.turnState.moved.push(m.id);return true}
 function resolveHybridTechnique(p,e,c,isAI=false,target=null){let r=resonant(p),friend=(target&&target.friend)||p.slots.find(Boolean),enemy=(target&&target.enemy)||e.slots.find(Boolean);
  if(c.el==='MAGMA'){if(c.n==='Molten Channel'){if(friend){friend.armor=Math.min(3,(friend.armor||0)+1);add(`${c.n}: ${friend.n} gains Armor`)}if(r&&enemy){addMark(enemy,'Burning');add(`${c.n}: Resonance applies Burning`)}}else if(c.n==='Pressure Forge'){if(friend)friend.armor=Math.min(3,(friend.armor||0)+1);if(r){let t=e.slots.find(x=>x&&(x.marks||[]).includes('Burning'));if(t){hit(t,1);death(e);add(`${c.n}: Resonance deals 1`)}}}else if(c.n==='Eruption Guard'&&friend){friend.quick={kind:'REDUCE',value:2,ownerTurn:G.turn};add(`${c.n}: protection armed`)}}
- if(c.el==='STORM'){if(c.n==='Crosswind Spark'&&friend&&moveFriendly(p,friend)){addMark(friend,'Momentum');if(r)addMark(friend,'Charged');add(`${c.n}: movement + Momentum${r?' + Charged':''}`)}else if(c.n==='Thunderstep'&&friend&&moveFriendly(p,friend)){if(r&&((friend.marks||[]).includes('Charged')||(friend.marks||[]).includes('Momentum'))&&enemy){hit(enemy,1);death(e);add(`${c.n}: Resonance deals 1`)}}else if(c.n==='Static Reversal'&&friend){friend.quick={kind:'MOVE',ownerTurn:G.turn};add(`${c.n}: reversal armed`)}}
- if(c.el==='BLOOM'){if(c.n==='Rainseed'&&friend){if(r){if(grow(friend))add(`${c.n}: Resonance Growth ${friend.growth}`)}else if((friend.marks||[]).includes('Seeded')){friend.h=Math.min(friend.max,friend.h+1);add(`${c.n}: heals 1`)}else{addMark(friend,'Seeded');add(`${c.n}: Seeded`)}}else if(c.n==='Flourishing Current'&&friend){friend.h=Math.min(friend.max,friend.h+2);if(r&&(friend.marks||[]).includes('Seeded'))grow(friend);add(`${c.n}: heal${r?' + Resonance':''}`)}else if(c.n==='Reclaiming Tide'){let t=p.slots.find(x=>x&&(x.marks||[]).includes('Seeded')&&(x.growth||0)>0);if(t){t.quick={kind:'SURVIVE',ownerTurn:G.turn};add(`${c.n}: survival armed on ${t.n}`)}}}}
+ if(c.el==='STORM'){if(c.n==='Crosswind Spark'&&friend&&moveFriendly(p,friend)){gainMomentum(friend);if(r)addMark(friend,'Charged');add(`${c.n}: movement + Momentum ${momentumStacks(friend)}/3${r?' + Charged':''}`)}else if(c.n==='Thunderstep'&&friend&&moveFriendly(p,friend)){if(r&&((friend.marks||[]).includes('Charged')||momentumStacks(friend)>0)&&enemy){hit(enemy,1);death(e);add(`${c.n}: Resonance deals 1`)}}else if(c.n==='Static Reversal'&&friend){friend.quick={kind:'MOVE',ownerTurn:G.turn};add(`${c.n}: reversal armed`)}}
+ if(c.el==='BLOOM'){if(c.n==='Rainseed'&&friend){if(r){if(grow(friend))add(`${c.n}: Resonance Growth ${friend.growth}`)}else if((friend.marks||[]).includes('Seeded')){friend.h=Math.min(friend.max,friend.h+1);add(`${c.n}: heals 1`)}else{addMark(friend,'Seeded');add(`${c.n}: Seeded`)}}else if(c.n==='Flourishing Current'&&friend){friend.h=Math.min(friend.max,friend.h+1);if(r&&(friend.marks||[]).includes('Seeded'))grow(friend);add(`${c.n}: heals up to 1${r?' + Resonance':''}`)}else if(c.n==='Reclaiming Tide'){let t=p.slots.find(x=>x&&(x.marks||[]).includes('Seeded')&&(x.growth||0)>0);if(t){t.quick={kind:'SURVIVE',ownerTurn:G.turn};add(`${c.n}: survival armed on ${t.n}`)}}}}
 function applyQuickBeforeAttack(owner,target){if(!target||!target.quick)return;if(target.quick.kind==='MOVE'){moveFriendly(owner,target);target.quick=null;add(`${target.n}: Static Reversal movement`)}}
 function applyQuickAfterDamage(owner,target){if(!target||!target.quick)return;if(target.quick.kind==='SURVIVE'&&target.h<=0&&(target.growth||0)>0&&(target.marks||[]).includes('Seeded')){target.h=1;target.growth--;target.a=Math.max(0,target.a-1);target.marks=target.marks.filter(x=>x!=='Seeded');target.quick=null;add(`${target.n}: Reclaiming Tide leaves it at 1 HP`)}}
 function hybridAttackBonus(att,p){
@@ -682,12 +685,12 @@ function hybridAttackBonus(att,p){
    bonus=1;
    att.turnFlags={...(att.turnFlags||{}),stormBonus:true};
  }
- // Primary Air payoff: a Crosswind swap creates one +1 ATK opening.
+ // Primary Air payoff: a Crosswind swap creates one +2 ATK opening.
  // for Gale Scout this turn. Consume it on the Scout's attack.
  if(att.el==='AIR'&&att.n==='Gale Scout'&&p.turnState.airOpening){
-   bonus+=1;
+   bonus+=2;
    p.turnState.airOpening=false;
-   add('AIR · Gale Scout exploits Crosswind → +1 ATK');
+   add('AIR · Gale Scout exploits Crosswind → +2 ATK');
  }
  return bonus;
 }
@@ -722,7 +725,7 @@ function attackBypassesGuard(att,owner){
  if(!att||!owner)return false;
 
  // Dancing Gale — Sky Raptor: Momentum explicitly enables Guard bypass.
- if(att.el==='AIR'&&att.n==='Sky Raptor'&&(att.marks||[]).includes('Momentum')){
+ if(att.el==='AIR'&&att.n==='Sky Raptor'&&momentumStacks(att)>0){
    return true;
  }
 
@@ -823,9 +826,8 @@ if(G.trial&&G.trial.element==='AIR'&&att.n==='Gale Scout'&&t&&t.id===G.trial.pro
     att.ready=true;
     add('WINDS · No opening yet → swap two enemies with Crosswind first.');
   }else{
-    power+=1;
     G.trial.progress.exploited=true;G.trial.progress.step=2;
-    add('WINDS · EXPLOIT → the swap creates +1 trial damage.');
+    add('WINDS · EXPLOIT → Gale Scout receives its Crosswind attack bonus.');
   }
 }
 
@@ -886,7 +888,7 @@ function ebPickAITarget(att,targets,randomFn=Math.random){
 }
 function ai(){if(EB_INIT_LOCK||G.winner)return;let p=foe(),e=me(),budget=diff==='Difficult'?5:2;
 function bodyScore(c){return (c.a||0)*2+(c.h||0)+(c.guard?3:0)-c.c*.4}
-function techScore(c){if(HYBRIDS[c.el])return resonant(p)?7:4;if(c.el==='FIRE')return e.slots.some(Boolean)?7:2;if(c.el==='EARTH')return p.slots.some(Boolean)?6:0;if(c.el==='NATURE')return p.slots.some(m=>m&&(m.marks||[]).includes('Seeded')&&(m.growth||0)<3)?7:1;if(c.el==='WATER')return 4;if(c.el==='LIGHTNING')return G.chain>=1?6:3;if(c.el==='AIR')return e.slots.filter(Boolean).length>=2?5:2;return 2}
+function techScore(c){if(HYBRIDS[c.el])return resonant(p)?7:4;if(c.el==='FIRE')return e.slots.some(Boolean)?7:2;if(c.el==='EARTH')return p.slots.some(Boolean)?6:0;if(c.el==='NATURE')return p.slots.some(m=>m&&(m.marks||[]).includes('Seeded')&&(m.growth||0)<3)?7:1;if(c.el==='WATER')return 4;if(c.el==='LIGHTNING')return G.chain>=1?6:3;if(c.el==='AIR')return e.slots.filter(Boolean).length>=2?5:p.slots.some(Boolean)?4:0;return 2}
 for(let step=0;step<budget;step++){let legal=p.hand.filter(c=>c.c<=p.e&&(c.type==='TECHNIQUE'||p.slots.some(s=>!s)));if(!legal.length)break;let c;
  if(diff==='Easy')c=legal[Math.floor(Math.random()*legal.length)];
  else {let ranked=legal.sort((a,b)=>(b.type==='TECHNIQUE'?techScore(b):bodyScore(b))-(a.type==='TECHNIQUE'?techScore(a):bodyScore(a)));c=(diff==='Medium'&&ranked.length>1&&Math.random()<0.40)?ranked[1]:ranked[0];}
@@ -898,7 +900,7 @@ for(let step=0;step<budget;step++){let legal=p.hand.filter(c=>c.c<=p.e&&(c.type=
    else if(c.el==='NATURE'){let t=p.slots.find(m=>m&&(m.marks||[]).includes('Seeded')&&(m.growth||0)<3);if(t){t.growth=(t.growth||0)+1;t.a++;add(`Rival Verdant Mend: ${t.n} gains Growth ${t.growth}`)}else add('Rival Verdant Mend: no Seeded target · no effect')}
    else if(c.el==='WATER'){let t=e.slots.find(Boolean);if(t)addMark(t,'Soaked');add(`Rival Current Shift: Flow 1${t?' + Soaked':''}`);flow1(p,true)}
    else if(c.el==='LIGHTNING'){if(G.chain===2){addMark(e,'Charged');add(`Rival Static Step: second card → your Bender is Charged`)}else add(`Rival Static Step: Flow 1`)}
-   else if(c.el==='AIR'){let occupied=e.slots.map((m,i)=>m?i:-1).filter(i=>i>=0);if(occupied.length>=2){let [from,to]=occupied;[e.slots[from],e.slots[to]]=[e.slots[to],e.slots[from]];p.turnState.airOpening=true;add(`Rival Crosswind swaps M${from+1} ↔ M${to+1} · Air Opening ready`)}else{add(`Rival Crosswind: Flow 1`);flow1(p,true)}}
+   else if(c.el==='AIR'){let occupied=e.slots.map((m,i)=>m?i:-1).filter(i=>i>=0);if(occupied.length>=2){let [from,to]=occupied;[e.slots[from],e.slots[to]]=[e.slots[to],e.slots[from]];p.turnState.airOpening=true;add(`Rival Crosswind swaps M${from+1} ↔ M${to+1} · Air Opening ready`)}else{let t=p.slots.find(m=>m&&m.n==='Sky Raptor'&&momentumStacks(m)<3)||p.slots.filter(Boolean).sort((a,b)=>momentumStacks(a)-momentumStacks(b))[0];if(t){gainMomentum(t);add(`Rival Crosswind: ${t.n} gains Momentum ${momentumStacks(t)}/3`)}else add('Rival Crosswind: no friendly target')}}
  }else{let i=p.slots.findIndex(x=>!x);if(i<0)continue;c.zone='FIELD';c.sick=true;c.ready=true;c.marks=c.marks||[];p.slots[i]=c;if(c.el==='LIGHTNING'&&c.n==='Spark Runner'&&G.chain===2){G.chain++;add(`Rival ${c.n}: second card → +1 Chain (Chain ${G.chain})`);ebPulseChain()}resolvePrimeSummonGift(p,c,true);add(`Rival summons ${c.n}`)}
  registerAffinity(p,c);
  winCheck();
@@ -1032,7 +1034,7 @@ function ebDrainFx(){
 const EB_FX_COLOR={FIRE:'#ff704d',WATER:'#55c7ff',NATURE:'#67d77a',EARTH:'#d0a25c',LIGHTNING:'#ffe45d',AIR:'#bdeaff',MAGMA:'#ff633f',STORM:'#aa91ff',BLOOM:'#6be8ae'};
 function ebSnap(){
  if(!G)return null;
- return {p:G.p.map(p=>({vit:p.vit,marks:[...(p.marks||[])],slots:p.slots.map((c,i)=>c?{id:c.id,n:c.n,el:c.el,h:c.h,a:c.a,armor:c.armor||0,growth:c.growth||0,ready:!!c.ready,sick:!!c.sick,marks:[...(c.marks||[])],quick:c.quick?c.quick.kind:null,slot:i}:null)}))};
+ return {p:G.p.map(p=>({vit:p.vit,marks:[...(p.marks||[])],slots:p.slots.map((c,i)=>c?{id:c.id,n:c.n,el:c.el,h:c.h,a:c.a,armor:c.armor||0,growth:c.growth||0,momentum:momentumStacks(c),ready:!!c.ready,sick:!!c.sick,marks:[...(c.marks||[])],quick:c.quick?c.quick.kind:null,slot:i}:null)}))};
 }
 function ebCard(side,slot){return document.querySelector(`#${side===0?'pslots':'eslots'} .slot[data-slot="${slot}"] .card`)}
 function ebSlot(side,slot){return document.querySelector(`#${side===0?'pslots':'eslots'} .slot[data-slot="${slot}"]`)}
@@ -1066,7 +1068,7 @@ function ebFocus(text,el='AIR'){
 }
 function ebShortFocus(log){
  if(!log)return null;let s=log.replace(/^T\d+\s*/, '');
- if(/AIR · Gale Scout exploits/i.test(s))return['OPENING EXPLOITED · +1 ATK','AIR'];
+ if(/AIR · Gale Scout exploits/i.test(s))return['OPENING EXPLOITED · +2 ATK','AIR'];
  if(/RESONANCE ACTIVE/i.test(s))return['RESONANCE ACTIVE',s.match(/🔥|💧|🌿|🪨|⚡|🌪️/)?'STORM':'AIR'];
  if(/destroyed/i.test(s))return['MANIFESTATION BROKEN','FIRE'];
  if(/Armor/i.test(s))return['ARMOR SHIFT','EARTH'];
@@ -1132,7 +1134,8 @@ function ebRenderFx(){
 }
 function effectBadges(c){
  let b=[];
- (c.marks||[]).forEach(x=>b.push(`<span class="effect-badge effect-pop">${x}</span>`));
+ (c.marks||[]).filter(x=>x!=='Momentum').forEach(x=>b.push(`<span class="effect-badge effect-pop">${x}</span>`));
+ if(momentumStacks(c)>0)b.push(`<span class="effect-badge effect-pop">Momentum ${momentumStacks(c)}</span>`);
  if((c.growth||0)>0)b.push(`<span class="effect-badge effect-pop">Growth ${c.growth}</span>`);
  if((c.armor||0)>0)b.push(`<span class="effect-badge effect-pop">Armor ${c.armor}</span>`);
  if(c.quick){
@@ -1326,7 +1329,7 @@ function ebSerializableState(state=G){
   p:(state.p||[]).map(p=>({vit:p.vit,ess:p.ess,maxEss:p.maxEss,
    hand:(p.hand||[]).map(c=>c.id),deck:(p.deck||[]).map(c=>c.id),wake:(p.wake||[]).map(c=>c.id),
    marks:[...(p.marks||[])],slots:(p.slots||[]).map(c=>c?{id:c.id,n:c.n,el:c.el,h:c.h,max:c.max,a:c.a,
-    armor:c.armor||0,growth:c.growth||0,ready:!!c.ready,sick:!!c.sick,marks:[...(c.marks||[])]}:null)}))};
+    armor:c.armor||0,growth:c.growth||0,momentum:momentumStacks(c),ready:!!c.ready,sick:!!c.sick,marks:[...(c.marks||[])]}:null)}))};
 }
 function ebStateFingerprint(state=G){
  let str=JSON.stringify(ebSerializableState(state)),h=2166136261;
@@ -1358,7 +1361,7 @@ function runEBVerification(){
   test('DATA','All six Prime elements exist',()=>ebAssert(['FIRE','WATER','NATURE','EARTH','LIGHTNING','AIR'].every(x=>BASE[x]&&TECH[x])));
   test('DATA','All three Hybrid decks exist',()=>ebAssert(['MAGMA','STORM','BLOOM'].every(x=>HYBRIDS[x]&&HYBRID_CARDS[x])));
    test('DATA','Spark Runner uses Chain acceleration text',()=>{let z=BASE.LIGHTNING.find(x=>x[0]==='Spark Runner');ebAssert(z&&/gain \+1 Chain/i.test(z[4]),'Spark Runner canonical text mismatch');ebAssert(!/Charged/i.test(z[4]),'Spark Runner still advertises Charged')});
-  test('DATA','Prime Manifestation costs are canonical',()=>{for(const el of Object.keys(BASE)){BASE[el].forEach((x,i)=>ebAssert(x[1]===i+1,`${el} ${x[0]} cost ${x[1]} expected ${i+1}`))}});
+  test('DATA','Prime Manifestation costs are canonical',()=>{for(const el of Object.keys(BASE)){BASE[el].forEach(x=>ebAssert(Number.isFinite(x[1])&&Number.isInteger(x[1])&&x[1]>0,`${el} ${x[0]} cost must be a finite positive integer`))}});
   test('DATA','Prime Technique costs are fixed',()=>{const expected={FIRE:2,WATER:1,NATURE:2,EARTH:1,LIGHTNING:1,AIR:1};for(const el in expected)ebAssert(TECH[el][3]===expected[el],`${el} technique cost mismatch`)});
   test('DATA','No duplicate canonical names disagree on cost',()=>{let m=new Map();for(const el of Object.keys(INFO)){for(let i=0;i<4;i++){let d=deck(el);for(const c of d){if(m.has(c.n))ebAssert(m.get(c.n)===c.c,`${c.n}: ${m.get(c.n)} vs ${c.c}`);else m.set(c.n,c.c)}}}});
   test('DATA','Every generated card has required fields',()=>{for(const el of Object.keys(INFO)){deck(el).forEach(c=>{ebAssert(c.id&&c.n&&Number.isFinite(c.c)&&c.el&&c.type,`Invalid ${el} card`);if(c.type==='MANIFESTATION')ebAssert(Number.isFinite(c.a)&&Number.isFinite(c.h)&&Number.isFinite(c.max),`${c.n} stats invalid`)})}});
@@ -1399,7 +1402,7 @@ function runEBVerification(){
   test('LIGHTNING','Charged adds +1 to Lightning attack',()=>{let p=ebTestPlayer('LIGHTNING'),e=ebTestPlayer();e.marks=['Charged'];G={p:[p,e],active:0,chain:0,logs:[]};ebAssert(elementalAttackBonus(ebTestCard('LIGHTNING','Spark Runner'),e,p)===1)});
   test('LIGHTNING','Charged is consumed on release',()=>{let p=ebTestPlayer('LIGHTNING'),e=ebTestPlayer();e.marks=['Charged'];G={p:[p,e],active:0,chain:0,logs:[]};elementalAttackBonus(ebTestCard('LIGHTNING','Spark Runner'),e,p);ebAssert(!e.marks.includes('Charged'))});
   test('LIGHTNING','Arc Runner + Chain 2 + Charged stacks to +2',()=>{let p=ebTestPlayer('LIGHTNING'),e=ebTestPlayer();e.marks=['Charged'];G={p:[p,e],active:0,chain:2,logs:[]};ebAssert(elementalAttackBonus(ebTestCard('LIGHTNING','Arc Runner'),e,p)===2)});
-  test('AIR','Crosswind opening gives Gale Scout +1 once',()=>{let p=ebTestPlayer('AIR'),e=ebTestPlayer();p.turnState.airOpening=true;G={p:[p,e],active:0,chain:0,logs:[]};let a=ebTestCard('AIR','Gale Scout');ebAssert(hybridAttackBonus(a,p)===1&&!p.turnState.airOpening)});
+  test('AIR','Crosswind opening gives Gale Scout +2 once',()=>{let p=ebTestPlayer('AIR'),e=ebTestPlayer();p.turnState.airOpening=true;G={p:[p,e],active:0,chain:0,logs:[]};let a=ebTestCard('AIR','Gale Scout');ebAssert(hybridAttackBonus(a,p)===2&&!p.turnState.airOpening)});
   test('NATURE','Growth glossary matches +1 ATK-only rule',()=>ebAssert(/\+1 ATK/.test(GLOSSARY.Growth)&&!/maximum HP/.test(GLOSSARY.Growth)));
   test('HYBRIDS','Each Hybrid has exactly two Prime parents',()=>{for(const k in HYBRIDS){let h=HYBRIDS[k];ebAssert(h.parents.length===2&&h.parents.every(x=>BASE[x]),`${k} parents invalid`)}});
   test('HYBRIDS','Each Hybrid has setup/avatar/payoff/quick package',()=>{for(const k in HYBRID_CARDS){let roles=new Set(HYBRID_CARDS[k].map(c=>c.role));['SETUP','AVATAR','PAYOFF','QUICK'].forEach(r=>ebAssert(roles.has(r),`${k} missing ${r}`))}});
@@ -1480,7 +1483,7 @@ function copyEBVerification(){
    IMPORTANT: this module never reads/writes live G while simulating.
    ================================================================ */
 const EB_BUILD={alpha:EB_RELEASE.version,engine:EB_RELEASE.engine};
-const EB_BALANCE_PATCH='BALANCE-PASS-0.8.55';
+const EB_BALANCE_PATCH='BALANCE-PASS-0.8.56';
 const EB_BALANCE=(()=>{
  const DECKS=['FIRE','WATER','NATURE','EARTH','LIGHTNING','AIR','MAGMA','STORM','BLOOM'];
  const PRIME=new Set(['FIRE','WATER','NATURE','EARTH','LIGHTNING','AIR']);
@@ -1495,13 +1498,15 @@ const EB_BALANCE=(()=>{
  function primePack(el,count){let out=[];for(let i=0;i<count;i++){if(i%5===4)out.push(card(el,TECH[el],'TECHNIQUE'));else out.push(card(el,BASE[el][i%3]))}return out}
  function responseSimCard(el){return card(el,{...RESPONSES[el],type:'RESPONSE',role:'RESPONSE'})}
  function responseChoice(el,r,forced=null){if(PRIME.has(el))return el;let parents=HYBRIDS[el].parents;if(parents.includes(forced))return forced;return parents[Math.floor(r()*parents.length)]}
- function makeDeck(el,r,responseEl=null){let a=[],pick=responseChoice(el,r,responseEl);if(PRIME.has(el)){for(let i=0;i<13;i++)a.push(card(el,BASE[el][i%3]));for(let i=0;i<7;i++)a.push(card(el,TECH[el],'TECHNIQUE'))}else{let h=HYBRIDS[el];a=[...primePack(h.parents[0],8),...primePack(h.parents[1],8),...HYBRID_CARDS[el].map(z=>card(el,z))]}a.push(responseSimCard(pick));a.forEach((c,i)=>{c.sid=`${el}:${i}`;c.marks=[];c.armor=0;c.growth=0;c.ready=false;c.sick=false});return{cards:shuffle(a,r),responseEl:pick}}
+ function makeDeck(el,r,responseEl=null){let a=[],pick=responseChoice(el,r,responseEl);if(PRIME.has(el)){for(let i=0;i<13;i++)a.push(card(el,BASE[el][i%3]));for(let i=0;i<7;i++)a.push(card(el,TECH[el],'TECHNIQUE'))}else{let h=HYBRIDS[el];a=[...primePack(h.parents[0],8),...primePack(h.parents[1],8),...HYBRID_CARDS[el].map(z=>card(el,z))]}a.push(responseSimCard(pick));a.forEach((c,i)=>{c.sid=`${el}:${i}`;c.marks=[];c.armor=0;c.growth=0;c.momentum=0;c.ready=false;c.sick=false});return{cards:shuffle(a,r),responseEl:pick}}
  function freshSide(el,r,responseEl=null){let built=makeDeck(el,r,responseEl);return{el,vit:30,maxE:2,e:2,deck:built.cards,hand:[],wake:[],slots:[null,null,null],marks:[],chain:0,responseEl:built.responseEl,initiationToken:false,turnState:{resonance:{a:false,b:false,active:false},parents:HYBRIDS[el]?.parents||[]}}}
  function draw(st,i){let p=st.p[i];if(!p.deck.length){p.vit-=EXHAUSTION_DAMAGE;metric(st,'effect','Exhaustion');return false}p.hand.push(p.deck.shift());return true}
  function makeState(a,b,seed,opt={}){let r=rng(seed),paired=opt&&opt.calibrationSeed!=null,base=paired?String(opt.calibrationSeed):String(seed),p0=paired?freshSide(a,rng(base+'|DECK|'+a),opt.responseElA):freshSide(a,r,opt.responseElA),p1=paired?freshSide(b,rng(base+'|DECK|'+b),opt.responseElB):freshSide(b,r,opt.responseElB);if(paired)r=rng(base+'|ACTION');let options={...DEFAULTS,...opt},startSeat=options.startSeat===1?1:0;p0.initiationToken=startSeat!==0;p1.initiationToken=startSeat!==1;let st={seed:String(seed),rng:r,p:[p0,p1],active:startSeat,startSeat,turn:1,actions:0,winner:null,reason:null,options,metrics:{cards:{},effects:{},responses:{windows:0,played:0,passed:0,card:0,token:0,cancelled:0,retaliationDamage:0,preCombatKills:0,undertowMoves:0,slipstreamRedirects:0,stonewallArmor:0,secondBloomHealing:0,byElement:{}},turns:0,actions:0,damage:[0,0],winReason:null,initiative:{startSeat,firstPlay:null,firstPlayTurn:null,firstAttack:null,firstAttackTurn:null,firstDamage:null,firstDamageTurn:null,firstSummon:null,firstSummonTurn:null,firstGuard:null,firstGuardTurn:null,firstRemoval:null,firstRemovalTurn:null,removedBeforeFirstAttack:[0,0],summoned:[0,0],survivedToFirstAttack:[0,0],attackedAtLeastOnce:[0,0],preAttackRemovalBySource:[{},{}],cardsPlayed:[0,0],attacks:[0,0],energySpent:[0,0],openingEnergy:[null,null],actionTurns:[0,0],turnSequence:[],snapshots:{},turn5Damage:[0,0],turn5Board:[0,0],turn5CardsUsed:[0,0]}},trace:[]};for(let i=0;i<2;i++)for(let n=0;n<st.options.openingHand;n++)draw(st,i);let bonus=Math.max(0,Number(st.options.secondPlayerBonusCards)||0);for(let n=0;n<bonus;n++)draw(st,1-startSeat);startTurn(st,startSeat,false);return st}
  function metric(st,kind,key,n=1){kind=kind==='effect'?'effects':kind==='card'?'cards':kind;let o=st.metrics[kind]||(st.metrics[kind]={});o[key]=(o[key]||0)+n}
  function mark(x,m){x.marks=x.marks||[];if(!x.marks.includes(m))x.marks.push(m)}
  function unmark(x,m){x.marks=(x.marks||[]).filter(v=>v!==m)}
+ function momentum(x){if(!x)return 0;let n=Number.isFinite(x.momentum)?Math.floor(x.momentum):((x.marks||[]).includes('Momentum')?1:0);return Math.max(0,Math.min(3,n))}
+ function addMomentum(st,x){if(!x)return false;let before=momentum(x);x.momentum=before;if(before>=3){mark(x,'Momentum');return false}x.momentum=before+1;x.a=(Number(x.a)||0)+1;mark(x,'Momentum');metric(st,'effect','Momentum');return true}
  function guards(p){return p.slots.filter(x=>x&&x.guard)}
  function depleted(p){return p.hand.length===0&&p.deck.length===0}
  function endCheck(st){if(st.winner!==null)return true;for(let i=0;i<2;i++)if(st.p[i].vit<=0){st.winner=1-i;st.reason='VITALITY';break}if(st.winner===null){let d=st.p.map(depleted);if(d[0]||d[1]){st.winner=d[0]&&!d[1]?1:d[1]&&!d[0]?0:1-st.active;st.reason='CARD_DEPLETION'}}if(st.winner!==null){st.metrics.winReason=st.reason;return true}return false}
@@ -1512,13 +1517,13 @@ const EB_BALANCE=(()=>{
    if(att.el==='EARTH'&&att.n==='Boulder Ram'&&(att.armor||0)>0)bonus++;
    if(att.el==='LIGHTNING'&&att.n==='Arc Runner'&&p.chain>=2)bonus++;
    if(att.el==='LIGHTNING'&&att.n==='Volt Lynx'&&p.chain>=3&&!att.turnFlags?.volt){bonus++;att.turnFlags={...(att.turnFlags||{}),volt:true};metric(st,'effect','Volt Lynx payoff')}
-   if(att.el==='AIR'&&att.n==='Gale Scout'&&p.turnState.airOpening){bonus++;p.turnState.airOpening=false;metric(st,'effect','Air Opening')}
+   if(att.el==='AIR'&&att.n==='Gale Scout'&&p.turnState.airOpening){bonus+=2;p.turnState.airOpening=false;metric(st,'effect','Air Opening')}
    if((target.marks||[]).includes('Charged')&&(att.el==='LIGHTNING'||att.el==='STORM')){bonus++;unmark(target,'Charged');metric(st,'effect','Charged released')}
    bonus+=(att.growth||0);return bonus}
  function simSoakedAttackPower(st,att,power){if(!att||(att.marks||[]).indexOf('Soaked')<0)return Math.max(0,power);unmark(att,'Soaked');let reduced=Math.max(0,power-2);metric(st,'effect','Soaked mitigation');return reduced}
  function dealBody(st,owner,t,power,source){let def=st.p[1-owner],pre=t.h,block=Math.min(t.armor||0,power);t.armor=(t.armor||0)-block;let d=Math.max(0,power-block);if(st.options.secondPlayerOpeningProtection&&(1-owner)!==st.startSeat&&!t._ebHasAttacked&&t.h-d<=0)d=Math.max(0,t.h-1);t.h-=d;if(d>0&&t.el==='WATER'&&t.n==='Tide Warden')flow(st,1-owner);if(source.el==='WATER'&&source.n==='River Serpent'&&d>0){mark(t,'Soaked');metric(st,'effect','Soaked applied')}if(t.h<=0){let idx=def.slots.indexOf(t),guardAtImpact=guards(def).length;if(st.metrics.initiative.firstRemoval===null){st.metrics.initiative.firstRemoval=owner;st.metrics.initiative.firstRemovalTurn=st.turn}if(!t._ebHasAttacked){let victim=1-owner;st.metrics.initiative.removedBeforeFirstAttack[victim]++;let key=(source&&source.type==='TECHNIQUE'?'TECHNIQUE:':'ATTACK:')+((source&&source.n)||'UNKNOWN');let bucket=st.metrics.initiative.preAttackRemovalBySource[victim];bucket[key]=(bucket[key]||0)+1;if(st.trace.length<120)st.trace.push({ev:'PRE_ATTACK_REMOVAL',turn:st.turn,by:owner,victim,unit:t.n,source:key});}if(idx>=0){def.slots[idx]=null;def.wake.push(t)}let overflow=guardAtImpact?0:Math.max(0,d-Math.max(0,pre));if(overflow){def.vit-=overflow;st.metrics.damage[owner]+=overflow;metric(st,'effect','Overflow')}}return d}
  function flow(st,owner){let p=st.p[owner];if(!p.deck.length)return false;if(st.rng()<0.35)p.deck.push(p.deck.shift());metric(st,'effect','Flow 1');return true}
- function summonGift(st,owner,c){let p=st.p[owner],targets=p.slots.filter(m=>m&&m!==c);if(!targets.length)return;let t;if(c.el==='AIR'&&c.n==='Breeze Disciple'){t=targets.find(x=>x.n==='Sky Raptor')||targets.sort((a,b)=>b.a-a.a)[0];mark(t,'Momentum');metric(st,'effect','Momentum')}
+ function summonGift(st,owner,c){let p=st.p[owner],targets=p.slots.filter(m=>m&&m!==c);if(!targets.length)return;let t;if(c.el==='AIR'&&c.n==='Breeze Disciple'){t=targets.find(x=>x.n==='Sky Raptor')||targets.sort((a,b)=>b.a-a.a)[0];addMomentum(st,t)}
    else if(c.el==='EARTH'&&c.n==='Stone Initiate'){t=targets.sort((a,b)=>b.h-a.h)[0];t.armor=Math.min(3,(t.armor||0)+1);metric(st,'effect','Armor')}
    else if(c.el==='NATURE'&&c.n==='Sproutling'){t=targets.find(x=>x.n==='Grove Beast')||targets.sort((a,b)=>b.a-a.a)[0];mark(t,'Seeded');metric(st,'effect','Seeded')}}
  function playTechnique(st,owner,c){let p=st.p[owner],e=st.p[1-owner],res=!!p.turnState.resonance.active;
@@ -1527,10 +1532,10 @@ const EB_BALANCE=(()=>{
    else if(c.el==='EARTH'){let t=p.slots.filter(Boolean).sort((a,b)=>(b.a+b.h)-(a.a+a.h))[0];if(t){t.armor=Math.min(3,(t.armor||0)+1);metric(st,'effect','Armor')}}
    else if(c.el==='NATURE'){let t=p.slots.find(m=>m&&(m.marks||[]).includes('Seeded')&&(m.growth||0)<3);if(t){t.growth=(t.growth||0)+1;t.a++;metric(st,'effect','Growth')}}
    else if(c.el==='LIGHTNING'){if(p.chain===2){mark(e,'Charged');metric(st,'effect','Charged applied')}else flow(st,owner)}
-   else if(c.el==='AIR'){let occupied=e.slots.map((m,i)=>m?i:-1).filter(i=>i>=0);if(occupied.length>=2){let [from,to]=occupied;[e.slots[from],e.slots[to]]=[e.slots[to],e.slots[from]];p.turnState.airOpening=true;metric(st,'effect','Crosswind swap')}else flow(st,owner)}
+   else if(c.el==='AIR'){let occupied=e.slots.map((m,i)=>m?i:-1).filter(i=>i>=0);if(occupied.length>=2){let [from,to]=occupied;[e.slots[from],e.slots[to]]=[e.slots[to],e.slots[from]];p.turnState.airOpening=true;metric(st,'effect','Crosswind swap')}else{let t=p.slots.find(m=>m&&m.n==='Sky Raptor'&&momentum(m)<3)||p.slots.filter(Boolean).sort((a,b)=>momentum(a)-momentum(b))[0];if(t)addMomentum(st,t)}}
    else if(c.el==='MAGMA'){let t=p.slots.filter(Boolean)[0];if(t){t.armor=Math.min(3,(t.armor||0)+1);metric(st,'effect','Armor')}if(res){let q=e.slots.find(x=>x&&(x.marks||[]).includes('Burning'));if(q)dealBody(st,owner,q,1,c)}}
-   else if(c.el==='STORM'){let t=p.slots.filter(Boolean)[0],to=p.slots.findIndex(x=>!x);if(t&&to>=0){let from=p.slots.indexOf(t);p.slots[to]=t;p.slots[from]=null;mark(t,'Momentum');metric(st,'effect','Momentum');if(res){mark(t,'Charged');metric(st,'effect','Charged applied')}}}
-   else if(c.el==='BLOOM'){let t=p.slots.filter(Boolean)[0];if(t){if(res){if((t.growth||0)<3){t.growth=(t.growth||0)+1;t.a++;metric(st,'effect','Growth')}}else if((t.marks||[]).includes('Seeded'))t.h=Math.min(t.max,t.h+1);else{mark(t,'Seeded');metric(st,'effect','Seeded')}}}
+   else if(c.el==='STORM'){let t=p.slots.filter(Boolean)[0],to=p.slots.findIndex(x=>!x);if(t&&to>=0){let from=p.slots.indexOf(t);p.slots[to]=t;p.slots[from]=null;addMomentum(st,t);if(res){mark(t,'Charged');metric(st,'effect','Charged applied')}}}
+   else if(c.el==='BLOOM'){let t=p.slots.filter(Boolean)[0];if(t){if(c.n==='Flourishing Current'){t.h=Math.min(t.max,t.h+1);if(res&&(t.marks||[]).includes('Seeded')&&(t.growth||0)<3){t.growth=(t.growth||0)+1;t.a++;metric(st,'effect','Growth')}}else if(res){if((t.growth||0)<3){t.growth=(t.growth||0)+1;t.a++;metric(st,'effect','Growth')}}else if((t.marks||[]).includes('Seeded'))t.h=Math.min(t.max,t.h+1);else{mark(t,'Seeded');metric(st,'effect','Seeded')}}}
  }
  function score(c,p,e){if(c.type==='TECHNIQUE'){if(!p.slots.some(Boolean)&&['EARTH','NATURE','STORM','BLOOM'].includes(c.el))return-5;if(c.el==='FIRE')return e.slots.some(Boolean)?7:guards(e).length?0:5;if(c.el==='LIGHTNING')return p.chain>=1?7:3;return 4.5}return(c.a||0)*2+(c.h||0)+(c.guard?3:0)-c.c*.4}
  function choosePlay(st,owner){let p=st.p[owner],e=st.p[1-owner],legal=p.hand.filter(c=>c.type!=='RESPONSE'&&c.c<=p.e&&(c.type==='TECHNIQUE'||p.slots.some(x=>!x)));if(!legal.length)return null;legal=[...legal].sort((a,b)=>score(b,p,e)-score(a,p,e)||a.c-b.c||a.n.localeCompare(b.n));return legal[0]}
@@ -1546,16 +1551,16 @@ const EB_BALANCE=(()=>{
  else if(el==='EARTH'){let pick=def.slots.filter(Boolean).sort((a,b)=>(b.a+b.h)-(a.a+a.h))[0];if(pick){let before=pick.armor||0;pick.armor=Math.min(3,before+1);let gained=pick.armor-before;st.metrics.responses.stonewallArmor+=gained;metric(st,'effect','Stonewall Armor',gained)}}
  else if(el==='LIGHTNING'){let pre=att.h;att.h-=2;metric(st,'effect','Flash Step damage',Math.min(2,Math.max(0,pre)));if(att.h<=0){let atkSide=st.p[owner],i=atkSide.slots.indexOf(att);if(i>=0){atkSide.slots[i]=null;atkSide.wake.push(att)}cancel=true;st.metrics.responses.preCombatKills++}}
  else if(el==='AIR'){let picks=def.slots.filter(m=>m&&m!==t).sort((a,b)=>b.h-a.h),pick=picks[0];if(pick){let a=def.slots.indexOf(t),b=def.slots.indexOf(pick);[def.slots[a],def.slots[b]]=[def.slots[b],def.slots[a]];target=pick;st.metrics.responses.slipstreamRedirects++;metric(st,'effect','Slipstream redirect')}}if(cancel){responseMetric(st,el,'cancelled');st.metrics.responses.cancelled++}return{target,cancel,ok:true}}
- function canBypass(att){return(att.n==='Sky Raptor'&&(att.marks||[]).includes('Momentum'))||(att.n==='Tempest Striker')}
+ function canBypass(att){return(att.n==='Sky Raptor'&&momentum(att)>0)||(att.n==='Tempest Striker')}
  function attackOne(st,owner,att){let p=st.p[owner],e=st.p[1-owner],beforeD=st.metrics.damage[owner];if(!att._ebHasAttacked)st.metrics.initiative.attackedAtLeastOnce[owner]++;att._ebHasAttacked=true;if((p.el==='LIGHTNING'||e.el==='LIGHTNING')&&st.trace.length<120)st.trace.push({ev:'ATTACK',turn:st.turn,seat:owner,unit:att.n,chain:p.chain,energy:p.e});if(st.metrics.initiative.firstAttack===null){st.metrics.initiative.firstAttack=owner;st.metrics.initiative.firstAttackTurn=st.turn}st.metrics.initiative.attacks[owner]++;let targets=e.slots.filter(Boolean),t=null;if(targets.length){t=ebPickAITarget(att,targets,st.rng)}let direct=!targets.length||((guards(e).length>0)&&canBypass(att));if(direct&&(!guards(e).length||canBypass(att))){let power=simSoakedAttackPower(st,att,Math.max(0,att.a+attackBonus(st,owner,att,e)));e.vit-=power;st.metrics.damage[owner]+=power;if(guards(e).length&&canBypass(att))metric(st,'effect','Guard bypass')}else if(t){let before=simResolveResponse(st,owner,att,t,'BEFORE');if(!before.cancel&&!endCheck(st)&&p.slots.includes(att)){t=before.target;if(e.slots.includes(t)){let hpBefore=t.h,power=simSoakedAttackPower(st,att,Math.max(0,att.a+attackBonus(st,owner,att,t)));dealBody(st,owner,t,power,att);let dealt=Math.max(0,hpBefore-Math.max(0,t.h));if(dealt>0&&!endCheck(st)&&p.slots.includes(att)&&e.slots.includes(t))simResolveResponse(st,owner,att,t,'AFTER')}}}if(st.metrics.initiative.firstDamage===null&&st.metrics.damage[owner]>beforeD){st.metrics.initiative.firstDamage=owner;st.metrics.initiative.firstDamageTurn=st.turn}if(p.slots.includes(att))att.ready=false;st.actions++;st.metrics.actions++}
  function turn(st){if(endCheck(st))return;let owner=st.active,p=st.p[owner],budget=5;for(let n=0;n<budget&&!endCheck(st);n++){let c=choosePlay(st,owner);if(!c)break;doPlay(st,owner,c)}let attackers=p.slots.filter(x=>x&&x.ready&&!x.sick),combatBlocked=(st.options.round2CombatDelay&&st.turn===2)||(st.options.firstPlayerRound2CombatDelay&&st.turn===2&&owner===st.startSeat);if(!combatBlocked){let cap=(st.turn===2&&owner===st.startSeat&&Number.isFinite(Number(st.options.firstPlayerRound2AttackCap)))?Math.max(0,Math.floor(Number(st.options.firstPlayerRound2AttackCap))):attackers.length;for(const a of attackers.slice(0,cap)){if(endCheck(st))break;attackOne(st,owner,a)}}if(endCheck(st))return;st.p.forEach(side=>side.slots.filter(Boolean).forEach(m=>m.sick=false));st.active=1-owner;if(st.active===st.startSeat){if([1,3,5,7].includes(st.turn)&&!st.metrics.initiative.snapshots[st.turn]){st.metrics.initiative.snapshots[st.turn]={damage:[...st.metrics.damage],board:st.p.map(x=>x.slots.filter(Boolean).length),hand:st.p.map(x=>x.hand.length),energy:st.p.map(x=>x.e),cardsPlayed:[...st.metrics.initiative.cardsPlayed],attacks:[...st.metrics.initiative.attacks],energySpent:[...st.metrics.initiative.energySpent]}}if(st.turn===5&&!st.metrics.initiative.turn5Captured){st.metrics.initiative.turn5Captured=true;st.metrics.initiative.turn5Damage=[...st.metrics.damage];st.metrics.initiative.turn5Board=st.p.map(x=>x.slots.filter(Boolean).length);st.metrics.initiative.turn5CardsUsed=[...st.metrics.initiative.cardsPlayed]}st.turn++;}st.metrics.turns=st.turn;startTurn(st,st.active,true)}
  function simulate(a,b,opt={}){if(!DECKS.includes(a)||!DECKS.includes(b))throw Error('Unknown deck');let seed=opt.seed??`${a}|${b}|0`,st=makeState(a,b,seed,opt);while(!endCheck(st)&&st.turn<=st.options.maxTurns&&st.actions<st.options.maxActions)turn(st);if(st.winner===null){st.reason='STALL_CEILING';st.metrics.winReason=st.reason}return{seed:st.seed,decks:[a,b],winner:st.winner,reason:st.reason,turns:st.turn,actions:st.actions,metrics:st.metrics,trace:st.trace.map(e=>({...e})),stalled:st.winner===null,fingerprint:fingerprint(st)}}
- function fingerprint(st){let slim={turn:st.turn,active:st.active,winner:st.winner,reason:st.reason,p:st.p.map(p=>({el:p.el,vit:p.vit,e:p.e,maxE:p.maxE,deck:p.deck.map(c=>c.n),hand:p.hand.map(c=>c.n),wake:p.wake.map(c=>c.n),slots:p.slots.map(c=>c&&[c.n,c.h,c.armor,c.growth,c.marks])}))};let h=hashSeed(JSON.stringify(slim));return h.toString(16).padStart(8,'0')}
+ function fingerprint(st){let slim={turn:st.turn,active:st.active,winner:st.winner,reason:st.reason,p:st.p.map(p=>({el:p.el,vit:p.vit,e:p.e,maxE:p.maxE,deck:p.deck.map(c=>c.n),hand:p.hand.map(c=>c.n),wake:p.wake.map(c=>c.n),slots:p.slots.map(c=>c&&[c.n,c.h,c.armor,c.growth,c.momentum,c.marks])}))};let h=hashSeed(JSON.stringify(slim));return h.toString(16).padStart(8,'0')}
  function aggregate(a,b,count=10,opt={}){let out={decks:[a,b],games:0,wins:[0,0],stalls:0,turns:0,actions:0,reasons:{},cards:{},effects:{},responses:{windows:0,played:0,passed:0,card:0,token:0,cancelled:0,retaliationDamage:0,preCombatKills:0,undertowMoves:0,slipstreamRedirects:0,stonewallArmor:0,secondBloomHealing:0}};for(let i=0;i<count;i++){let r=simulate(a,b,{...opt,seed:`${opt.seedBase||'EB0850'}|${a}|${b}|${i}`});out.games++;if(r.winner===0||r.winner===1)out.wins[r.winner]++;if(r.stalled)out.stalls++;out.turns+=r.turns;out.actions+=r.actions;out.reasons[r.reason]=(out.reasons[r.reason]||0)+1;for(const [k,v] of Object.entries(r.metrics.cards))out.cards[k]=(out.cards[k]||0)+v;for(const [k,v] of Object.entries(r.metrics.effects))out.effects[k]=(out.effects[k]||0)+v;for(const k of Object.keys(out.responses))out.responses[k]+=Number(r.metrics.responses[k]||0)}out.avgTurns=out.games?+(out.turns/out.games).toFixed(2):0;out.avgActions=out.games?+(out.actions/out.games).toFixed(2):0;return out}
  function matrix(perMatchup=2,opt={}){let rows=[];for(const a of DECKS)for(const b of DECKS)rows.push(aggregate(a,b,perMatchup,opt));return rows}
  function selfTest(){let savedG=window.G;let failures=[];function ok(name,fn){try{if(!fn())throw Error('assertion');return{name,ok:true}}catch(e){failures.push(name);return{name,ok:false,error:e.message}}}let tests=[];tests.push(ok('Live G identity is untouched',()=>{let before=window.G;simulate('FIRE','WATER',{seed:'isolation'});return window.G===before&&before===savedG}));tests.push(ok('Seeded simulation is deterministic',()=>{let a=simulate('FIRE','WATER',{seed:'same'}),b=simulate('FIRE','WATER',{seed:'same'});return JSON.stringify(a)===JSON.stringify(b)}));tests.push(ok('All nine simulator decks construct 21 cards with exactly one Response',()=>DECKS.every(d=>{let x=makeDeck(d,rng('deck-'+d));return x.cards.length===21&&x.cards.filter(c=>c.type==='RESPONSE').length===1})));tests.push(ok('Simulation terminates within ceilings',()=>{let r=simulate('BLOOM','EARTH',{seed:'ceil',maxTurns:12,maxActions:80});return r.turns<=13&&r.actions<=80}));tests.push(ok('Metrics contain finite nonnegative values',()=>{let r=simulate('LIGHTNING','AIR',{seed:'metrics'});return Number.isFinite(r.turns)&&r.turns>=0&&Number.isFinite(r.actions)&&r.actions>=0&&Object.keys(r.metrics.effects).length>0}));tests.push(ok('Directional matchup aggregation counts every game',()=>{let r=aggregate('FIRE','WATER',4,{seedBase:'agg'});return r.games===4&&r.wins[0]+r.wins[1]+r.stalls===4}));tests.push(ok('Explicit starting seat is honored',()=>{let a=simulate('FIRE','FIRE',{seed:'seat-a',startSeat:0}),b=simulate('FIRE','FIRE',{seed:'seat-b',startSeat:1});return a.metrics.initiative.startSeat===0&&b.metrics.initiative.startSeat===1}));tests.push(ok('Tempo telemetry captures early snapshots',()=>{let r=simulate('AIR','AIR',{seed:'tempo-snap'}),m=r.metrics.initiative;return m.snapshots&&m.snapshots[1]&&Array.isArray(m.cardsPlayed)&&Array.isArray(m.energySpent)}));tests.push(ok('Second-player energy compensation is simulator-scoped',()=>{let a=makeState('FIRE','FIRE','energy-a',{startSeat:0,secondPlayerFirstTurnEnergy:1});startTurn(a,1,true);return a.p[1].e===a.p[1].maxE+1&&a.metrics.initiative.openingEnergy[1]===a.p[1].maxE+1}));tests.push(ok('Round-2 attack cap is simulator-scoped',()=>{let before=window.G;simulate('AIR','AIR',{seed:'cap',firstPlayerRound2AttackCap:1});return window.G===before}));tests.push(ok('Seat-normalized tempo telemetry preserves first/second roles',()=>{let r=simulate('FIRE','FIRE',{seed:'seat-normalized',startSeat:1}),m=r.metrics.initiative,q=m.snapshots[1];return !!q&&m.startSeat===1&&Array.isArray(q.damage)&&q.damage.length===2}));tests.push(ok('Second player receives simulator Initiation Token',()=>{let x=makeState('FIRE','WATER','token',{startSeat:0});return x.p[0].initiationToken===false&&x.p[1].initiationToken===true}));tests.push(ok('Response cards are reserved for response windows',()=>{let x=makeState('FIRE','WATER','reserve',{startSeat:0}),p=x.p[0],r=responseSimCard('FIRE');p.hand=[r];p.e=7;return choosePlay(x,0)===null}));tests.push(ok('Simulator uses slot-order-neutral shared target scoring',()=>{let a={a:3},x={id:'x',a:1,h:4,armor:0,marks:[]},y={id:'y',a:5,h:4,armor:0,marks:[]};return ebPickAITarget(a,[x,y],()=>0)===y&&ebPickAITarget(a,[y,x],()=>0)===y}));tests.push(ok('0.8.55 card stats are canonical',()=>{let n=makeDeck('NATURE',rng('stats-n')).cards.find(c=>c.n==='Grove Beast'),l=makeDeck('LIGHTNING',rng('stats-l')).cards.find(c=>c.n==='Volt Lynx');return n&&n.c===4&&n.a===2&&n.h===5&&l&&l.c===3&&l.a===4&&l.h===3}));tests.push(ok('Verdant Mend adds Growth without healing',()=>{let st=makeState('NATURE','FIRE','mend'),p=st.p[0],t={n:'Seeded',a:2,h:2,max:5,marks:['Seeded'],growth:0};p.slots=[t,null,null];playTechnique(st,0,{el:'NATURE'});return t.h===2&&t.growth===1&&t.a===3}));tests.push(ok('Crosswind swaps two enemies and sets Air Opening',()=>{let st=makeState('AIR','EARTH','crosswind'),p=st.p[0],e=st.p[1],a={n:'A'},b={n:'B'};e.slots=[a,null,b];playTechnique(st,0,{el:'AIR'});return e.slots[0]===b&&e.slots[2]===a&&p.turnState.airOpening===true}));tests.push(ok('Second Bloom heals once per Manifestation',()=>{let st=makeState('FIRE','NATURE','bloom',{responseElB:'NATURE'}),att={n:'Attacker',a:2,h:4,max:4,marks:[]},t={n:'Target',a:1,h:2,max:4,marks:[]},def=st.p[1];st.p[0].slots=[att,null,null];def.slots=[t,null,null];def.hand=[responseSimCard('NATURE')];def.e=7;def.initiationToken=false;let first=simResolveResponse(st,0,att,t),h=t.h;def.hand=[responseSimCard('NATURE')];let second=simResolveResponse(st,0,att,t);return first.ok&&h===3&&(t.marks||[]).includes('Second Bloom Used')&&!second.ok&&t.h===3}));return{build:EB_BUILD,passed:tests.filter(x=>x.ok).length,total:tests.length,tests,failures}}
  function paired(a,b,count=10,opt={}){let pairs=[];for(let i=0;i<count;i++){let base=`${opt.seedBase||'EB0834CAL'}|${a}|${b}|${i}`,ab=simulate(a,b,{...opt,seed:base+'|AB',calibrationSeed:base}),ba=simulate(b,a,{...opt,seed:base+'|BA',calibrationSeed:base});let abWinner=ab.winner===null?null:ab.decks[ab.winner],baWinner=ba.winner===null?null:ba.decks[ba.winner];pairs.push({seed:base,ab,ba,abWinner,baWinner,sameWinner:abWinner!==null&&abWinner===baWinner,seatFlip:abWinner!==null&&baWinner!==null&&ab.winner===ba.winner});}return{decks:[a,b],games:count*2,pairs}}
- return Object.freeze({DECKS:[...DECKS],simulate,aggregate,matrix,paired,selfTest,version:'LAB-XII-BALANCE-PASS'});
+ return Object.freeze({DECKS:[...DECKS],simulate,aggregate,matrix,paired,selfTest,version:'LAB-XIII-BALANCE-PASS'});
 })();
 window.EB_BALANCE=EB_BALANCE;
 

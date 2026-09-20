@@ -76,9 +76,9 @@ function liveTech(el){let t=TECH[el];return{id:++uid,el,n:t[0],c:t[3],type:'TECH
 }
 
 {
-  let {p,e}=liveState('AIR','EARTH'),only=mk('EARTH','Only',1,1,3),flows=0;
-  e.slots=[only,null,null];let c=liveTech('AIR');p.hand=[c];let originalFlow=flow1;flow1=()=>{flows++;return true};play(c,null,{flowOnly:true});flow1=originalFlow;
-  check(e.slots[0]===only&&flows===1&&!p.turnState.airOpening,'Crosswind must Flow with fewer than two enemies');
+  let {p,e}=liveState('AIR','EARTH'),only=mk('EARTH','Only',1,1,3),ally=mk('AIR','Ally',1,1,3),flows=0;
+  e.slots=[only,null,null];p.slots=[ally,null,null];let c=liveTech('AIR');p.hand=[c];let originalFlow=flow1;flow1=()=>{flows++;return true};play(c,null,{friend:ally,momentumFallback:true});flow1=originalFlow;
+  check(e.slots[0]===only&&flows===0&&ally.momentum===1&&ally.a===2&&!p.turnState.airOpening,'Crosswind fallback must grant Momentum without Flow');
 }
 
 {
@@ -121,6 +121,6 @@ console.log('Balance Pass 0.8.55: '+checks+' focused checks passed; Balance Lab 
 `, ctx);
 
 const versionSource = fs.readFileSync('js/version.js','utf8');
-assert.match(versionSource,/version:'0\.8\.55'/);
-assert.match(versionSource,/ruleset:'EB-RULES-0\.8\.55-BALANCE-PASS'/);
-console.log('Release metadata 0.8.55 checks passed');
+assert.match(versionSource,/version:'\d+\.\d+\.\d+'/);
+assert.match(versionSource,/ruleset:'EB-RULES-\d+\.\d+\.\d+-BALANCE-PASS'/);
+console.log('Release metadata checks passed');
