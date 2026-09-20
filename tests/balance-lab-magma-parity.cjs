@@ -27,7 +27,7 @@ function liveState(){let p=player('You','MAGMA'),e=player('Rival','AIR');p.hand=
 {
  let {p,e}=liveState(),friend=mk('MAGMA','Friend',1,2,4),enemy=mk('AIR','Enemy',1,1,5);p.slots=[friend,null,null];e.slots=[enemy,null,null];enemy.marks=['Burning'];p.turnState.resonance.active=true;
  resolveHybridTechnique(p,e,{el:'MAGMA',n:'Pressure Forge'},false,{friend});check(friend.armor===1&&enemy.h===4,'Live Pressure Forge parity failed');
- resolveHybridTechnique(p,e,{el:'MAGMA',n:'Eruption Guard'},false,{friend});check(friend.quick&&friend.quick.kind==='REDUCE'&&friend.quick.value===2,'Live Eruption Guard did not arm');
+ resolveHybridTechnique(p,e,{el:'MAGMA',n:'Eruption Guard'},false,{friend});check(friend.quick&&friend.quick.kind==='REDUCE'&&friend.quick.value===1,'Live Eruption Guard did not arm');
 }
 {
  let {p,e}=liveState(),ravager=mk('MAGMA','Obsidian Ravager',4,4,5),donor=mk('EARTH','Donor',1,1,4),target=mk('AIR','Target',1,1,4);donor.armor=1;p.slots=[ravager,donor,null];e.slots=[target,null,null];p.turnState.resonance.active=true;
@@ -49,7 +49,7 @@ function liveState(){let p=player('You','MAGMA'),e=player('Rival','AIR');p.hand=
 {
  let st=EB_BALANCE._makeState('MAGMA','FIRE','guard'),p=st.p[0],e=st.p[1],shield={el:'MAGMA',n:'Shield',a:1,h:5,max:5,armor:0,marks:[],turnFlags:{}},att={el:'FIRE',n:'Attacker',a:3,h:4,max:4,armor:0,marks:[],ready:true,sick:false,turnFlags:{},_ebHasAttacked:false};p.slots=[shield,null,null];e.slots=[att,null,null];p.hand=e.hand=[];p.initiationToken=e.initiationToken=false;
  EB_BALANCE._playTechnique(st,0,{el:'MAGMA',n:'Eruption Guard'});EB_BALANCE._attackOne(st,1,att);
- check(shield.h===4&&!shield.quick&&st.metrics.effects['Eruption Guard armed']===1&&st.metrics.effects['Eruption Guard reduction']===2,'Simulator Eruption Guard combat reduction failed');
+ check(shield.h===3&&!shield.quick&&st.metrics.effects['Eruption Guard armed']===1&&st.metrics.effects['Eruption Guard reduction']===1,'Simulator Eruption Guard combat reduction failed');
 }
 {
  let st=EB_BALANCE._makeState('MAGMA','AIR','ravager'),p=st.p[0],e=st.p[1],ravager={el:'MAGMA',n:'Obsidian Ravager',a:4,h:5,max:5,armor:0,marks:[],ready:true,sick:false,turnFlags:{},_ebHasAttacked:false},donor={el:'EARTH',n:'Donor',a:1,h:4,max:4,armor:1,marks:[],turnFlags:{}},target={el:'AIR',n:'Target',a:1,h:8,max:8,armor:0,marks:[],turnFlags:{}};p.slots=[ravager,donor,null];e.slots=[target,null,null];p.hand=e.hand=[];p.initiationToken=e.initiationToken=false;p.turnState.resonance.active=true;

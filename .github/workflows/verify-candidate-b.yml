@@ -1,7 +1,7 @@
 name: Verify Element Bound
 on:
   push:
-    branches: [fix/soaked-progress-0.8.54, fix/balance-pass-0.8.55, fix/balance-pass-0.8.56]
+    branches: [fix/soaked-progress-0.8.54, fix/balance-pass-0.8.55, fix/balance-pass-0.8.56, fix/balance-pass-0.8.57]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -21,3 +21,4 @@ jobs:
       - run: node tests/balance-pass-0.8.55.cjs
       - run: node tests/balance-pass-0.8.56.cjs
       - run: node tests/balance-lab-magma-parity.cjs
+      - run: node tests/balance-pass-0.8.57.cjs
