@@ -31,7 +31,7 @@ check(lynx[1]===3&&lynx[2]===3&&lynx[3]===3,'Volt Lynx must be 3 cost / 3 ATK / 
 check(/Chain 3\+/.test(lynx[4]),'Volt Lynx Chain 3+ trigger changed');
 check(!/heal/i.test(TECH.NATURE[1])&&/Seeded/.test(TECH.NATURE[1]),'Verdant Mend text mismatch');
 check(/heal.*1/i.test(RESPONSES.NATURE.text)&&/once per duel/i.test(RESPONSES.NATURE.text),'Second Bloom text mismatch');
-check(/Swap/.test(TECH.AIR[1])&&/fewer than two/.test(TECH.AIR[1]),'Crosswind text mismatch');
+check(/Momentum/.test(TECH.AIR[1])&&/also swap/.test(TECH.AIR[1]),'Crosswind text mismatch');
 
 function liveState(a='NATURE',b='FIRE'){
   let p=player('You',a),e=player('Rival',b);
@@ -67,12 +67,13 @@ function liveTech(el){let t=TECH[el];return{id:++uid,el,n:t[0],c:t[3],type:'TECH
 }
 
 {
-  let {p,e}=liveState('AIR','EARTH'),left=mk('EARTH','Left',1,1,3),right=mk('EARTH','Right',1,1,3),lastModal=null;
-  e.slots=[left,null,right];let c=liveTech('AIR');p.hand=[c];let originalModal=modal;modal=(title,buttons)=>{lastModal={title,buttons}};
-  chooseTechniqueTarget(c);check(lastModal&&lastModal.buttons.length===2,'Crosswind first-target chooser missing');
-  lastModal.buttons[0][1]();check(lastModal&&/^Swap /.test(lastModal.title)&&lastModal.buttons.length===1,'Crosswind second-target chooser missing');
+  let {p,e}=liveState('AIR','EARTH'),ally=mk('AIR','Ally',1,1,3),left=mk('EARTH','Left',1,1,3),right=mk('EARTH','Right',1,1,3),lastModal=null;
+  p.slots=[ally,null,null];e.slots=[left,null,right];let c=liveTech('AIR');p.hand=[c];let originalModal=modal;modal=(title,buttons)=>{lastModal={title,buttons}};
+  chooseTechniqueTarget(c);check(lastModal&&lastModal.buttons.length===1&&/Momentum/.test(lastModal.buttons[0][0]),'Crosswind Momentum-recipient chooser missing');
+  lastModal.buttons[0][1]();check(lastModal&&/first enemy/.test(lastModal.title)&&lastModal.buttons.length===2,'Crosswind first swap-target chooser missing');
+  lastModal.buttons[0][1]();check(lastModal&&/^Swap /.test(lastModal.title)&&lastModal.buttons.length===1,'Crosswind second swap-target chooser missing');
   lastModal.buttons[0][1]();modal=originalModal;
-  check(e.slots[0]===right&&e.slots[2]===left,'Two-stage Crosswind targeting did not commit the swap');
+  check(ally.momentum===1&&e.slots[0]===right&&e.slots[2]===left,'Three-stage Crosswind targeting did not grant Momentum and commit the swap');
 }
 
 {
@@ -88,9 +89,9 @@ function liveTech(el){let t=TECH[el];return{id:++uid,el,n:t[0],c:t[3],type:'TECH
 }
 
 {
-  let {p,e}=liveState('EARTH','AIR'),left=mk('EARTH','Left',1,1,3),right=mk('EARTH','Right',1,1,3),crosswind=liveTech('AIR');
-  p.slots=[left,null,right];p.deck=[mk('EARTH','Filler',1,1,1)];e.hand=[crosswind];e.deck=[mk('AIR','Filler',1,1,1)];G.active=1;
-  ai();check(p.slots[0]===right&&p.slots[2]===left&&G.logs.some(x=>/Rival Crosswind swaps/.test(x)),'Rival Crosswind branch failed to swap');
+  let {p,e}=liveState('EARTH','AIR'),left=mk('EARTH','Left',1,1,3),right=mk('EARTH','Right',1,1,3),ally=mk('AIR','Ally',1,1,3),crosswind=liveTech('AIR');
+  p.slots=[left,null,right];p.deck=[mk('EARTH','Filler',1,1,1)];e.slots=[ally,null,null];e.hand=[crosswind];e.deck=[mk('AIR','Filler',1,1,1)];G.active=1;
+  ai();check(p.slots[0]===right&&p.slots[2]===left&&G.logs.some(x=>/Rival Crosswind: Ally gains Momentum/.test(x))&&G.logs.some(x=>/Rival Crosswind swaps/.test(x)),'Rival Crosswind branch failed to grant Momentum and swap');
 }
 
 {

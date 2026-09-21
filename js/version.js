@@ -5,7 +5,7 @@ window.EB_RELEASE=Object.freeze({
   engine:'EB-1.8.61',
   balanceLab:'Balance Lab XVIII',
   ruleset:'EB-RULES-0.8.61-BALANCE-PASS',
-  focus:'Round-End Decay · Armor Gain Cap',
+  focus:'Round Effects · Armor Cap · Lightning/Air Correction',
   audience:'Prime & Hybrid Benders'
 });
 
