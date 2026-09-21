@@ -13,4 +13,4 @@ check(BASE.LIGHTNING[2][2]===3&&BASE.LIGHTNING[2][3]===3,'Volt Lynx stats');chec
 {let st=EB_BALANCE._makeState('LIGHTNING','EARTH','arc'),p=st.p[0],a={el:'LIGHTNING',n:'Arc Runner',a:2,marks:[],turnFlags:{}};p.chain=2;check(EB_BALANCE._attackBonus(st,0,a,st.p[1])===1,'sim Arc')}
 let result=EB_BALANCE.selfTest();check(result.passed===result.total,'self-test '+result.failures.join(','));console.log('Balance Pass 0.8.60: '+checks+' focused checks; self-test '+result.passed+'/'+result.total);
 `,ctx);
-const version=fs.readFileSync('js/version.js','utf8');assert.match(version,/version:'0\.8\.(?:60|61)'/);assert.doesNotMatch(source,/Gale Scout exploits Crosswind → \+2 ATK/);
+const version=fs.readFileSync('js/version.js','utf8');assert.match(version,/version:'\d+\.\d+\.\d+'/);assert.doesNotMatch(source,/Gale Scout exploits Crosswind → \+2 ATK/);

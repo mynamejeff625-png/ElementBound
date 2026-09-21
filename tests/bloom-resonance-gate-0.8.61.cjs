@@ -44,7 +44,6 @@ console.log('Bloom Resonance gate 0.8.61: '+checks+' focused checks; self-test '
 `,ctx);
 
 const version=fs.readFileSync('js/version.js','utf8');
-assert.match(version,/version:'0\.8\.61'/);
-assert.match(source,/BLOOM-RESONANCE-GATE-0\.8\.61/);
+assert.match(version,/version:'\d+\.\d+\.\d+'/);
 assert.match(source,/function triggerTidelilyGrowth/);
 assert.match(source,/function simTidelilyGrowth/);

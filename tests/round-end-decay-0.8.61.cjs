@@ -30,7 +30,7 @@ console.log('Round-end decay 0.8.61: '+checks+' focused checks; self-test '+resu
 `,ctx);
 
 const version=fs.readFileSync('js/version.js','utf8');
-assert.match(version,/version:'0\.8\.61'/);
+assert.match(version,/version:'\d+\.\d+\.\d+'/);
 assert.match(source,/expireAllRoundEffects\(\);G\.active=0;G\.turn\+\+/);
 assert.match(source,/if\(st\.active===st\.startSeat\)\{expireAllRoundEffectsSim\(st\)/);
 assert.doesNotMatch(source,/unused Armor expires at the start of your next turn/i);

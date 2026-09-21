@@ -46,7 +46,7 @@ console.log('Lightning/Air correction 0.8.61: '+checks+' focused checks; self-te
 
 const version=fs.readFileSync('js/version.js','utf8');
 const index=fs.readFileSync('index.html','utf8');
-assert.match(version,/version:'0\.8\.61'/);
+assert.match(version,/version:'\d+\.\d+\.\d+'/);
 assert.match(source,/Volt Lynx Chain \$\{G\.chain\} → \+2 ATK/);
 assert.match(source,/Crosswind always grants 1 Momentum/);
 assert.match(index,/Crosswind always grants friendly Momentum/);

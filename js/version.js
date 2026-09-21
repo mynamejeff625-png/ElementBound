@@ -1,11 +1,11 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'0.8.61',
-  label:'Round Effects Balance',
-  engine:'EB-1.8.61',
-  balanceLab:'Balance Lab XVIII',
-  ruleset:'EB-RULES-0.8.61-BALANCE-PASS',
-  focus:'Round Effects · Armor Cap · Lightning/Air · Bloom Resonance',
+  version:'0.8.62',
+  label:'Crosswind Control',
+  engine:'EB-1.8.62',
+  balanceLab:'Balance Lab XIX',
+  ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
+  focus:'Crosswind · Persistent Weakened',
   audience:'Prime & Hybrid Benders'
 });
 
