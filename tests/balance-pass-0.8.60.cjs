@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+let source=fs.readFileSync('js/game.js','utf8');
+source=source.slice(0,source.lastIndexOf('\nsetup();')).replace('return Object.freeze({DECKS:','return Object.freeze({_makeState:makeState,_startTurn:startTurn,_attackBonus:attackBonus,_canBypass:canBypass,_addMomentum:addMomentum,DECKS:');
+const ctx=vm.createContext({console,window:{},document:{getElementById:()=>null},setTimeout:()=>0,clearTimeout(){},requestAnimationFrame(){}});vm.runInContext(source,ctx);
+vm.runInContext(`
+let checks=0;function check(v,msg){if(!v)throw Error(msg);checks++}hideModal=()=>{};render=()=>{};bump=()=>{};add=()=>{};ebQueueFx=()=>{};draw=()=>{};
+check(BASE.LIGHTNING[2][2]===3&&BASE.LIGHTNING[2][3]===3,'Volt Lynx stats');check(/\\+1 ATK/.test(BASE.LIGHTNING[1][4]),'Arc Runner text');check(/Momentum/.test(BASE.AIR[1][4]),'Gale Scout text');
+{let m={a:2,armor:2,momentum:0,marks:[]};gainMomentum(m);gainMomentum(m);check(m.a===4&&m.momentum===2,'live stacks');expireRoundEffects(m);check(m.a===2&&m.momentum===0&&m.armor===0&&!m.marks.includes('Momentum'),'live expiration')}
+{let p=player('You','AIR'),e=player('Rival','EARTH'),s=mk('AIR','Gale Scout',2,2,3);p.turnState.airOpening=true;G={p:[p,e],active:0,turn:2,chain:0,logs:[]};check(hybridAttackBonus(s,p)===1&&s.momentum===1&&s.a===3&&!p.turnState.airOpening,'live Gale');let r=mk('AIR','Sky Raptor',3,3,3);gainMomentum(r);check(attackBypassesGuard(r,p),'live bypass on');expireRoundEffects(r);check(!attackBypassesGuard(r,p),'live bypass off')}
+{let p=player('You','EARTH'),e=player('Rival','FIRE'),r=mk('EARTH','Boulder Ram',3,3,5),d=mk('EARTH','Stone Initiate',1,1,3);p.slots=[r,d,null];G={p:[p,e],active:0,turn:2,chain:0,logs:[]};r.armor=1;d.armor=1;check(elementalAttackBonus(r,e,p)===1,'Boulder Ram');let o=mk('MAGMA','Obsidian Ravager',4,4,5),t=mk('FIRE','Target',1,1,3);p.el='MAGMA';p.slots=[o,d,null];p.turnState.resonance={a:true,b:true,active:true};o.turnFlags={};check(applyObsidianRavagerTrigger(o,t,p)&&d.armor===0&&t.marks.includes('Burning'),'Obsidian Ravager')}
+{let st=EB_BALANCE._makeState('AIR','EARTH','expire'),p=st.p[0],u={el:'AIR',n:'Sky Raptor',a:3,h:3,max:3,armor:2,marks:[],momentum:0,turnFlags:{}};p.slots=[u,null,null];EB_BALANCE._addMomentum(st,u);EB_BALANCE._addMomentum(st,u);check(u.a===5&&EB_BALANCE._canBypass(u,p),'sim stacks');EB_BALANCE._startTurn(st,0,false);check(u.a===3&&u.momentum===0&&u.armor===0&&!EB_BALANCE._canBypass(u,p),'sim expiration')}
+{let st=EB_BALANCE._makeState('AIR','EARTH','gale'),p=st.p[0],a={el:'AIR',n:'Gale Scout',a:2,marks:[],momentum:0,turnFlags:{}};p.turnState.airOpening=true;check(EB_BALANCE._attackBonus(st,0,a,st.p[1])===1&&a.a===3&&a.momentum===1,'sim Gale')}
+{let st=EB_BALANCE._makeState('LIGHTNING','EARTH','arc'),p=st.p[0],a={el:'LIGHTNING',n:'Arc Runner',a:2,marks:[],turnFlags:{}};p.chain=2;check(EB_BALANCE._attackBonus(st,0,a,st.p[1])===1,'sim Arc')}
+let result=EB_BALANCE.selfTest();check(result.passed===result.total,'self-test '+result.failures.join(','));console.log('Balance Pass 0.8.60: '+checks+' focused checks; self-test '+result.passed+'/'+result.total);
+`,ctx);
+const version=fs.readFileSync('js/version.js','utf8');assert.match(version,/version:'0\.8\.60'/);assert.doesNotMatch(source,/Gale Scout exploits Crosswind → \+2 ATK/);

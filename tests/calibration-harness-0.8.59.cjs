@@ -52,6 +52,6 @@ assert.match(source,/tokenPct/);
 assert.doesNotMatch(source,/Seat-flip pairs/);
 
 const version=fs.readFileSync('js/version.js','utf8');
-assert.match(version,/version:'0\.8\.59'/);
-assert.match(version,/balanceLab:'Balance Lab XVI'/);
+assert.match(version,/version:'\d+\.\d+\.\d+'/);
+assert.match(version,/balanceLab:'Balance Lab (?:XVI|XVII)'/);
 console.log(`Calibration harness 0.8.59: ${result} focused checks passed`);

@@ -27,7 +27,7 @@ hideModal=()=>{};render=()=>{};bump=()=>{};ebQueueFx=()=>{};turnStart=()=>{};
 let grove=BASE.NATURE.find(x=>x[0]==='Grove Beast');
 let lynx=BASE.LIGHTNING.find(x=>x[0]==='Volt Lynx');
 check(grove[1]===4&&grove[2]===2&&grove[3]===5,'Grove Beast must be 4 cost / 2 ATK / 5 HP');
-check(lynx[1]===3&&lynx[2]===4&&lynx[3]===3,'Volt Lynx must be 3 cost / 4 ATK / 3 HP');
+check(lynx[1]===3&&lynx[2]===3&&lynx[3]===3,'Volt Lynx must be 3 cost / 3 ATK / 3 HP');
 check(/Chain 3\+/.test(lynx[4]),'Volt Lynx Chain 3+ trigger changed');
 check(!/heal/i.test(TECH.NATURE[1])&&/Seeded/.test(TECH.NATURE[1]),'Verdant Mend text mismatch');
 check(/heal.*1/i.test(RESPONSES.NATURE.text)&&/once per duel/i.test(RESPONSES.NATURE.text),'Second Bloom text mismatch');
