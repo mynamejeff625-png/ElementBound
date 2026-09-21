@@ -45,7 +45,7 @@ console.log('Earth Armor cap 0.8.61: '+checks+' focused checks; self-test '+resu
 `,ctx);
 
 const version=fs.readFileSync('js/version.js','utf8');
-assert.match(version,/version:'0\.8\.61'/);
+assert.match(version,/version:'\d+\.\d+\.\d+'/);
 assert.match(source,/function gainArmor\(m\)/);
 assert.match(source,/function addArmor\(st,x\)/);
 assert.match(source,/armorGainRound===G\?\.turn/);
