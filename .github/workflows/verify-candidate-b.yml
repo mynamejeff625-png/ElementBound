@@ -1,7 +1,7 @@
 name: Verify Element Bound
 on:
   push:
-    branches: [fix/soaked-progress-0.8.54, fix/balance-pass-0.8.55, fix/balance-pass-0.8.56, fix/balance-pass-0.8.57, fix/balance-lab-parity-0.8.58, fix/calibration-harness-0.8.59, fix/balance-pass-0.8.60, feature/round-end-decay-0.8.61, feature/earth-armor-cap-0.8.61]
+    branches: [fix/soaked-progress-0.8.54, fix/balance-pass-0.8.55, fix/balance-pass-0.8.56, fix/balance-pass-0.8.57, fix/balance-lab-parity-0.8.58, fix/calibration-harness-0.8.59, fix/balance-pass-0.8.60, feature/round-end-decay-0.8.61, feature/earth-armor-cap-0.8.61, fix/lightning-air-revert-0.8.61]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -27,3 +27,4 @@ jobs:
       - run: node tests/balance-pass-0.8.60.cjs
       - run: node tests/round-end-decay-0.8.61.cjs
       - run: node tests/earth-armor-cap-0.8.61.cjs
+      - run: node tests/lightning-air-revert-0.8.61.cjs
