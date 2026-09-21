@@ -23,7 +23,7 @@ function tech(el,name=null){let t=HYBRIDS[el]?HYBRID_CARDS[el].find(x=>x.n===nam
 
 let lily0856=HYBRID_CARDS.BLOOM.find(c=>c.n==='Tidelily Guardian'),flourishing0856=HYBRID_CARDS.BLOOM.find(c=>c.n==='Flourishing Current');
 check(lily0856.c===4&&lily0856.a===2&&lily0856.h===5,'Tidelily Guardian must be 4 cost with unchanged stats');
-check(/Heal a friendly Manifestation 1\./.test(flourishing0856.text)&&/Seeded/.test(flourishing0856.text)&&/Growth/.test(flourishing0856.text),'Flourishing Current text mismatch');
+check(/Resonance/.test(flourishing0856.text)&&/heal a friendly Manifestation 1/.test(flourishing0856.text)&&/Seeded/.test(flourishing0856.text)&&/Growth/.test(flourishing0856.text),'Flourishing Current text mismatch');
 check(BASE.AIR[1][1]===2&&BASE.AIR[1][2]===2&&BASE.AIR[1][3]===3,'Gale Scout base stats changed');
 check(/Momentum/.test(BASE.AIR[1][4]),'Gale Scout Crosswind text must match Momentum payoff');
 for(const el of Object.keys(BASE))for(const card of BASE[el])check(Number.isFinite(card[1])&&Number.isInteger(card[1])&&card[1]>0,'Prime cost must be a finite positive integer');
