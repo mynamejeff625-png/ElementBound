@@ -25,12 +25,12 @@ let lily0856=HYBRID_CARDS.BLOOM.find(c=>c.n==='Tidelily Guardian'),flourishing08
 check(lily0856.c===4&&lily0856.a===2&&lily0856.h===5,'Tidelily Guardian must be 4 cost with unchanged stats');
 check(/Heal a friendly Manifestation 1\./.test(flourishing0856.text)&&/Seeded/.test(flourishing0856.text)&&/Growth/.test(flourishing0856.text),'Flourishing Current text mismatch');
 check(BASE.AIR[1][1]===2&&BASE.AIR[1][2]===2&&BASE.AIR[1][3]===3,'Gale Scout base stats changed');
-check(/\\+2 ATK/.test(BASE.AIR[1][4]),'Gale Scout Crosswind text must match +2 payoff');
+check(/Momentum/.test(BASE.AIR[1][4]),'Gale Scout Crosswind text must match Momentum payoff');
 for(const el of Object.keys(BASE))for(const card of BASE[el])check(Number.isFinite(card[1])&&Number.isInteger(card[1])&&card[1]>0,'Prime cost must be a finite positive integer');
 
 {
  let {p}=liveState(),scout=mk('AIR','Gale Scout',2,2,3);p.turnState.airOpening=true;
- check(hybridAttackBonus(scout,p)===2&&!p.turnState.airOpening,'Live Gale Scout must receive and consume +2 Air Opening');
+ check(hybridAttackBonus(scout,p)===1&&scout.momentum===1&&!p.turnState.airOpening,'Live Gale Scout must gain Momentum and consume Air Opening');
  check(hybridAttackBonus(scout,p)===0,'Live Gale Scout Air Opening must apply only once');
 }
 
@@ -61,7 +61,7 @@ for(const el of Object.keys(BASE))for(const card of BASE[el])check(Number.isFini
 
 {
  let st=EB_BALANCE._makeState('AIR','EARTH','gale-0856'),p=st.p[0],att={el:'AIR',n:'Gale Scout',a:2,marks:[],turnFlags:{}};p.turnState.airOpening=true;
- check(EB_BALANCE._attackBonus(st,0,att,st.p[1])===2&&!p.turnState.airOpening,'Simulator Gale Scout +2 parity failed');
+ check(EB_BALANCE._attackBonus(st,0,att,st.p[1])===1&&att.momentum===1&&!p.turnState.airOpening,'Simulator Gale Scout Momentum parity failed');
 }
 
 {
@@ -86,7 +86,7 @@ console.log('Balance Pass 0.8.56: '+checks+' focused checks passed; Balance Lab 
 `,ctx);
 
 const version=fs.readFileSync('js/version.js','utf8');
-assert.match(source,/OPENING EXPLOITED · \+2 ATK/,'Gale Scout combat banner must display the +2 payoff');
+assert.match(source,/OPENING EXPLOITED · MOMENTUM/,'Gale Scout combat banner must display Momentum payoff');
 assert.match(version,/version:'\d+\.\d+\.\d+'/);
 assert.match(version,/ruleset:'EB-RULES-\d+\.\d+\.\d+-BALANCE-PASS'/);
 assert(!/Crosswind[^\n]*Flow 1/.test(fs.readFileSync('js/game.js','utf8')));

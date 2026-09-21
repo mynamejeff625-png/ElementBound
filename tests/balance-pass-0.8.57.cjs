@@ -19,7 +19,7 @@ hideModal=()=>{};render=()=>{};bump=()=>{};ebQueueFx=()=>{};
 check(TECH.EARTH[3]===2,'Fortify must cost 2');
 let rainseed=HYBRID_CARDS.BLOOM.find(c=>c.n==='Rainseed');check(rainseed.c===2,'Rainseed must cost 2');
 let eruption=HYBRID_CARDS.MAGMA.find(c=>c.n==='Eruption Guard');check(eruption.c===2&&/reduced by 1/.test(eruption.text),'Eruption Guard data mismatch');
-check(/\\+2 ATK/.test(BASE.LIGHTNING[1][4]),'Arc Runner text must show +2 ATK');
+check(/\\+1 ATK/.test(BASE.LIGHTNING[1][4]),'Arc Runner text must show +1 ATK');
 check(/2 Momentum/.test(BASE.AIR[0][4]),'Breeze Disciple text must show 2 Momentum');
 {
  let earth=EB_BALANCE._makeState('EARTH','FIRE','fortify-cost').p[0],bloom=EB_BALANCE._makeState('BLOOM','FIRE','rainseed-cost').p[0];
@@ -34,7 +34,7 @@ check(/2 Momentum/.test(BASE.AIR[0][4]),'Breeze Disciple text must show 2 Moment
 }
 {
  let p=player('You','LIGHTNING'),e=player('Rival','EARTH');G={p:[p,e],active:0,turn:1,chain:2,logs:[]};
- check(elementalAttackBonus(mk('LIGHTNING','Arc Runner',2,2,3),e,p)===2,'Live Arc Runner must gain +2 at Chain 2');
+ check(elementalAttackBonus(mk('LIGHTNING','Arc Runner',2,2,3),e,p)===1,'Live Arc Runner must gain +1 at Chain 2');
 }
 {
  let p=player('You','MAGMA'),e=player('Rival','FIRE'),friend=mk('MAGMA','Friend',1,1,5);p.slots=[friend,null,null];G={p:[p,e],active:0,turn:1,chain:0,logs:[]};
@@ -47,7 +47,7 @@ check(/2 Momentum/.test(BASE.AIR[0][4]),'Breeze Disciple text must show 2 Moment
 }
 {
  let st=EB_BALANCE._makeState('LIGHTNING','EARTH','arc-0857'),p=st.p[0],att={el:'LIGHTNING',n:'Arc Runner',a:2,marks:[],turnFlags:{}};p.chain=2;
- check(EB_BALANCE._attackBonus(st,0,att,st.p[1])===2,'Simulator Arc Runner must gain +2 at Chain 2');
+ check(EB_BALANCE._attackBonus(st,0,att,st.p[1])===1,'Simulator Arc Runner must gain +1 at Chain 2');
 }
 {
  let st=EB_BALANCE._makeState('MAGMA','FIRE','eruption-0857'),p=st.p[0],e=st.p[1],shield={el:'MAGMA',n:'Shield',a:1,h:5,max:5,armor:0,marks:[],turnFlags:{}},att={el:'FIRE',n:'Attacker',a:3,h:4,max:4,armor:0,marks:[],ready:true,sick:false,turnFlags:{},_ebHasAttacked:false};p.slots=[shield,null,null];e.slots=[att,null,null];p.hand=e.hand=[];p.initiationToken=e.initiationToken=false;
