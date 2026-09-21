@@ -1,11 +1,11 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'0.8.60',
-  label:'Round Effects Balance',
-  engine:'EB-1.8.60',
-  balanceLab:'Balance Lab XVII',
-  ruleset:'EB-RULES-0.8.60-BALANCE-PASS',
-  focus:'Armor · Momentum · Air · Lightning',
+  version:'0.8.61',
+  label:'Round-End Decay',
+  engine:'EB-1.8.61',
+  balanceLab:'Balance Lab XVIII',
+  ruleset:'EB-RULES-0.8.61-BALANCE-PASS',
+  focus:'Round-End Armor · Momentum · Charged',
   audience:'Prime & Hybrid Benders'
 });
 
