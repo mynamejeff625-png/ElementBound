@@ -1320,7 +1320,7 @@ function ebValidateActionEnvelope(a){
 
 // Browser multiplayer adapter. Single-player continues through the local reducer/game loop;
 // multiplayer submits commands to the referee and only accepts state from the private view listener.
-const EB_MP={enabled:false,roomId:null,uid:null,client:null};
+const EB_MP={enabled:false,roomId:null,uid:null,client:null,authSession:null,authPromise:null};
 function ebMpStatus(message){
  let el=document.getElementById('mpStatus');if(!el)return;
  el.hidden=!message;el.textContent=message?message.text:'';el.className=`mpStatus ${message?.kind||''}`;
@@ -1375,19 +1375,38 @@ function ebStartMultiplayer({roomId,user,db,fetchImpl=window.fetch.bind(window)}
 function ebStopMultiplayer(){EB_MP.client?.stop();EB_MP.enabled=false;EB_MP.roomId=null;EB_MP.uid=null;EB_MP.client=null;ebMpStatus(null)}
 function ebMatchmakingSession(){
  let deps=window.EB_MULTIPLAYER_DEPS;if(deps?.user&&deps?.db)return{user:deps.user,db:deps.db,fetchImpl:deps.fetchImpl||window.fetch.bind(window)};
+ if(EB_MP.authSession)return EB_MP.authSession;
  let firebase=window.firebase,user=firebase?.auth?.().currentUser;if(user&&firebase?.firestore)return{user,db:firebase.firestore(),fetchImpl:window.fetch.bind(window)};
  return null;
 }
 function ebMatchmakingMessage(text,error=false){let el=document.getElementById('mpMatchmakingResult');if(el){el.textContent=text;el.style.color=error?'#ffb4b4':''}}
-function ebSetupMatchmaking(){let select=document.getElementById('mpDeck');if(select&&!select.options.length)select.innerHTML=Object.keys(INFO).map(element=>`<option value="${element}">${E[element]} ${INFO[element][0]}</option>`).join('');let invited=new URLSearchParams(location.search).get('join'),input=document.getElementById('mpRoomCode');if(invited&&input)input.value=invited.toUpperCase()}
+function ebSetMatchmakingEnabled(enabled){for(const id of ['mpCreateMatch','mpJoinMatch']){let button=document.getElementById(id);if(button)button.disabled=!enabled}}
+async function ebEnsureMatchmakingAuth(){
+ let existing=ebMatchmakingSession();if(existing){EB_MP.authSession=existing;ebSetMatchmakingEnabled(true);ebMatchmakingMessage('Ready to create or join a match');return existing}
+ if(EB_MP.authPromise)return EB_MP.authPromise;
+ EB_MP.authPromise=(async()=>{
+   try{
+     if(!window.ElementBoundFirebaseBootstrap||!window.firebase)throw new Error('FIREBASE_SDK_UNAVAILABLE');
+     let bootstrap=window.ElementBoundFirebaseBootstrap.createAnonymousAuthBootstrap({firebase:window.firebase,loadConfig:()=>window.ElementBoundFirebaseBootstrap.loadPublicConfig(window.fetch.bind(window))});
+     let authenticated=await window.ElementBoundFirebaseBootstrap.connectMatchmaking({bootstrap,setEnabled:ebSetMatchmakingEnabled,setMessage:ebMatchmakingMessage});
+     EB_MP.authSession={...authenticated,fetchImpl:window.fetch.bind(window)};return EB_MP.authSession;
+   }catch(error){EB_MP.authPromise=null;ebSetMatchmakingEnabled(false);ebMatchmakingMessage("Couldn't connect to online matches. Try again.",true);throw error}
+ })();
+ return EB_MP.authPromise;
+}
+function ebSetupMatchmaking(){
+ let select=document.getElementById('mpDeck');if(select&&!select.options.length)select.innerHTML=Object.keys(INFO).map(element=>`<option value="${element}">${E[element]} ${INFO[element][0]}</option>`).join('');
+ let invited=new URLSearchParams(location.search).get('join'),input=document.getElementById('mpRoomCode');if(invited&&input)input.value=invited.toUpperCase();ebSetMatchmakingEnabled(false);
+ let panel=document.getElementById('mpMatchmaking'),begin=()=>{ebEnsureMatchmakingAuth().catch(()=>{})};panel?.addEventListener('pointerenter',begin,{once:true});panel?.addEventListener('focusin',begin,{once:true});if(invited)begin();
+}
 async function ebCreateMatch(){
- let session=ebMatchmakingSession();if(!session)return ebMatchmakingMessage('Sign in before creating an online match.',true);
+ let session=ebMatchmakingSession();if(!session){try{session=await ebEnsureMatchmakingAuth()}catch(error){return}}
  let element=document.getElementById('mpDeck')?.value,client=window.ElementBoundMatchmaking.createMatchmakingClient({getIdToken:()=>session.user.getIdToken(),fetchImpl:session.fetchImpl});ebMatchmakingMessage('Creating room…');
  let result=await client.createRoom({element});if(!result.ok)return ebMatchmakingMessage(`Could not create room: ${result.error}`,true);
  let liveUrl=new URL(location.href);liveUrl.search='';liveUrl.searchParams.set('roomId',result.roomId);history.replaceState(null,'',liveUrl);let inviteUrl=new URL(liveUrl);inviteUrl.search='';inviteUrl.searchParams.set('join',result.roomId);ebMatchmakingMessage(`Room ${result.roomId} · Share ${inviteUrl.href}`);ebStartMultiplayer({roomId:result.roomId,...session});
 }
 async function ebJoinMatch(){
- let session=ebMatchmakingSession();if(!session)return ebMatchmakingMessage('Sign in before joining an online match.',true);
+ let session=ebMatchmakingSession();if(!session){try{session=await ebEnsureMatchmakingAuth()}catch(error){return}}
  let roomId=String(document.getElementById('mpRoomCode')?.value||'').trim().toUpperCase(),element=document.getElementById('mpDeck')?.value,client=window.ElementBoundMatchmaking.createMatchmakingClient({getIdToken:()=>session.user.getIdToken(),fetchImpl:session.fetchImpl});ebMatchmakingMessage('Joining room…');
  let result=await client.joinRoom(roomId,{element});if(!result.ok)return ebMatchmakingMessage(`Could not join room: ${result.error}`,true);
  let link=new URL(location.href);link.search='';link.searchParams.set('roomId',result.roomId);history.replaceState(null,'',link);ebMatchmakingMessage(`Joined room ${result.roomId}.`);ebStartMultiplayer({roomId:result.roomId,...session});
@@ -1396,9 +1415,7 @@ function ebMpInitializeFromUrl(){
  let params=new URLSearchParams(location.search),roomId=params.get('roomId');if(!roomId)return;
  let deps=window.EB_MULTIPLAYER_DEPS;
  if(deps?.user&&deps?.db){try{ebStartMultiplayer({roomId,user:deps.user,db:deps.db,fetchImpl:deps.fetchImpl||window.fetch.bind(window)})}catch(error){ebMpStatus({kind:'error',text:error.message})}return}
- let firebase=window.firebase;if(!firebase?.auth||!firebase?.firestore){ebMpStatus({kind:'error',text:'Multiplayer needs an authenticated Firebase session.'});return}
- let auth=firebase.auth(),connect=user=>{if(!user){ebMpStatus({kind:'error',text:'Sign in to join this multiplayer room.'});return}ebStartMultiplayer({roomId,user,db:firebase.firestore()})};
- if(auth.currentUser)connect(auth.currentUser);else auth.onAuthStateChanged(connect,()=>ebMpStatus({kind:'error',text:'Unable to verify the signed-in player.'}));
+ ebEnsureMatchmakingAuth().then(session=>ebStartMultiplayer({roomId,...session})).catch(()=>ebMpStatus({kind:'error',text:"Couldn't connect to online matches. Try again."}));
 }
 function ebSerializableState(state=G){
  if(!state)return null;
