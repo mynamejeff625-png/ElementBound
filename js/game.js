@@ -1355,12 +1355,11 @@ function ebMakeAction(type,payload={},actor=0){
  });
 }
 function ebValidateActionEnvelope(a){
- return !!a&&a.v===1&&typeof a.type==='string'&&a.type.length>0&&
-   (a.actor===0||a.actor===1)&&Number.isInteger(a.rev)&&a.rev>=0&&
-   !!a.payload&&typeof a.payload==='object'&&!Array.isArray(a.payload);
+ return !!window.ElementBoundEngine&&window.ElementBoundEngine.validEnvelope(a);
 }
 
-// Alpha 0.8.23 multiplayer-readiness step 2. Networking remains OFF.
+// Browser multiplayer adapter. The reducer is shared with the future server referee;
+// normal single-player UI/render callbacks remain unchanged in this extraction branch.
 function ebSerializableState(state=G){
  if(!state)return null;
  return {turn:Number(state.turn||0),active:Number(state.active||0),rev:Number(state.rev||0),winner:state.winner??null,
@@ -1375,9 +1374,8 @@ function ebStateFingerprint(state=G){
  return (h>>>0).toString(16).padStart(8,'0');
 }
 function ebReduceAction(state,action){
- if(!ebValidateActionEnvelope(action))return {ok:false,error:'INVALID_ACTION',state};
- if(action.rev!==Number(state?.rev||0))return {ok:false,error:'REVISION_MISMATCH',state};
- return {ok:false,error:'ACTION_NOT_MIGRATED',state};
+ if(!window.ElementBoundEngine)return {ok:false,error:'ENGINE_UNAVAILABLE',state};
+ return window.ElementBoundEngine.validateAndApplyMove(state,action);
 }
 
 /* Alpha 0.8.32 — Elemental FX 2.0. Visual-only; bounded DOM particles. */
