@@ -40,6 +40,7 @@
   }
 
   async function connectMatchmaking({bootstrap,setEnabled,setMessage}){
+    console.debug('[ElementBound] connectMatchmaking entered');
     setEnabled(false);setMessage('Connecting to online services…',false);
     try{
       const session=await bootstrap.connect();
@@ -51,5 +52,11 @@
     }
   }
 
-  return Object.freeze({createAnonymousAuthBootstrap,loadPublicConfig,connectMatchmaking});
+  function bindConnectButton(button,connect){
+    if(!button||typeof button.addEventListener!=='function')throw new TypeError('Connect Online button is required');
+    if(typeof connect!=='function')throw new TypeError('connect callback is required');
+    const handler=()=>connect();button.addEventListener('click',handler);return()=>button.removeEventListener('click',handler);
+  }
+
+  return Object.freeze({createAnonymousAuthBootstrap,loadPublicConfig,connectMatchmaking,bindConnectButton});
 });

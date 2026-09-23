@@ -1,7 +1,7 @@
 name: Verify Element Bound
 on:
   push:
-    branches: [fix/soaked-progress-0.8.54, fix/balance-pass-0.8.55, fix/balance-pass-0.8.56, fix/balance-pass-0.8.57, fix/balance-lab-parity-0.8.58, fix/calibration-harness-0.8.59, fix/balance-pass-0.8.60, feature/round-end-decay-0.8.61, feature/earth-armor-cap-0.8.61, fix/lightning-air-revert-0.8.61, feature/bloom-resonance-gate-0.8.61, feature/crosswind-attack-debuff-0.8.62, refactor/pure-engine-extraction, feature/mp-authoritative-move-validation-0.9.1, test/mp-auth-and-rules-coverage-0.9.2, feature/mp-client-integration-0.9.3, feature/mp-room-matchmaking-0.9.4, feature/mp-anonymous-auth-bootstrap-0.9.5]
+    branches: [fix/soaked-progress-0.8.54, fix/balance-pass-0.8.55, fix/balance-pass-0.8.56, fix/balance-pass-0.8.57, fix/balance-lab-parity-0.8.58, fix/calibration-harness-0.8.59, fix/balance-pass-0.8.60, feature/round-end-decay-0.8.61, feature/earth-armor-cap-0.8.61, fix/lightning-air-revert-0.8.61, feature/bloom-resonance-gate-0.8.61, feature/crosswind-attack-debuff-0.8.62, refactor/pure-engine-extraction, feature/mp-authoritative-move-validation-0.9.1, test/mp-auth-and-rules-coverage-0.9.2, feature/mp-client-integration-0.9.3, feature/mp-room-matchmaking-0.9.4, feature/mp-anonymous-auth-bootstrap-0.9.5, fix/mp-explicit-connect-trigger-0.9.6]
   pull_request:
     branches: [main]
   workflow_dispatch:

@@ -1380,7 +1380,7 @@ function ebMatchmakingSession(){
  return null;
 }
 function ebMatchmakingMessage(text,error=false){let el=document.getElementById('mpMatchmakingResult');if(el){el.textContent=text;el.style.color=error?'#ffb4b4':''}}
-function ebSetMatchmakingEnabled(enabled){for(const id of ['mpCreateMatch','mpJoinMatch']){let button=document.getElementById(id);if(button)button.disabled=!enabled}}
+function ebSetMatchmakingEnabled(enabled){for(const id of ['mpCreateMatch','mpJoinMatch']){let button=document.getElementById(id);if(button)button.disabled=!enabled}let connect=document.getElementById('mpConnectOnline');if(connect)connect.hidden=enabled}
 async function ebEnsureMatchmakingAuth(){
  let existing=ebMatchmakingSession();if(existing){EB_MP.authSession=existing;ebSetMatchmakingEnabled(true);ebMatchmakingMessage('Ready to create or join a match');return existing}
  if(EB_MP.authPromise)return EB_MP.authPromise;
@@ -1395,9 +1395,11 @@ async function ebEnsureMatchmakingAuth(){
  return EB_MP.authPromise;
 }
 function ebSetupMatchmaking(){
+ console.debug('[ElementBound] ebSetupMatchmaking ran');
  let select=document.getElementById('mpDeck');if(select&&!select.options.length)select.innerHTML=Object.keys(INFO).map(element=>`<option value="${element}">${E[element]} ${INFO[element][0]}</option>`).join('');
  let invited=new URLSearchParams(location.search).get('join'),input=document.getElementById('mpRoomCode');if(invited&&input)input.value=invited.toUpperCase();ebSetMatchmakingEnabled(false);
- let panel=document.getElementById('mpMatchmaking'),begin=()=>{ebEnsureMatchmakingAuth().catch(()=>{})};panel?.addEventListener('pointerenter',begin,{once:true});panel?.addEventListener('focusin',begin,{once:true});if(invited)begin();
+ let panel=document.getElementById('mpMatchmaking'),connect=document.getElementById('mpConnectOnline'),begin=()=>ebEnsureMatchmakingAuth().catch(()=>{});
+ if(panel&&connect&&window.ElementBoundFirebaseBootstrap)window.ElementBoundFirebaseBootstrap.bindConnectButton(connect,begin);if(invited)begin();
 }
 async function ebCreateMatch(){
  let session=ebMatchmakingSession();if(!session){try{session=await ebEnsureMatchmakingAuth()}catch(error){return}}

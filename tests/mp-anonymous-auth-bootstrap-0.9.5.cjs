@@ -1,5 +1,6 @@
 const assert=require('node:assert/strict');
-const {createAnonymousAuthBootstrap,connectMatchmaking}=require('../js/firebaseBootstrap.js');
+const fs=require('node:fs');
+const {createAnonymousAuthBootstrap,connectMatchmaking,bindConnectButton}=require('../js/firebaseBootstrap.js');
 const {publicFirebaseConfig}=require('../api/firebase-config.js');
 
 (async()=>{
@@ -52,6 +53,23 @@ const {publicFirebaseConfig}=require('../api/firebase-config.js');
     await assert.rejects(connectMatchmaking({bootstrap:{connect:async()=>{throw Error('auth failed')}},setEnabled:value=>enabled.push(value),setMessage:(text,error)=>messages.push({text,error})}),/auth failed/);
     check(enabled.every(value=>value===false),'auth failure never leaves Create or Join enabled');
     check(messages.at(-1).error&&messages.at(-1).text==="Couldn't connect to online matches. Try again.",'auth failure surfaces the specified non-blocking status');
+  }
+
+  {
+    let clickHandler,enabled=[],messages=[],connects=0;
+    const button={addEventListener(type,handler){check(type==='click','explicit action binds directly to click');clickHandler=handler},removeEventListener(){}};
+    const bootstrap={async connect(){connects++;return{user,db:{}}}};
+    bindConnectButton(button,()=>connectMatchmaking({bootstrap,setEnabled:value=>enabled.push(value),setMessage:(text,error)=>messages.push({text,error})}));
+    await clickHandler();
+    check(connects===1,'a direct Connect Online click starts authentication without hover or focus');
+    check(enabled[0]===false&&enabled.at(-1)===true,'the direct click completes through matchmaking enablement');
+    check(messages[0].text==='Connecting to online services…'&&messages.at(-1).text==='Ready to create or join a match','the direct click runs the complete status sequence');
+  }
+
+  {
+    const html=fs.readFileSync('index.html','utf8'),game=fs.readFileSync('js/game.js','utf8');
+    check(/id="mpMatchmaking"/.test(html)&&/getElementById\('mpMatchmaking'\)/.test(game),'matchmaking panel ID exactly matches the setup lookup');
+    check(!/addEventListener\('pointerenter'|addEventListener\('focusin'/.test(game),'auth no longer depends on ambient pointer or focus events');
   }
 
   {
