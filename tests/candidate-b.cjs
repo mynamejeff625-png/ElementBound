@@ -1,11 +1,13 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
+const ElementBoundCards=require('../lib/cardCatalog.js');
+const ElementBoundMatchFactory=require('../lib/matchFactory.js');
 let source = fs.readFileSync('js/game.js','utf8');
 source = source.slice(0,source.lastIndexOf('\nsetup();'));
 // Expose closure internals only inside this test VM, never in the shipped game.
 source = source.replace('return Object.freeze({DECKS:', 'return Object.freeze({_makeState:makeState,_attackOne:attackOne,_dealBody:dealBody,DECKS:');
-const ctx=vm.createContext({console,window:{},document:{getElementById:()=>null},setTimeout:()=>0,clearTimeout(){},requestAnimationFrame(){}});
+const ctx=vm.createContext({console,window:{ElementBoundCards,ElementBoundMatchFactory},document:{getElementById:()=>null},setTimeout:()=>0,clearTimeout(){},requestAnimationFrame(){}});
 vm.runInContext(source,ctx);
 vm.runInContext(`
 let checks=0;
@@ -51,7 +53,7 @@ assert(html.includes("style-src 'self';"));
 console.log('Native progress markup and CSP checks passed');
 const versionSource=fs.readFileSync('js/version.js','utf8');
 const versionNodes=['home','battle','diagnostics','balance'].map(key=>({dataset:{ebVersionContext:key},textContent:''}));
-const versionContext={window:{},document:{title:'',querySelectorAll:()=>versionNodes}};
+const versionContext={window:{ElementBoundCards,ElementBoundMatchFactory},document:{title:'',querySelectorAll:()=>versionNodes}};
 vm.runInNewContext(versionSource,versionContext);
 const releaseVersion=versionContext.window.EB_RELEASE.version;
 assert.match(releaseVersion,/^\d+\.\d+\.\d+$/);

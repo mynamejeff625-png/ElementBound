@@ -39,6 +39,7 @@
     function start(){
       if(unsubscribe)return unsubscribe;
       unsubscribe=subscribeView(roomId,uid,view=>{
+        if(view?.status==='WAITING'){notify('waiting','Room created. Waiting for the invited player…');return}
         if(!view||!view.state){notify('error',messageFor('VIEW_UNAVAILABLE'),'VIEW_UNAVAILABLE');return}
         onView(view.state);
         notify('connected','Live match connected.');

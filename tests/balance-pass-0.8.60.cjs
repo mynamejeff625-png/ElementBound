@@ -1,7 +1,8 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const ElementBoundCards=require('../lib/cardCatalog.js'),ElementBoundMatchFactory=require('../lib/matchFactory.js');
 let source=fs.readFileSync('js/game.js','utf8');
 source=source.slice(0,source.lastIndexOf('\nsetup();')).replace('return Object.freeze({DECKS:','return Object.freeze({_makeState:makeState,_startTurn:startTurn,_expireAllRoundEffectsSim:expireAllRoundEffectsSim,_attackBonus:attackBonus,_canBypass:canBypass,_addMomentum:addMomentum,DECKS:');
-const ctx=vm.createContext({console,window:{},document:{getElementById:()=>null},setTimeout:()=>0,clearTimeout(){},requestAnimationFrame(){}});vm.runInContext(source,ctx);
+const ctx=vm.createContext({console,window:{ElementBoundCards,ElementBoundMatchFactory},document:{getElementById:()=>null},setTimeout:()=>0,clearTimeout(){},requestAnimationFrame(){}});vm.runInContext(source,ctx);
 vm.runInContext(`
 let checks=0;function check(v,msg){if(!v)throw Error(msg);checks++}hideModal=()=>{};render=()=>{};bump=()=>{};add=()=>{};ebQueueFx=()=>{};draw=()=>{};
 check(BASE.LIGHTNING[2][2]===3&&BASE.LIGHTNING[2][3]===3,'Volt Lynx stats');check(/\\+1 ATK/.test(BASE.LIGHTNING[1][4]),'Arc Runner text');check(/Momentum/.test(BASE.AIR[1][4]),'Gale Scout text');
