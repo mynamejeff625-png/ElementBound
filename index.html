@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; img-src 'self' data:; style-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; object-src 'none'; base-uri 'none'; form-action 'none'"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>Elementbound</title>
+<!doctype html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; img-src 'self' data:; style-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; object-src 'none'; base-uri 'none'; form-action 'none'"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>Elementbound</title>
 
 
 
@@ -26,7 +26,7 @@
 </div>
 <div id="blCalSummary" class="blUtil" style="margin-top:10px">No calibration report yet.</div>
 </div><div id="blMatrixWrap" class="blPanel blHidden"><b>MATCHUP MATRIX</b><div class="small">Rows = acting deck. Columns = opponent. Tap a cell for details.</div><div id="blMatrix" class="blMatrix"></div></div><div id="blDetail" class="blPanel blHidden"></div><div class="blActions"><button id="blCopy" onclick="ebBalanceCopy()" disabled>COPY BALANCE REPORT</button><button onclick="ebBalanceClear()">CLEAR RESULTS</button></div></section>
-<section id="home" class="screen on"><div class="hero"><img class="main-logo" src="assets/images/image-3-1e85171cb3c1.png" alt="Elementbound logo"><div class="sub" id="buildStamp" data-eb-version-context="home"></div><button class="primary" onclick="go('setup')">PLAY</button><div class="matchmaking"><b>ONLINE MATCH</b><label class="small" for="mpDeck">Choose your deck</label><select id="mpDeck" aria-label="Multiplayer deck"></select><button class="ghost" onclick="ebCreateMatch()">CREATE MATCH</button><div class="joinRow"><input id="mpRoomCode" maxlength="6" autocomplete="off" placeholder="ROOM CODE" aria-label="Room code"><button class="ghost" onclick="ebJoinMatch()">JOIN MATCH</button></div><div id="mpMatchmakingResult" class="small" aria-live="polite"></div></div><button class="ghost" onclick="goTrials()">ELEMENT TRIALS</button><button class="ghost" onclick="goCodex()">CODEX</button><button class="ghost" onclick="showRules()">HOW TO PLAY</button></div></section>
+<section id="home" class="screen on"><div class="hero"><img class="main-logo" src="assets/images/image-3-1e85171cb3c1.png" alt="Elementbound logo"><div class="sub" id="buildStamp" data-eb-version-context="home"></div><button class="primary" onclick="go('setup')">PLAY</button><div id="mpMatchmaking" class="matchmaking"><b>ONLINE MATCH</b><label class="small" for="mpDeck">Choose your deck</label><select id="mpDeck" aria-label="Multiplayer deck"></select><button id="mpCreateMatch" class="ghost" onclick="ebCreateMatch()" disabled>CREATE MATCH</button><div class="joinRow"><input id="mpRoomCode" maxlength="6" autocomplete="off" placeholder="ROOM CODE" aria-label="Room code"><button id="mpJoinMatch" class="ghost" onclick="ebJoinMatch()" disabled>JOIN MATCH</button></div><div id="mpMatchmakingResult" class="small" aria-live="polite"></div></div><button class="ghost" onclick="goTrials()">ELEMENT TRIALS</button><button class="ghost" onclick="goCodex()">CODEX</button><button class="ghost" onclick="showRules()">HOW TO PLAY</button></div></section>
 
 
 <section id="trials" class="screen">
@@ -57,6 +57,10 @@
 <div class="actions"><button id="attack" onclick="attackPick()">Attack</button><button id="end" onclick="endTurn()">End Turn</button><button onclick="exitBattle()">Exit</button></div><h3>Event Log</h3><div id="log" class="log"></div></section>
 </div><div id="mw" class="modalw hide"><div class="modal"><h3 id="mt"></h3><div id="mb"></div><button id="modalDismiss" onclick="hideModal()">Cancel</button></div></div>
 <script src="js/version.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore-compat.js"></script>
+<script src="js/firebaseBootstrap.js"></script>
 <script src="lib/cardCatalog.js"></script>
 <script src="lib/matchFactory.js"></script>
 <script src="lib/gameEngine.js"></script>

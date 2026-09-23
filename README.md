@@ -2,7 +2,9 @@
 
 ## Multiplayer client entry point
 
-Multiplayer mode is additive and activates only when the page has a `roomId` query parameter, for example `/?roomId=manual-test-room`. The page expects an already-authenticated Firebase client session and an initialized Firestore compat instance (`window.firebase`), because authentication and room creation are handled by separate flows.
+Multiplayer mode is additive and activates only when the player interacts with the Online Match panel or the page has a `roomId` query parameter, for example `/?roomId=manual-test-room`. The browser initializes the Firebase compat SDK and signs the player in anonymously before enabling Create/Join. Single-player startup remains unchanged.
+
+The deployment must define the public Firebase Web configuration variables `FIREBASE_WEB_API_KEY` and `FIREBASE_PROJECT_ID`. Optional values are `FIREBASE_AUTH_DOMAIN`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`, and `FIREBASE_APP_ID`. The `/api/firebase-config` endpoint exposes only these public client settings; Admin credentials remain server-only. Anonymous Authentication must also be enabled in Firebase Console under **Authentication → Sign-in method**.
 
 Test hosts may instead define `window.EB_MULTIPLAYER_DEPS` before `js/game.js` loads with `{user, db, fetchImpl?}`. The `user` must expose `uid` and `getIdToken()`, while `db` must expose the Firestore compat `collection().doc().onSnapshot()` interface.
 
