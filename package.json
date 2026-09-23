@@ -2,7 +2,14 @@
   "name": "elementbound",
   "version": "1.0.0",
   "private": true,
+  "scripts": {
+    "test:firestore-rules": "firebase emulators:exec --only firestore --project demo-element-bound \"node tests/firestore-rules.cjs\""
+  },
   "dependencies": {
     "firebase-admin": "^12.6.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase-tools": "^15.30.2"
   }
 }

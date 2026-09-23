@@ -64,9 +64,32 @@ function handlerFor(uid,room,db=mockDb(room)){
 
 async function invoke(handler,req){const res=response();await handler(req,res);return res}
 
+function inaccessibleDb(){
+  return {
+    collection(){throw new Error('Firestore must not be accessed')},
+    async runTransaction(){throw new Error('Firestore must not be accessed')}
+  };
+}
+
 (async()=>{
   let checks=0;
   function check(value,message){assert.ok(value,message);checks++}
+
+  {
+    const auth={async verifyIdToken(){throw new Error('Auth must not be called without a token')}};
+    const handler=createSubmitMoveHandler({auth,db:inaccessibleDb()});
+    const res=await invoke(handler,{method:'POST',headers:{},body:{roomId:'room-1',move:{}}});
+    check(res.statusCode===401&&res.body.error==='AUTH_REQUIRED','missing Authorization header must require authentication');
+    check(res.body.ok===false,'missing auth must be rejected before Firestore access');
+  }
+
+  {
+    const auth={async verifyIdToken(token){assert.equal(token,'garbage');throw new Error('invalid token')}};
+    const handler=createSubmitMoveHandler({auth,db:inaccessibleDb()});
+    const res=await invoke(handler,{method:'POST',headers:{authorization:'Bearer garbage'},body:{roomId:'room-1',move:{}}});
+    check(res.statusCode===401&&res.body.error==='INVALID_AUTH_TOKEN','garbage token must be rejected');
+    check(res.body.ok===false,'invalid token must be rejected before Firestore access');
+  }
 
   {
     const room={players:['uid-a','uid-b'],state:state()};
