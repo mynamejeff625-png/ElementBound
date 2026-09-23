@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; img-src 'self' data:; style-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>Elementbound</title>
+<!doctype html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; img-src 'self' data:; style-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; object-src 'none'; base-uri 'none'; form-action 'none'"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>Elementbound</title>
 
 
 
@@ -50,6 +50,7 @@
 </section>
 <section id="setup" class="screen"><div class="title">Choose Your Element Deck</div><div class="small">Choose a Prime or Hybrid bending path.</div><div id="decks" class="deckgrid"></div><div class="title" style="font-size:20px;margin-top:18px">Opponent Difficulty</div><div id="diffs" class="diffs"></div><button id="start" class="primary" disabled onclick="startMatch()">START DUEL</button><button class="ghost" onclick="go('home')">BACK</button></section>
 <div id="battleFx" aria-hidden="true"></div><div id="battleFocus" aria-live="polite"></div><div id="initiativeOverlay" class="hide" role="dialog" aria-modal="true" aria-label="Initiative flip" onclick="ebInitiativeSkip()"><div id="initiativePanel" class="initPanel"><div class="initLabel">INITIATIVE FLIP</div><div class="initCoinStage"><div id="initiativeCoin" class="initCoin">EB</div></div><div id="initiativeResult" class="initResult">FLIPPING…</div><div id="initiativeBonus" class="initBonus"></div><div class="initSkip">TAP TO SKIP</div></div></div>
+<div id="mpStatus" class="mpStatus" role="status" aria-live="polite" hidden></div>
 <section id="battle" class="screen"><div class="top"><div class="row"><b>ELEMENTBOUND <span class="small" data-eb-version-context="battle"></span></b><span id="rev" class="pill"></span></div><div class="stats"><span id="turn" class="pill"></span><span id="chain" class="pill chainContext" hidden></span><span id="difficulty" class="pill"></span></div></div><div id="trialObjective" class="trialObjective"></div><div id="winner"></div>
 <div id="enemy" class="side"><div class="row"><b id="ename"></b><b id="evit"></b></div><div id="estats" class="stats"></div><div id="eslots" class="slots"></div></div>
 <div id="you" class="side"><div class="row"><b id="pname"></b><div class="benderHeadRight"><button id="recycle" class="recycleBtn" onclick="requestRecycle()">Card Re-cycle 3/3</button><b id="pvit"></b></div></div><div id="pstats" class="stats"></div><div id="pslots" class="slots"></div><b>Hand</b><div id="recycleHint" class="recycleHint"></div><div id="hand" class="hand"></div></div>
@@ -57,6 +58,7 @@
 </div><div id="mw" class="modalw hide"><div class="modal"><h3 id="mt"></h3><div id="mb"></div><button id="modalDismiss" onclick="hideModal()">Cancel</button></div></div>
 <script src="js/version.js"></script>
 <script src="lib/gameEngine.js"></script>
+<script src="js/multiplayerClient.js"></script>
 <script src="js/game.js"></script>
 </body></html>
 
