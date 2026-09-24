@@ -1,6 +1,10 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
-const {createAnonymousAuthBootstrap,connectMatchmaking,bindConnectButton}=require('../js/firebaseBootstrap.js');
+const vm=require('node:vm');
+const ElementBoundCards=require('../lib/cardCatalog.js');
+const ElementBoundMatchFactory=require('../lib/matchFactory.js');
+const ElementBoundFirebaseBootstrap=require('../js/firebaseBootstrap.js');
+const {createAnonymousAuthBootstrap,connectMatchmaking,bindConnectButton}=ElementBoundFirebaseBootstrap;
 const {publicFirebaseConfig}=require('../api/firebase-config.js');
 
 (async()=>{
@@ -11,7 +15,7 @@ const {publicFirebaseConfig}=require('../api/firebase-config.js');
     let signIns=0,initializations=0,tokens=0;
     const freshUser={...user,async getIdToken(){tokens++;return'id-token'}};
     const auth={currentUser:null,async signInAnonymously(){signIns++;this.currentUser=freshUser;return{user:freshUser}}};
-    const firebase={apps:[],initializeApp(config){initializations++;this.apps.push(config)},auth:()=>auth,firestore:()=>({kind:'db'})};
+    const firebase={apps:[],initializeApp(config){initializations++;this.apps.push(config)},auth(){check(this.apps.length===1,'Firebase Auth is not read until the default app is initialized');return auth},firestore:()=>({kind:'db'})};
     const bootstrap=createAnonymousAuthBootstrap({firebase,loadConfig:async()=>({apiKey:'public-key',projectId:'demo'})});
     const session=await bootstrap.connect();
     check(signIns===1,'a missing current user triggers anonymous sign-in');
@@ -70,6 +74,29 @@ const {publicFirebaseConfig}=require('../api/firebase-config.js');
     const html=fs.readFileSync('index.html','utf8'),game=fs.readFileSync('js/game.js','utf8');
     check(/id="mpMatchmaking"/.test(html)&&/getElementById\('mpMatchmaking'\)/.test(game),'matchmaking panel ID exactly matches the setup lookup');
     check(!/addEventListener\('pointerenter'|addEventListener\('focusin'/.test(game),'auth no longer depends on ambient pointer or focus events');
+    const sessionBody=game.slice(game.indexOf('function ebMatchmakingSession(){'),game.indexOf('function ebMatchmakingMessage'));
+    check(!/firebase|\.auth\(/.test(sessionBody),'pre-bootstrap session lookup never touches an uninitialized Firebase API');
+    const ensureBody=game.slice(game.indexOf('async function ebEnsureMatchmakingAuth(){'),game.indexOf('function ebSetupMatchmaking'));
+    check(/catch\(error\).*Couldn't connect to online matches/.test(ensureBody.replaceAll('\n','')),'the complete auth entry point converts unexpected failures into visible UI feedback');
+  }
+
+  {
+    let source=fs.readFileSync('js/game.js','utf8');source=source.slice(0,source.lastIndexOf('\nsetup();'));
+    const elements={mpCreateMatch:{disabled:true},mpJoinMatch:{disabled:true},mpConnectOnline:{hidden:false},mpMatchmakingResult:{textContent:'',style:{}}};
+    let initialized=false,authReads=0;
+    const vmUser={uid:'vm-anonymous',async getIdToken(){return'vm-token'}};
+    const auth={currentUser:null,async signInAnonymously(){this.currentUser=vmUser;return{user:vmUser}}};
+    const firebase={apps:[],initializeApp(config){initialized=!!config.apiKey;this.apps.push(config)},auth(){authReads++;assert.ok(initialized,'game adapter must initialize Firebase before reading Auth');return auth},firestore(){return{kind:'vm-db'}}};
+    const fetchImpl=async()=>({ok:true,status:200,json:async()=>({ok:true,config:{apiKey:'public-key',projectId:'demo'}})});
+    const context=vm.createContext({console,window:{ElementBoundCards,ElementBoundMatchFactory,ElementBoundFirebaseBootstrap,firebase,fetch:fetchImpl},document:{getElementById:id=>elements[id]||null},setTimeout:()=>0,clearTimeout(){},requestAnimationFrame(){}});
+    vm.runInContext(source,context);
+    const session=await vm.runInContext('ebEnsureMatchmakingAuth()',context);
+    check(initialized&&authReads===1,'ebEnsureMatchmakingAuth falls through to bootstrap initialization before its first Auth read');
+    check(session.user.uid==='vm-anonymous'&&elements.mpCreateMatch.disabled===false,'pre-initialization auth entry completes and enables matchmaking');
+    context.window.ElementBoundFirebaseBootstrap=null;
+    await assert.rejects(vm.runInContext('EB_MP.authSession=null;EB_MP.authPromise=null;ebEnsureMatchmakingAuth()',context),/FIREBASE_SDK_UNAVAILABLE/);
+    check(elements.mpCreateMatch.disabled&&elements.mpJoinMatch.disabled,"unexpected auth failures leave matchmaking safely disabled");
+    check(elements.mpMatchmakingResult.textContent==="Couldn't connect to online matches. Try again.",'unexpected auth failures surface visible feedback');
   }
 
   {

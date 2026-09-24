@@ -1376,23 +1376,22 @@ function ebStopMultiplayer(){EB_MP.client?.stop();EB_MP.enabled=false;EB_MP.room
 function ebMatchmakingSession(){
  let deps=window.EB_MULTIPLAYER_DEPS;if(deps?.user&&deps?.db)return{user:deps.user,db:deps.db,fetchImpl:deps.fetchImpl||window.fetch.bind(window)};
  if(EB_MP.authSession)return EB_MP.authSession;
- let firebase=window.firebase,user=firebase?.auth?.().currentUser;if(user&&firebase?.firestore)return{user,db:firebase.firestore(),fetchImpl:window.fetch.bind(window)};
  return null;
 }
 function ebMatchmakingMessage(text,error=false){let el=document.getElementById('mpMatchmakingResult');if(el){el.textContent=text;el.style.color=error?'#ffb4b4':''}}
 function ebSetMatchmakingEnabled(enabled){for(const id of ['mpCreateMatch','mpJoinMatch']){let button=document.getElementById(id);if(button)button.disabled=!enabled}let connect=document.getElementById('mpConnectOnline');if(connect)connect.hidden=enabled}
 async function ebEnsureMatchmakingAuth(){
- let existing=ebMatchmakingSession();if(existing){EB_MP.authSession=existing;ebSetMatchmakingEnabled(true);ebMatchmakingMessage('Ready to create or join a match');return existing}
- if(EB_MP.authPromise)return EB_MP.authPromise;
- EB_MP.authPromise=(async()=>{
-   try{
+ try{
+   let existing=ebMatchmakingSession();if(existing){EB_MP.authSession=existing;ebSetMatchmakingEnabled(true);ebMatchmakingMessage('Ready to create or join a match');return existing}
+   if(EB_MP.authPromise)return await EB_MP.authPromise;
+   EB_MP.authPromise=(async()=>{
      if(!window.ElementBoundFirebaseBootstrap||!window.firebase)throw new Error('FIREBASE_SDK_UNAVAILABLE');
      let bootstrap=window.ElementBoundFirebaseBootstrap.createAnonymousAuthBootstrap({firebase:window.firebase,loadConfig:()=>window.ElementBoundFirebaseBootstrap.loadPublicConfig(window.fetch.bind(window))});
      let authenticated=await window.ElementBoundFirebaseBootstrap.connectMatchmaking({bootstrap,setEnabled:ebSetMatchmakingEnabled,setMessage:ebMatchmakingMessage});
      EB_MP.authSession={...authenticated,fetchImpl:window.fetch.bind(window)};return EB_MP.authSession;
-   }catch(error){EB_MP.authPromise=null;ebSetMatchmakingEnabled(false);ebMatchmakingMessage("Couldn't connect to online matches. Try again.",true);throw error}
- })();
- return EB_MP.authPromise;
+   })();
+   return await EB_MP.authPromise;
+ }catch(error){EB_MP.authPromise=null;ebSetMatchmakingEnabled(false);ebMatchmakingMessage("Couldn't connect to online matches. Try again.",true);throw error}
 }
 function ebSetupMatchmaking(){
  console.debug('[ElementBound] ebSetupMatchmaking ran');
