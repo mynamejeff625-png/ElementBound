@@ -1,0 +1,85 @@
+(function(root,factory){
+  const api=factory();
+  if(typeof module==='object'&&module.exports)module.exports=api;
+  if(root)root.ElementBoundMultiplayer=api;
+})(typeof globalThis!=='undefined'?globalThis:this,function(){
+  'use strict';
+
+  const ERROR_MESSAGES=Object.freeze({
+    AUTH_REQUIRED:'Sign in again to continue the match.',
+    INVALID_AUTH_TOKEN:'Your session expired. Sign in again.',
+    NOT_A_PLAYER:'You are not a player in this room.',
+    ACTOR_MISMATCH:'Your player seat could not be verified.',
+    NOT_YOUR_TURN:'It is not your turn yet.',
+    REVISION_MISMATCH:'The match changed before that move arrived. The board has been refreshed.',
+    ROOM_NOT_FOUND:'This multiplayer room no longer exists.',
+    RESPONSE_WINDOW_REQUIRED:'Your opponent has a response available.',
+    NETWORK_ERROR:'The move could not reach the server. Check your connection and try again.',
+    VIEW_UNAVAILABLE:'The live match view is unavailable.'
+  });
+
+  function messageFor(error){return ERROR_MESSAGES[error]||`Move rejected: ${String(error||'UNKNOWN_ERROR')}`}
+
+  function withoutClientIdentity(move){
+    const safe=JSON.parse(JSON.stringify(move||{}));
+    delete safe.actor;
+    delete safe.uid;
+    delete safe.playerSlot;
+    return safe;
+  }
+
+  function createMultiplayerClient({roomId,uid,getIdToken,subscribeView,fetchImpl,onView,onMessage=()=>{}}){
+    if(!roomId||!uid||typeof getIdToken!=='function'||typeof subscribeView!=='function'||typeof fetchImpl!=='function'){
+      throw new TypeError('roomId, uid, getIdToken, subscribeView, fetchImpl, and onView are required');
+    }
+    if(typeof onView!=='function')throw new TypeError('onView is required');
+    let unsubscribe=null;
+
+    function notify(kind,text,error=null){onMessage({kind,text,error})}
+    function start(){
+      if(unsubscribe)return unsubscribe;
+      unsubscribe=subscribeView(roomId,uid,view=>{
+        if(view?.status==='WAITING'){notify('waiting','Room created. Waiting for the invited player…');return}
+        if(!view||!view.state){notify('error',messageFor('VIEW_UNAVAILABLE'),'VIEW_UNAVAILABLE');return}
+        onView(view.state);
+        notify('connected','Live match connected.');
+      },()=>notify('error',messageFor('VIEW_UNAVAILABLE'),'VIEW_UNAVAILABLE'));
+      return unsubscribe;
+    }
+    function stop(){if(unsubscribe){unsubscribe();unsubscribe=null}}
+    async function submit(move){
+      try{
+        const token=await getIdToken();
+        const response=await fetchImpl('/api/submit-move',{
+          method:'POST',
+          headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+          body:JSON.stringify({roomId,move:withoutClientIdentity(move)})
+        });
+        let body={};
+        try{body=await response.json()}catch(error){body={ok:false,error:'INVALID_SERVER_RESPONSE'}}
+        if(!response.ok||!body.ok){
+          const code=body.error||`HTTP_${response.status}`;
+          notify('error',messageFor(code),code);
+          return {ok:false,error:code};
+        }
+        notify('pending','Move accepted. Waiting for the live board…');
+        return {ok:true};
+      }catch(error){
+        notify('error',messageFor('NETWORK_ERROR'),'NETWORK_ERROR');
+        return {ok:false,error:'NETWORK_ERROR'};
+      }
+    }
+    return Object.freeze({start,stop,submit,isStarted:()=>!!unsubscribe});
+  }
+
+  function createActionDispatcher({isMultiplayer,multiplayerClient,localReduce,onLocalState=()=>{}}){
+    return async function dispatch(state,move){
+      if(isMultiplayer())return multiplayerClient.submit(move);
+      const result=localReduce(state,move);
+      if(result.ok)onLocalState(result.state);
+      return result;
+    };
+  }
+
+  return Object.freeze({ERROR_MESSAGES,messageFor,withoutClientIdentity,createMultiplayerClient,createActionDispatcher});
+});
