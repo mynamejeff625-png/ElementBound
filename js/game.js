@@ -1356,7 +1356,7 @@ function ebMpPlay(c,slotIndex,target){
 function ebMpPerspective(state){
  let next=JSON.parse(JSON.stringify(state)),seat=Number(next.viewerSeat||0);delete next.viewerSeat;
  if(seat===1){next.p=[next.p[1],next.p[0]];next.active=1-next.active;if(Number.isInteger(next.startSeat))next.startSeat=1-next.startSeat;if(next.initiative&&Number.isInteger(next.initiative.starter))next.initiative.starter=1-next.initiative.starter}
- next.logs=Array.isArray(next.logs)?next.logs:[];
+ next.logs=Array.isArray(next.events)?next.events.map(item=>`#${item.seq} T${item.turn||next.turn} ${item.text}`):(Array.isArray(next.logs)?next.logs:[]);
  return next;
 }
 function ebMpApplyView(state){

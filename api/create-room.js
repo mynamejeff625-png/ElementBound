@@ -22,7 +22,7 @@ function createCreateRoomHandler({auth,db,generateCode=roomCode}){
         const roomId=generateCode(),roomRef=db.collection('rooms').doc(roomId);
         const created=await db.runTransaction(async transaction=>{
           const snapshot=await transaction.get(roomRef);if(snapshot.exists)return false;
-          const room={status:'WAITING',players:[user.uid,null],deckSelections:[{element,responseElement:matchFactory.responseElement(element,responseElement)},null],state:null,createdAt:Date.now(),updatedAt:Date.now()};
+          const room={status:'WAITING',players:[user.uid,null],deckSelections:[{element,responseElement:matchFactory.responseElement(element,responseElement)},null],state:null,events:[],eventSeq:0,createdAt:Date.now(),updatedAt:Date.now()};
           transaction.create(roomRef,room);
           transaction.set(roomRef.collection('views').doc(user.uid),{status:'WAITING',roomId,seat:0,state:null,updatedAt:Date.now()});
           return true;
