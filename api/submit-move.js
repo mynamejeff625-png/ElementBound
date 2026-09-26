@@ -17,11 +17,11 @@ function send(res,status,body){
 
 function statusForEngineError(error){
   if(error==='REVISION_MISMATCH')return 409;
-  if(error==='NOT_YOUR_TURN')return 403;
+  if(error==='NOT_YOUR_TURN'||error==='NOT_RESPONSE_DEFENDER')return 403;
   return 400;
 }
 
-function createSubmitMoveHandler({auth,db,rulesEngine=engine}){
+function createSubmitMoveHandler({auth,db,rulesEngine=engine,now=Date.now}){
   if(!auth||!db)throw new TypeError('auth and db are required');
 
   return async function submitMove(req,res){
@@ -64,8 +64,8 @@ function createSubmitMoveHandler({auth,db,rulesEngine=engine}){
           return {status:403,body:{ok:false,error:'ACTOR_MISMATCH'}};
         }
 
-        const move={...requestedMove,actor:seat};
-        const resolution=rulesEngine.validateAndApplyMove(room.state,move);
+        const move={...requestedMove,actor:seat},serverNow=now();
+        const resolution=rulesEngine.validateAndApplyMove(room.state,move,{now:serverNow});
         if(!resolution.ok){
           return {status:statusForEngineError(resolution.error),body:{ok:false,error:resolution.error,detail:resolution.detail||null}};
         }
@@ -76,9 +76,9 @@ function createSubmitMoveHandler({auth,db,rulesEngine=engine}){
         transaction.update(roomRef,{state:resolution.state,events,eventSeq});
         for(let playerSeat=0;playerSeat<players.length;playerSeat++){
           const viewRef=roomRef.collection('views').doc(players[playerSeat]);
-          transaction.set(viewRef,{state:buildPlayerView(resolution.state,playerSeat,events),updatedAt:Date.now()});
+          transaction.set(viewRef,{state:buildPlayerView(resolution.state,playerSeat,events,serverNow),updatedAt:serverNow});
         }
-        return {status:200,body:{ok:true,state:buildPlayerView(resolution.state,seat,events)}};
+        return {status:200,body:{ok:true,autoResolved:!!resolution.autoResolved,state:buildPlayerView(resolution.state,seat,events,serverNow)}};
       });
       return send(res,result.status,result.body);
     }catch(error){

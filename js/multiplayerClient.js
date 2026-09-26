@@ -42,7 +42,7 @@
         if(view?.status==='WAITING'){notify('waiting','Room created. Waiting for the invited player…');return}
         if(!view||!view.state){notify('error',messageFor('VIEW_UNAVAILABLE'),'VIEW_UNAVAILABLE');return}
         onView(view.state);
-        notify('connected','Live match connected.');
+        if(!view.state.pendingResponse)notify('connected','Live match connected.');
       },()=>notify('error',messageFor('VIEW_UNAVAILABLE'),'VIEW_UNAVAILABLE'));
       return unsubscribe;
     }
@@ -59,11 +59,11 @@
         try{body=await response.json()}catch(error){body={ok:false,error:'INVALID_SERVER_RESPONSE'}}
         if(!response.ok||!body.ok){
           const code=body.error||`HTTP_${response.status}`;
-          notify('error',messageFor(code),code);
-          return {ok:false,error:code};
+          if(code!=='RESPONSE_NOT_EXPIRED'&&!(move.type==='RESOLVE_EXPIRED'&&code==='REVISION_MISMATCH'))notify('error',messageFor(code),code);
+          return {ok:false,error:code,detail:body.detail||null};
         }
-        notify('pending','Move accepted. Waiting for the live board…');
-        return {ok:true};
+        notify('pending',body.autoResolved?'Response window expired — the attack continued.':'Move accepted. Waiting for the live board…');
+        return {ok:true,autoResolved:!!body.autoResolved};
       }catch(error){
         notify('error',messageFor('NETWORK_ERROR'),'NETWORK_ERROR');
         return {ok:false,error:'NETWORK_ERROR'};
@@ -128,6 +128,7 @@
       if(Number.isInteger(next.startSeat))next.startSeat=1-next.startSeat;
       if(next.initiative&&Number.isInteger(next.initiative.starter))next.initiative.starter=1-next.initiative.starter;
       if(Array.isArray(next.events))next.events=next.events.map(item=>{const event={...item};for(const key of ['actor','seat','starter','tokenSeat'])if(event[key]===0||event[key]===1)event[key]=1-event[key];return event});
+      if(next.pendingResponse)for(const key of ['attackerSeat','defenderSeat'])if(next.pendingResponse[key]===0||next.pendingResponse[key]===1)next.pendingResponse[key]=1-next.pendingResponse[key];
     }
     return next;
   }
