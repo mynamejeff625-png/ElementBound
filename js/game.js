@@ -976,6 +976,8 @@ function modal(t,bs){document.getElementById('mt').textContent=t;let b=document.
    This keeps the one-file build safe while letting every current/future card
    inherit summon / move / attack / damage / status feedback automatically. */
 let EB_VIS=null,EB_FOCUS_TIMER=0,EB_LOG_COUNT=0,EB_FX_QUEUE=[],EB_FX_TIMERS=[],EB_FX_GENERATION=0;
+function ebLogCursor(){return EB_MP.enabled&&Array.isArray(G?.events)?(G.events.at(-1)?.seq||0):(G?.logs?.length||0)}
+function ebFreshLogs(){return EB_MP.enabled&&Array.isArray(G?.events)?G.events.filter(item=>item.seq>EB_LOG_COUNT).map(item=>item.text):(G?.logs||[]).slice(EB_LOG_COUNT)}
 function ebFxAnchorForElement(el){
  if(!el||!el.getBoundingClientRect)return null;
  let r=el.getBoundingClientRect();
@@ -1084,10 +1086,10 @@ function ebRenderFx(){
  // Damage, Bender damage, summons, defeats, and their numbers are rendered
  // exclusively from EB_FX_QUEUE. Never infer combat damage from snapshot deltas.
  if(!G||!document.getElementById('battle')?.classList.contains('on')){
-   EB_VIS=ebSnap();EB_LOG_COUNT=G?.logs?.length||0;return;
+   EB_VIS=ebSnap();EB_LOG_COUNT=ebLogCursor();return;
  }
  let now=ebSnap();if(!now)return;
- if(!EB_VIS){EB_VIS=now;EB_LOG_COUNT=G.logs?.length||0;return}
+ if(!EB_VIS){EB_VIS=now;EB_LOG_COUNT=ebLogCursor();return}
 
  for(let side=0;side<2;side++){
    let oldP=EB_VIS.p[side],newP=now.p[side];
@@ -1123,10 +1125,10 @@ function ebRenderFx(){
    }
  }
 
- let fresh=(G.logs||[]).slice(EB_LOG_COUNT),focus=null;
+ let fresh=ebFreshLogs(),focus=null;
  for(let i=fresh.length-1;i>=0&&!focus;i--)focus=ebShortFocus(fresh[i]);
  if(focus)ebFocus(focus[0],focus[1]);
- EB_LOG_COUNT=(G.logs||[]).length;
+ EB_LOG_COUNT=ebLogCursor();
  EB_VIS=now;
 }
 function effectBadges(c){

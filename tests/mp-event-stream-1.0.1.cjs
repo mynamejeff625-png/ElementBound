@@ -38,6 +38,14 @@ function mockDb(room){
   }
 
   {
+    const original=state(),attacker=card({id:'ravager',n:'Obsidian Ravager',el:'MAGMA',a:1}),donor=card({id:'donor',n:'Armor Donor',armor:1}),target=card({id:'target',n:'Target',h:3,max:3,el:'WATER'});
+    original.p[0].turnState.resonance.active=true;original.p[0].slots=[attacker,donor,null];original.p[1].slots[0]=target;
+    const result=engine.validateAndApplyMove(original,move('ATTACK',{attackerId:'ravager',targetId:'target'}));
+    check(result.ok&&result.state.p[0].slots[1].armor===0,'Obsidian Ravager spends its friendly donor Armor');
+    check(!result.events.some(item=>item.type==='DAMAGE'&&item.targetId==='donor'),'Armor spent by an effect is not misreported as absorbed attack damage');
+  }
+
+  {
     const original=state(),attacker=card({id:'attacker'}),target=card({id:'target'}),responseCard=card({id:'response',type:'RESPONSE',zone:'HAND',c:1,el:'WATER'});
     original.p[0].slots[0]=attacker;original.p[1].slots[0]=target;original.p[1].hand=[responseCard];
     const result=engine.validateAndApplyMove(original,move('ATTACK',{attackerId:'attacker',targetId:'target'}));
@@ -78,6 +86,14 @@ function mockDb(room){
     check(!Object.hasOwn(hidden,'cardName')&&!Object.hasOwn(hidden,'cardId')&&!hidden.text.includes('Secret Draw'),'opponent event stream never leaks the drawn card identity');
   }
 
+
+  {
+    const original=state();original.startSeat=1;original.p[1].deck=[card({id:'round-two',n:'Round Two Draw',zone:'DECK',el:'WATER'})];
+    const result=engine.validateAndApplyMove(original,move('END_TURN'));
+    check(result.state.turn===2&&result.events.find(item=>item.type==='TURN_START').turn===2,'round rollover tags TURN_START with the new round');
+    check(result.events.find(item=>item.type==='DRAW').turn===2,'round rollover tags the resulting draw with the new round');
+  }
+
   {
     const original=state();original.p[1].deck=[card({id:'draw',n:'Hidden Card',zone:'DECK',el:'WATER'})];
     const history=Array.from({length:200},(_,index)=>({seq:index+1,type:'OLD',text:`old ${index+1}`}));
@@ -94,6 +110,7 @@ function mockDb(room){
   {
     const game=fs.readFileSync('js/game.js','utf8');
     check(/next\.events\.map\(item=>`#\$\{item\.seq\}/.test(game),'online Event Log renders ordered snapshot events');
+    check(/G\.events\.filter\(item=>item\.seq>EB_LOG_COUNT\)/.test(game),'capped online history uses event sequence—not array length—as its fresh-event cursor');
   }
 
   console.log(`Multiplayer event stream 1.0.1: ${checks} checks passed`);
