@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const engine=require('../lib/gameEngine.js');
 const matchFactory=require('../lib/matchFactory.js');
 const {createSubmitMoveHandler}=require('../api/submit-move.js');
-const {createInputCoordinator,orientPlayerView}=require('../js/multiplayerClient.js');
+const {createInputCoordinator,orientPlayerView,shouldForceWaitingView}=require('../js/multiplayerClient.js');
 
 function card(overrides={}){return{id:'card',el:'FIRE',n:'Unit',c:1,type:'MANIFESTATION',a:2,h:3,max:3,armor:0,ready:true,sick:false,guard:false,zone:'FIELD',marks:[],growth:0,momentum:0,quick:null,turnFlags:{},...overrides}}
 function side(name,el='FIRE'){return{name,el,vit:30,maxE:7,e:7,deck:[],hand:[],wake:[],slots:[null,null,null],marks:[],initiationToken:false,responseEl:el,turnState:{resonance:{a:false,b:false,active:false},parents:[],resolved:[],moved:[]}}}
@@ -77,6 +77,13 @@ async function submit(room,uid,requestedMove){const db=mockDb(room),handler=crea
     let rendered=null;const input=createInputCoordinator({onView:view=>{rendered=orientPlayerView(view)}});input.beginInteraction();input.receiveView(waitingWrite,true);
     check(rendered.p[0].slots[0].h===1&&rendered.events.some(item=>item.type==='DAMAGE'&&item.text.includes('2 damage')),`waiting seat ${waitingSeat} applies opponent-turn HP and log immediately`);
     check(!input.isInteracting(),`waiting seat ${waitingSeat} cannot keep the authoritative snapshot queued`);
+  }
+
+  {
+    const currentlyWaiting={active:1,p:[{},{}]},incomingOwnTurn={active:0,viewerSeat:0,p:[{},{}]};let rendered=null;
+    const input=createInputCoordinator({onView:view=>{rendered=view}});input.beginInteraction();
+    input.receiveView(incomingOwnTurn,shouldForceWaitingView(currentlyWaiting,incomingOwnTurn));
+    check(rendered===incomingOwnTurn&&!input.isInteracting(),'the snapshot ending the waiting period also bypasses a stale interaction');
   }
 
   console.log(`Multiplayer event stream hotfix: ${checks} checks passed`);

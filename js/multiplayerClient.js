@@ -132,5 +132,8 @@
     return next;
   }
 
-  return Object.freeze({ERROR_MESSAGES,messageFor,withoutClientIdentity,createMultiplayerClient,createActionDispatcher,createInputCoordinator,bindInteractionSafety,orientPlayerView});
+  function viewerActiveSeat(state){const seat=Number(state?.viewerSeat||0);return seat===1?1-Number(state?.active):Number(state?.active)}
+  function shouldForceWaitingView(currentOriented,incoming){return (!!currentOriented&&currentOriented.active!==0)||viewerActiveSeat(incoming)!==0}
+
+  return Object.freeze({ERROR_MESSAGES,messageFor,withoutClientIdentity,createMultiplayerClient,createActionDispatcher,createInputCoordinator,bindInteractionSafety,orientPlayerView,viewerActiveSeat,shouldForceWaitingView});
 });

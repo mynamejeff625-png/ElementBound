@@ -1362,8 +1362,8 @@ function ebMpPerspective(state){
 }
 function ebMpApplyView(state){
  let apply=view=>{G=ebMpPerspective(view);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render()};
- let seat=Number(state?.viewerSeat||0),viewerActive=seat===1?1-Number(state?.active):Number(state?.active);
- if(!EB_MP.input)apply(state);else EB_MP.input.receiveView(state,viewerActive!==0);
+ let force=window.ElementBoundMultiplayer.shouldForceWaitingView(G,state);
+ if(!EB_MP.input)apply(state);else EB_MP.input.receiveView(state,force);
 }
 function ebMpPendingChanged(pending){if(!G)return;selectedCardId=null;render()}
 async function ebMpSubmit(type,payload={},pendingMeta={kind:type}){
