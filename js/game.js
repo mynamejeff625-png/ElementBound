@@ -439,7 +439,7 @@ function registerAffinity(p,c){let h=HYBRIDS[p.el];if(!h||c.el===p.el)return;let
 function resonant(p){return !!(p.turnState&&p.turnState.resonance.active)}
 function add(s){G.logs.push(`T${G.turn} ${s}`)}function bump(s){G.rev++;if(s)add(s);winCheck();validateState();render()}
 function me(){return G.p[0]}function foe(){return G.p[1]}function current(){return G.p[G.active]}function other(){return G.p[1-G.active]}
-function playable(c){return G&&!EB_INIT_LOCK&&G.active===0&&!G.winner&&c.type!=='RESPONSE'&&c.c<=me().e&&((c.type==='TECHNIQUE')||me().slots.some(x=>!x))}
+function playable(c){return G&&!EB_INIT_LOCK&&!ebMpInputLocked()&&G.active===0&&!G.winner&&c.type!=='RESPONSE'&&c.c<=me().e&&((c.type==='TECHNIQUE')||me().slots.some(x=>!x))}
 function flowPreview(c){
  if(!c)return '';
  let kind=c.type==='RESPONSE'?'Response':c.type==='TECHNIQUE'?'Technique':(c.guard?'Manifestation · Guard':'Manifestation');
@@ -1148,9 +1148,11 @@ function benderEffects(p){
  return b.length?`<div class=bender-effects aria-label="Bender active effects">${b.join('')}</div>`:'';
 }
 function compactCardText(c){let t=(c.text||'').replace(/\s+/g,' ').trim();return t||'No additional effect.'}
-function card(c,can=false){let state=effectBadges(c);let summary=`<div class="rules card-summary">${compactCardText(c)}</div>`;let typeLine=c.type==='RESPONSE'?'Response · Reaction':c.type==='TECHNIQUE'?`Technique${c.role?' · '+c.role:''}`:`${c.a} ATK · ${c.h}/${c.max} HP${c.guard?' · Guard':''}`;return `<div class="card ${c.el.toLowerCase()} ${can?'play':''}" data-id="${c.id}" data-inspect="1"><span class=cost>${c.c}</span><b>${E[c.el]} ${c.n}</b><div class=small>${typeLine}</div>${summary}${state}${c.sick?'<div class="small card-status">Summoning sickness</div>':''}<div class="why card-inspect-hint">↗ Double-tap for details</div></div>`}
-function slots(id,p){let own=p===me();document.getElementById(id).innerHTML=p.slots.map((m,i)=>`<div class="slot" data-slot="${i}" data-own="${own?'1':'0'}">${m?card(m):`<span class=small>M${i+1} · empty</span>`}</div>`).join('')}
+function card(c,can=false){let state=effectBadges(c),pending=EB_MP.enabled?EB_MP.input?.pending():null;if(pending?.cardId!==c.id)pending=null;let summary=`<div class="rules card-summary">${compactCardText(c)}</div>`;let typeLine=c.type==='RESPONSE'?'Response · Reaction':c.type==='TECHNIQUE'?`Technique${c.role?' · '+c.role:''}`:`${c.a} ATK · ${c.h}/${c.max} HP${c.guard?' · Guard':''}`;return `<div class="card ${c.el.toLowerCase()} ${can?'play':''} ${pending?'mp-pending':''}" data-id="${c.id}" data-inspect="1"><span class=cost>${c.c}</span><b>${E[c.el]} ${c.n}</b><div class=small>${typeLine}</div>${summary}${state}${pending?`<div class="small card-status">${pending.kind==='TECHNIQUE'?'Activating…':'Placing…'}</div>`:c.sick?'<div class="small card-status">Summoning sickness</div>':''}<div class="why card-inspect-hint">↗ Double-tap for details</div></div>`}
+function slots(id,p){let own=p===me(),pending=own&&EB_MP.enabled?EB_MP.input?.pending():null;document.getElementById(id).innerHTML=p.slots.map((m,i)=>{let placing=!m&&pending?.kind==='MANIFESTATION'&&pending.slotIndex===i;return `<div class="slot ${placing?'mp-pending':''}" data-slot="${i}" data-own="${own?'1':'0'}">${m?card(m):placing?'':`<span class=small>M${i+1} · empty</span>`}</div>`}).join('')}
 let selectedCardId=null,dragState=null;
+function ebMpInputLocked(){return !!(EB_MP.enabled&&EB_MP.input?.isLocked())}
+function ebCancelActivePointerInteraction(){dragState?.cancel?.()}
 function selectedHandCard(){return G&&selectedCardId!==null?me().hand.find(c=>c.id===selectedCardId)||null:null}
 function recycleEligible(c){return !!(G&&!G.trial&&!G.winner&&G.active===0&&c&&me().recycles>0&&me().deck.some(x=>x.n!==c.n))}
 function selectHandCard(c){if(!G||G.active!==0||G.winner)return;selectedCardId=c.id;renderSelectionOnly()}
@@ -1186,12 +1188,12 @@ function renderSelectionOnly(){
  let hint=document.getElementById('recycleHint');if(hint)hint.textContent=c?`${c.n} selected · ${c.type==='TECHNIQUE'?'use ACTIVATE to play, double-tap for details, or use Card Re-cycle':'drag/tap an open slot to play, double-tap for details, or use Card Re-cycle'}`:'Tap a Hand card to select it. Double-tap any card for details.';
  document.querySelectorAll('#hand .card').forEach(el=>el.classList.remove('tech-selected','tech-activating'));
  document.querySelectorAll('#hand .eb-tech-activate').forEach(b=>b.remove());
- if(c&&c.type==='TECHNIQUE'&&playable(c)){let el=document.querySelector(`#hand .card[data-id="${c.id}"]`);if(el){el.classList.add('tech-selected');let b=document.createElement('button');b.className='eb-tech-activate';b.type='button';b.textContent='ACTIVATE';let block=ev=>{ev.preventDefault();ev.stopPropagation()};b.addEventListener('pointerdown',block,{passive:false});b.addEventListener('pointerup',ev=>ev.stopPropagation());b.addEventListener('dblclick',block);b.onclick=ev=>{block(ev);if(b.dataset.firing==='1'||!G||G.active!==0||G.winner)return;let live=selectedHandCard();if(!live||live.id!==c.id||!playable(live))return;b.dataset.firing='1';el.classList.add('tech-activating');selectedCardId=null;play(live)};el.appendChild(b)}}
+ if(c&&c.type==='TECHNIQUE'&&playable(c)){let el=document.querySelector(`#hand .card[data-id="${c.id}"]`);if(el){el.classList.add('tech-selected');let b=document.createElement('button');b.className='eb-tech-activate';b.type='button';b.textContent='ACTIVATE';let activate=ev=>{ev.preventDefault();ev.stopPropagation();if(b.dataset.firing==='1'||!G||G.active!==0||G.winner||ebMpInputLocked())return;b.dataset.firing='1';let cardId=c.id;if(EB_MP.enabled){EB_MP.input.beginInteraction();EB_MP.input.endInteraction()}let live=me().hand.find(card=>card.id===cardId);if(!live||!playable(live)){b.dataset.firing='';return}el.classList.add('tech-activating');selectedCardId=null;play(live)};b.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();if(EB_MP.enabled)EB_MP.input.beginInteraction()},{passive:false});b.addEventListener('pointerup',activate,{passive:false});b.addEventListener('pointercancel',ev=>{ev.stopPropagation();if(EB_MP.enabled)EB_MP.input.endInteraction()});b.addEventListener('dblclick',ev=>{ev.preventDefault();ev.stopPropagation()});b.onclick=ev=>{if(b.dataset.firing!=='1')activate(ev)};el.appendChild(b)}}
  let rb=document.getElementById('recycle');if(rb){rb.textContent=EB_MP.enabled?'Card Re-cycle unavailable online':`Card Re-cycle ${me().recycles??0}/3`;rb.disabled=EB_MP.enabled||!!G.trial||G.active!==0||!!G.winner||(me().recycles??0)<=0;}
 }
 function wireDropSlots(){document.querySelectorAll('#pslots .slot').forEach(slot=>{slot.onclick=()=>{if(selectedCardId===null)return;let c=me().hand.find(x=>x.id===selectedCardId),i=+slot.dataset.slot;if(c&&!me().slots[i]){selectedCardId=null;play(c,i)}}});renderSelectionOnly()}
 function beginCardDrag(ev,c,el){
- if(!G||G.active!==0||G.winner||c.type==='TECHNIQUE')return;
+ if(!G||G.active!==0||G.winner||c.type==='TECHNIQUE'||ebMpInputLocked())return;
  if(!playable(c)){selectHandCard(c);return;}
  if(ev.pointerType==='mouse'&&ev.button!==0)return;
  ev.preventDefault(); ev.stopPropagation();
@@ -1199,6 +1201,8 @@ function beginCardDrag(ev,c,el){
  const pid=ev.pointerId, sx=ev.clientX, sy=ev.clientY;
  let x=sx,y=sy,moved=false,ghost=null,ended=false;
  selectedCardId=c.id;
+ dragState={cardId:c.id};
+ if(EB_MP.enabled&&!EB_MP.input.beginInteraction()){dragState=null;return}
  el.classList.add('drag-source');
 
  function clearHover(){document.querySelectorAll('#pslots .slot').forEach(z=>z.classList.remove('drop-hover'))}
@@ -1240,25 +1244,28 @@ function beginCardDrag(ev,c,el){
    clearHover();
    if(ghost)ghost.remove();
  }
+ function finishInteraction(){dragState=null;if(EB_MP.enabled)EB_MP.input.endInteraction()}
  function up(e){
    if(e.pointerId!==pid)return;
    e.preventDefault();
    x=e.clientX;y=e.clientY;
    let sl=moved?slotAt(x,y):null;
    cleanup();
+   let cardId=c.id;finishInteraction();let live=me().hand.find(card=>card.id===cardId);
    if(sl&&!me().slots[+sl.dataset.slot]){
      selectedCardId=null;
-     play(c,+sl.dataset.slot);
+     if(live)play(live,+sl.dataset.slot);
    }else{
      // iPhone fallback: a short press selects the card, then tapping M1/M2/M3 commits it.
-     selectedCardId=c.id;
+     selectedCardId=live?live.id:null;
      renderSelectionOnly();
    }
  }
  function cancel(e){
    if(e.pointerId!==pid)return;
-   e.preventDefault();cleanup();selectedCardId=c.id;renderSelectionOnly();
+   e.preventDefault();cleanup();let cardId=c.id;finishInteraction();let live=me().hand.find(card=>card.id===cardId);selectedCardId=live?live.id:null;renderSelectionOnly();
  }
+ dragState.cancel=()=>cancel({pointerId:pid,preventDefault(){}});
  document.addEventListener('pointermove',move,{capture:true,passive:false});
  document.addEventListener('pointerup',up,{capture:true,passive:false});
  document.addEventListener('pointercancel',cancel,{capture:true,passive:false});
@@ -1320,7 +1327,7 @@ function ebValidateActionEnvelope(a){
 
 // Browser multiplayer adapter. Single-player continues through the local reducer/game loop;
 // multiplayer submits commands to the referee and only accepts state from the private view listener.
-const EB_MP={enabled:false,roomId:null,uid:null,client:null,authSession:null,authPromise:null};
+const EB_MP={enabled:false,roomId:null,uid:null,client:null,input:null,inputSafetyCleanup:null,authSession:null,authPromise:null};
 function ebMpStatus(message){
  let el=document.getElementById('mpStatus');if(!el)return;
  el.hidden=!message;el.textContent=message?message.text:'';el.className=`mpStatus ${message?.kind||''}`;
@@ -1338,13 +1345,13 @@ function ebMpPlayPayload(c,slotIndex,target){
 }
 function ebMpPlay(c,slotIndex,target){
  let payload=ebMpPlayPayload(c,slotIndex,target);
- if(c.type==='TECHNIQUE')return ebMpSubmit('PLAY_CARD',payload);
+ if(c.type==='TECHNIQUE')return ebMpSubmit('PLAY_CARD',payload,{kind:'TECHNIQUE',cardId:c.id});
  let needsGift=(c.el==='AIR'&&c.n==='Breeze Disciple')||(c.el==='EARTH'&&c.n==='Stone Initiate')||(c.el==='NATURE'&&c.n==='Sproutling'),friends=me().slots.filter(Boolean);
  if(needsGift&&friends.length){
-   modal(`Choose recipient · ${c.n}`,friends.map(friend=>[friend.n,()=>{hideModal();ebMpSubmit('PLAY_CARD',{...payload,friendId:friend.id})}]));
+   modal(`Choose recipient · ${c.n}`,friends.map(friend=>[friend.n,()=>{hideModal();ebMpSubmit('PLAY_CARD',{...payload,friendId:friend.id},{kind:'MANIFESTATION',cardId:c.id,slotIndex})}]));
    return;
  }
- return ebMpSubmit('PLAY_CARD',payload);
+ return ebMpSubmit('PLAY_CARD',payload,{kind:'MANIFESTATION',cardId:c.id,slotIndex});
 }
 function ebMpPerspective(state){
  let next=JSON.parse(JSON.stringify(state)),seat=Number(next.viewerSeat||0);delete next.viewerSeat;
@@ -1353,11 +1360,15 @@ function ebMpPerspective(state){
  return next;
 }
 function ebMpApplyView(state){
- G=ebMpPerspective(state);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render();
+ let apply=view=>{G=ebMpPerspective(view);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render()};
+ if(!EB_MP.input)apply(state);else EB_MP.input.receiveView(state);
 }
-async function ebMpSubmit(type,payload={}){
+function ebMpPendingChanged(pending){if(!G)return;selectedCardId=null;render()}
+async function ebMpSubmit(type,payload={},pendingMeta={kind:type}){
  if(!EB_MP.enabled||!EB_MP.client)return {ok:false,error:'MULTIPLAYER_NOT_CONNECTED'};
- return EB_MP.client.submit({v:1,type,rev:Number(G?.rev||0),payload:JSON.parse(JSON.stringify(payload))});
+ if(!EB_MP.input.beginMove(pendingMeta,Number(G?.rev||0)))return {ok:false,error:'MOVE_PENDING'};
+ let result=await EB_MP.client.submit({v:1,type,rev:Number(G?.rev||0),payload:JSON.parse(JSON.stringify(payload))});
+ return EB_MP.input.resolveMove(result);
 }
 function ebMpSubscribeCompat(db){
  return (roomId,uid,next,error)=>db.collection('rooms').doc(roomId).collection('views').doc(uid).onSnapshot(snapshot=>{
@@ -1369,10 +1380,12 @@ function ebStartMultiplayer({roomId,user,db,fetchImpl=window.fetch.bind(window)}
  if(!window.ElementBoundMultiplayer)throw new Error('Multiplayer client unavailable');
  if(!roomId||!user?.uid||typeof user.getIdToken!=='function'||!db)throw new Error('Authenticated user, roomId, and Firestore are required');
  EB_MP.client?.stop();EB_MP.enabled=true;EB_MP.roomId=roomId;EB_MP.uid=user.uid;
+ EB_MP.input=window.ElementBoundMultiplayer.createInputCoordinator({onView:state=>{G=ebMpPerspective(state);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render()},onPending:ebMpPendingChanged,onPendingTimeout:()=>ebMpStatus({kind:'pending',text:'Connection slow — board will refresh when the match updates.'})});
+ EB_MP.inputSafetyCleanup?.();EB_MP.inputSafetyCleanup=window.ElementBoundMultiplayer.bindInteractionSafety(EB_MP.input,document,ebCancelActivePointerInteraction);
  EB_MP.client=window.ElementBoundMultiplayer.createMultiplayerClient({roomId,uid:user.uid,getIdToken:()=>user.getIdToken(),subscribeView:ebMpSubscribeCompat(db),fetchImpl,onView:ebMpApplyView,onMessage:ebMpStatus});
  ebMpStatus({kind:'pending',text:'Connecting to live match…'});EB_MP.client.start();return EB_MP.client;
 }
-function ebStopMultiplayer(){EB_MP.client?.stop();EB_MP.enabled=false;EB_MP.roomId=null;EB_MP.uid=null;EB_MP.client=null;ebMpStatus(null)}
+function ebStopMultiplayer(){EB_MP.client?.stop();EB_MP.inputSafetyCleanup?.();EB_MP.input?.reset();EB_MP.enabled=false;EB_MP.roomId=null;EB_MP.uid=null;EB_MP.client=null;EB_MP.input=null;EB_MP.inputSafetyCleanup=null;ebMpStatus(null)}
 function ebMatchmakingSession(){
  let deps=window.EB_MULTIPLAYER_DEPS;if(deps?.user&&deps?.db)return{user:deps.user,db:deps.db,fetchImpl:deps.fetchImpl||window.fetch.bind(window)};
  if(EB_MP.authSession)return EB_MP.authSession;

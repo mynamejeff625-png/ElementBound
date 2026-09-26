@@ -81,5 +81,45 @@
     };
   }
 
-  return Object.freeze({ERROR_MESSAGES,messageFor,withoutClientIdentity,createMultiplayerClient,createActionDispatcher});
+  function createInputCoordinator({onView,onPending=()=>{},onPendingTimeout=()=>{},pendingTimeoutMs=10000,setTimer=setTimeout,clearTimer=clearTimeout}){
+    if(typeof onView!=='function')throw new TypeError('onView is required');
+    let interacting=false,queuedView=null,pending=null,pendingTimer=null;
+    function cancelPendingTimer(){if(pendingTimer!==null){clearTimer(pendingTimer);pendingTimer=null}}
+    function publish(value){if(!value)cancelPendingTimer();pending=value;onPending(value)}
+    function apply(view){
+      if(pending&&Number(view?.rev)>pending.baseRev)publish(null);
+      onView(view);
+    }
+    function beginInteraction(){if(pending)return false;interacting=true;return true}
+    function endInteraction(){interacting=false;if(queuedView){const view=queuedView;queuedView=null;apply(view)} }
+    function receiveView(view){if(interacting){queuedView=view;return false}apply(view);return true}
+    function beginMove(meta,baseRev){
+      if(pending)return false;
+      publish({...meta,baseRev:Number(baseRev||0)});
+      pendingTimer=setTimer(()=>{pendingTimer=null;if(!pending)return;publish(null);onPendingTimeout()},pendingTimeoutMs);
+      return true;
+    }
+    function resolveMove(result){
+      if(!result?.ok)publish(null);
+      return result;
+    }
+    function reset(){interacting=false;queuedView=null;publish(null)}
+    return Object.freeze({beginInteraction,endInteraction,receiveView,beginMove,resolveMove,reset,isLocked:()=>!!pending,isInteracting:()=>interacting,pending:()=>pending});
+  }
+
+  function bindInteractionSafety(input,documentObject,onVisibilityCancel=()=>{}){
+    if(!input||typeof input.endInteraction!=='function'||!documentObject?.addEventListener)return()=>{};
+    const end=()=>input.endInteraction();
+    const hidden=()=>{if(documentObject.hidden){onVisibilityCancel();end()}};
+    documentObject.addEventListener('pointerup',end);
+    documentObject.addEventListener('pointercancel',end);
+    documentObject.addEventListener('visibilitychange',hidden);
+    return()=>{
+      documentObject.removeEventListener('pointerup',end);
+      documentObject.removeEventListener('pointercancel',end);
+      documentObject.removeEventListener('visibilitychange',hidden);
+    };
+  }
+
+  return Object.freeze({ERROR_MESSAGES,messageFor,withoutClientIdentity,createMultiplayerClient,createActionDispatcher,createInputCoordinator,bindInteractionSafety});
 });
