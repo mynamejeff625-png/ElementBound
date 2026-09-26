@@ -59,7 +59,7 @@
         try{body=await response.json()}catch(error){body={ok:false,error:'INVALID_SERVER_RESPONSE'}}
         if(!response.ok||!body.ok){
           const code=body.error||`HTTP_${response.status}`;
-          if(code!=='RESPONSE_NOT_EXPIRED')notify('error',messageFor(code),code);
+          if(code!=='RESPONSE_NOT_EXPIRED'&&!(move.type==='RESOLVE_EXPIRED'&&code==='REVISION_MISMATCH'))notify('error',messageFor(code),code);
           return {ok:false,error:code,detail:body.detail||null};
         }
         notify('pending',body.autoResolved?'Response window expired — the attack continued.':'Move accepted. Waiting for the live board…');
