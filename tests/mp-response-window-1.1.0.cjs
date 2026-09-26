@@ -87,6 +87,13 @@ let checks=0;const check=(value,message)=>{assert.ok(value,message);checks++};
 }
 
 {
+  const original=battle('FIRE',{responseCard:response('FIRE','Backdraft'),targetHp:1});
+  original.p[1].slots[0].max=3;original.p[1].slots[0].growth=1;original.p[1].slots[0].marks=['Seeded'];original.p[1].slots[0].quick={kind:'SURVIVE'};
+  const hit=engine.validateAndApplyMove(original,attackMove(),{now:100});
+  check(hit.ok&&hit.state.p[1].slots[0].h===1&&hit.state.pendingResponse?.timing==='AFTER','Backdraft uses dealt damage and still opens when Reclaiming Tide restores the target to its pre-hit HP');
+}
+
+{
   const original=battle('STORM',{token:true,responseCard:response('FIRE','Backdraft'),attackerHp:3});original.p[1].turnState.parents=['LIGHTNING','FIRE'];
   const before=engine.validateAndApplyMove(original,attackMove(),{now:100}),responded=engine.validateAndApplyMove(before.state,action('RESPOND',1,1,{element:'LIGHTNING',source:'TOKEN',targetId:'target'}),{now:200});
   check(before.state.pendingResponse.timing==='BEFORE'&&before.state.pendingResponse.deadline===30100,'hybrid attack begins with its own BEFORE deadline');
@@ -161,7 +168,7 @@ let checks=0;const check=(value,message)=>{assert.ok(value,message);checks++};
   const modalContext=vm.createContext({document:{getElementById:id=>elements[id],createElement:()=>({})},setTimeout:callback=>{callback();return 1},clearTimeout(){}});vm.runInContext(modalSource,modalContext);
   vm.runInContext("modal('Response',[],{dismissible:false})",modalContext);check(elements.modalDismiss.style.display==='none','Response prompt hides the shared Cancel control');
   vm.runInContext("hideModal();modal('Choose target',[])",modalContext);check(elements.modalDismiss.style.display==='', 'the next ordinary modal restores its Cancel control after a Response closes');
-  check(/Date\.now\(\)\+Number\(EB_MP\.serverClockOffset/.test(game)&&/view\.serverNow-Date\.now\(\)/.test(game),'response countdown uses a server-derived clock offset');
+  check(/Date\.now\(\)\+Number\(EB_MP\.serverClockOffset/.test(game)&&/Math\.max\(EB_MP\.serverClockOffset,candidate\)/.test(game),'response countdown uses a monotonic server-derived clock offset that cannot move backward for stale views');
   check(/!seconds&&!EB_MP\.responseExpirySent/.test(game),'both attacker and defender clients request expiry when the countdown ends');
   check(/RESPONSE_NOT_EXPIRED/.test(game)&&/remainingMs/.test(game)&&/responseRetryTimer/.test(game),'an early expiry rejection schedules a retry using the server remaining time');
   const messages=[],replies=[{ok:false,status:400,body:{ok:false,error:'RESPONSE_NOT_EXPIRED',detail:{remainingMs:125}}},{ok:false,status:409,body:{ok:false,error:'REVISION_MISMATCH'}},{ok:true,status:200,body:{ok:true,autoResolved:true}}];

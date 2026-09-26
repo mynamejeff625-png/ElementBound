@@ -1329,7 +1329,7 @@ function ebValidateActionEnvelope(a){
 
 // Browser multiplayer adapter. Single-player continues through the local reducer/game loop;
 // multiplayer submits commands to the referee and only accepts state from the private view listener.
-const EB_MP={enabled:false,roomId:null,uid:null,client:null,input:null,inputSafetyCleanup:null,responseTimer:null,responseRetryTimer:null,responseKey:null,responseExpirySent:false,serverClockOffset:0,authSession:null,authPromise:null};
+const EB_MP={enabled:false,roomId:null,uid:null,client:null,input:null,inputSafetyCleanup:null,responseTimer:null,responseRetryTimer:null,responseKey:null,responseExpirySent:false,serverClockOffset:0,serverClockReady:false,authSession:null,authPromise:null};
 function ebMpStatus(message){
  let el=document.getElementById('mpStatus');if(!el)return;
  el.hidden=!message;el.textContent=message?message.text:'';el.className=`mpStatus ${message?.kind||''}`;
@@ -1364,6 +1364,7 @@ function ebMpPerspective(state){
 function ebMpClearResponseTimer(){if(EB_MP.responseTimer){clearInterval(EB_MP.responseTimer);EB_MP.responseTimer=null}if(EB_MP.responseRetryTimer){clearTimeout(EB_MP.responseRetryTimer);EB_MP.responseRetryTimer=null}EB_MP.responseKey=null;EB_MP.responseExpirySent=false}
 function ebMpResponseLabel(option,targetId){let target=me().slots.find(card=>card&&card.id===targetId),funding=option.source==='TOKEN'?'INITIATION':'USE';return `${funding} · ${option.responseName}${option.targetIds.length>1&&target?' → '+target.n:''}`}
 function ebMpServerNow(){return Date.now()+Number(EB_MP.serverClockOffset||0)}
+function ebMpSyncServerClock(serverNow){if(!Number.isFinite(serverNow))return;let candidate=serverNow-Date.now();if(!EB_MP.serverClockReady){EB_MP.serverClockOffset=Math.max(0,candidate);EB_MP.serverClockReady=true}else EB_MP.serverClockOffset=Math.max(EB_MP.serverClockOffset,candidate)}
 function ebMpOpenResponsePrompt(){let pending=G?.pendingResponse;if(!pending||pending.defenderSeat!==0)return;let buttons=[];for(const option of pending.legalOptions||[])for(const targetId of option.targetIds)buttons.push([ebMpResponseLabel(option,targetId),()=>{hideModal();ebMpSubmit('RESPOND',{element:option.element,source:option.source,cardId:option.cardId,targetId},{kind:'RESPONSE'})}]);buttons.push(['PASS',()=>{hideModal();ebMpSubmit('PASS',{}, {kind:'RESPONSE'})}]);modal('Incoming attack',buttons,{dismissible:false})}
 function ebMpHandleResponseWindow(){
  let pending=G?.pendingResponse;if(!EB_MP.enabled||!pending){let hadWindow=!!EB_MP.responseKey;ebMpClearResponseTimer();if(hadWindow)hideModal();return}
@@ -1381,7 +1382,7 @@ function ebMpHandleResponseWindow(){
  }
 }
 function ebMpApplyView(state){
- let apply=view=>{if(Number.isFinite(view?.serverNow))EB_MP.serverClockOffset=view.serverNow-Date.now();G=ebMpPerspective(view);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render();ebMpHandleResponseWindow()};
+ let apply=view=>{ebMpSyncServerClock(view?.serverNow);G=ebMpPerspective(view);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render();ebMpHandleResponseWindow()};
  let force=window.ElementBoundMultiplayer.shouldForceWaitingView(G,state);
  if(!EB_MP.input)apply(state);else EB_MP.input.receiveView(state,force);
 }
@@ -1407,7 +1408,8 @@ function ebStartMultiplayer({roomId,user,db,fetchImpl=window.fetch.bind(window)}
  if(!window.ElementBoundMultiplayer)throw new Error('Multiplayer client unavailable');
  if(!roomId||!user?.uid||typeof user.getIdToken!=='function'||!db)throw new Error('Authenticated user, roomId, and Firestore are required');
  EB_MP.client?.stop();EB_MP.enabled=true;EB_MP.roomId=roomId;EB_MP.uid=user.uid;
- EB_MP.input=window.ElementBoundMultiplayer.createInputCoordinator({onView:state=>{if(Number.isFinite(state?.serverNow))EB_MP.serverClockOffset=state.serverNow-Date.now();G=ebMpPerspective(state);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render();ebMpHandleResponseWindow()},onPending:ebMpPendingChanged,onPendingTimeout:()=>ebMpStatus({kind:'pending',text:'Connection slow — board will refresh when the match updates.'})});
+ EB_MP.serverClockOffset=0;EB_MP.serverClockReady=false;
+ EB_MP.input=window.ElementBoundMultiplayer.createInputCoordinator({onView:state=>{ebMpSyncServerClock(state?.serverNow);G=ebMpPerspective(state);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render();ebMpHandleResponseWindow()},onPending:ebMpPendingChanged,onPendingTimeout:()=>ebMpStatus({kind:'pending',text:'Connection slow — board will refresh when the match updates.'})});
  EB_MP.inputSafetyCleanup?.();EB_MP.inputSafetyCleanup=window.ElementBoundMultiplayer.bindInteractionSafety(EB_MP.input,document,ebCancelActivePointerInteraction);
  EB_MP.client=window.ElementBoundMultiplayer.createMultiplayerClient({roomId,uid:user.uid,getIdToken:()=>user.getIdToken(),subscribeView:ebMpSubscribeCompat(db),fetchImpl,onView:ebMpApplyView,onMessage:ebMpStatus});
  ebMpStatus({kind:'pending',text:'Connecting to live match…'});EB_MP.client.start();return EB_MP.client;
