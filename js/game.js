@@ -1152,6 +1152,7 @@ function card(c,can=false){let state=effectBadges(c),pending=EB_MP.enabled?EB_MP
 function slots(id,p){let own=p===me(),pending=own&&EB_MP.enabled?EB_MP.input?.pending():null;document.getElementById(id).innerHTML=p.slots.map((m,i)=>{let placing=!m&&pending?.kind==='MANIFESTATION'&&pending.slotIndex===i;return `<div class="slot ${placing?'mp-pending':''}" data-slot="${i}" data-own="${own?'1':'0'}">${m?card(m):placing?'':`<span class=small>M${i+1} · empty</span>`}</div>`}).join('')}
 let selectedCardId=null,dragState=null;
 function ebMpInputLocked(){return !!(EB_MP.enabled&&EB_MP.input?.isLocked())}
+function ebCancelActivePointerInteraction(){dragState?.cancel?.()}
 function selectedHandCard(){return G&&selectedCardId!==null?me().hand.find(c=>c.id===selectedCardId)||null:null}
 function recycleEligible(c){return !!(G&&!G.trial&&!G.winner&&G.active===0&&c&&me().recycles>0&&me().deck.some(x=>x.n!==c.n))}
 function selectHandCard(c){if(!G||G.active!==0||G.winner)return;selectedCardId=c.id;renderSelectionOnly()}
@@ -1264,6 +1265,7 @@ function beginCardDrag(ev,c,el){
    if(e.pointerId!==pid)return;
    e.preventDefault();cleanup();let cardId=c.id;finishInteraction();let live=me().hand.find(card=>card.id===cardId);selectedCardId=live?live.id:null;renderSelectionOnly();
  }
+ dragState.cancel=()=>cancel({pointerId:pid,preventDefault(){}});
  document.addEventListener('pointermove',move,{capture:true,passive:false});
  document.addEventListener('pointerup',up,{capture:true,passive:false});
  document.addEventListener('pointercancel',cancel,{capture:true,passive:false});
@@ -1379,7 +1381,7 @@ function ebStartMultiplayer({roomId,user,db,fetchImpl=window.fetch.bind(window)}
  if(!roomId||!user?.uid||typeof user.getIdToken!=='function'||!db)throw new Error('Authenticated user, roomId, and Firestore are required');
  EB_MP.client?.stop();EB_MP.enabled=true;EB_MP.roomId=roomId;EB_MP.uid=user.uid;
  EB_MP.input=window.ElementBoundMultiplayer.createInputCoordinator({onView:state=>{G=ebMpPerspective(state);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render()},onPending:ebMpPendingChanged,onPendingTimeout:()=>ebMpStatus({kind:'pending',text:'Connection slow — board will refresh when the match updates.'})});
- EB_MP.inputSafetyCleanup?.();EB_MP.inputSafetyCleanup=window.ElementBoundMultiplayer.bindInteractionSafety(EB_MP.input,document);
+ EB_MP.inputSafetyCleanup?.();EB_MP.inputSafetyCleanup=window.ElementBoundMultiplayer.bindInteractionSafety(EB_MP.input,document,ebCancelActivePointerInteraction);
  EB_MP.client=window.ElementBoundMultiplayer.createMultiplayerClient({roomId,uid:user.uid,getIdToken:()=>user.getIdToken(),subscribeView:ebMpSubscribeCompat(db),fetchImpl,onView:ebMpApplyView,onMessage:ebMpStatus});
  ebMpStatus({kind:'pending',text:'Connecting to live match…'});EB_MP.client.start();return EB_MP.client;
 }

@@ -93,23 +93,24 @@
     function beginInteraction(){if(pending)return false;interacting=true;return true}
     function endInteraction(){interacting=false;if(queuedView){const view=queuedView;queuedView=null;apply(view)} }
     function receiveView(view){if(interacting){queuedView=view;return false}apply(view);return true}
-    function beginMove(meta,baseRev){if(pending)return false;publish({...meta,baseRev:Number(baseRev||0)});return true}
+    function beginMove(meta,baseRev){
+      if(pending)return false;
+      publish({...meta,baseRev:Number(baseRev||0)});
+      pendingTimer=setTimer(()=>{pendingTimer=null;if(!pending)return;publish(null);onPendingTimeout()},pendingTimeoutMs);
+      return true;
+    }
     function resolveMove(result){
       if(!result?.ok)publish(null);
-      else if(pending){
-        cancelPendingTimer();
-        pendingTimer=setTimer(()=>{pendingTimer=null;if(!pending)return;publish(null);onPendingTimeout()},pendingTimeoutMs);
-      }
       return result;
     }
     function reset(){interacting=false;queuedView=null;publish(null)}
     return Object.freeze({beginInteraction,endInteraction,receiveView,beginMove,resolveMove,reset,isLocked:()=>!!pending,isInteracting:()=>interacting,pending:()=>pending});
   }
 
-  function bindInteractionSafety(input,documentObject){
+  function bindInteractionSafety(input,documentObject,onVisibilityCancel=()=>{}){
     if(!input||typeof input.endInteraction!=='function'||!documentObject?.addEventListener)return()=>{};
     const end=()=>input.endInteraction();
-    const hidden=()=>{if(documentObject.hidden)end()};
+    const hidden=()=>{if(documentObject.hidden){onVisibilityCancel();end()}};
     documentObject.addEventListener('pointerup',end);
     documentObject.addEventListener('pointercancel',end);
     documentObject.addEventListener('visibilitychange',hidden);
