@@ -70,12 +70,15 @@ function createSubmitMoveHandler({auth,db,rulesEngine=engine}){
           return {status:statusForEngineError(resolution.error),body:{ok:false,error:resolution.error,detail:resolution.detail||null}};
         }
 
-        transaction.update(roomRef,{state:resolution.state});
+        const previous=Array.isArray(room.events)?room.events:[],start=Number.isInteger(room.eventSeq)?room.eventSeq:(previous.at(-1)?.seq||0);
+        const appended=resolution.events.map((item,index)=>({...item,seq:start+index+1}));
+        const events=previous.concat(appended).slice(-200),eventSeq=start+appended.length;
+        transaction.update(roomRef,{state:resolution.state,events,eventSeq});
         for(let playerSeat=0;playerSeat<players.length;playerSeat++){
           const viewRef=roomRef.collection('views').doc(players[playerSeat]);
-          transaction.set(viewRef,{state:buildPlayerView(resolution.state,playerSeat),updatedAt:Date.now()});
+          transaction.set(viewRef,{state:buildPlayerView(resolution.state,playerSeat,events),updatedAt:Date.now()});
         }
-        return {status:200,body:{ok:true,state:buildPlayerView(resolution.state,seat)}};
+        return {status:200,body:{ok:true,state:buildPlayerView(resolution.state,seat,events)}};
       });
       return send(res,result.status,result.body);
     }catch(error){
