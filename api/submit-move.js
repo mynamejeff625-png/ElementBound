@@ -64,8 +64,8 @@ function createSubmitMoveHandler({auth,db,rulesEngine=engine,now=Date.now}){
           return {status:403,body:{ok:false,error:'ACTOR_MISMATCH'}};
         }
 
-        const move={...requestedMove,actor:seat};
-        const resolution=rulesEngine.validateAndApplyMove(room.state,move,{now:now()});
+        const move={...requestedMove,actor:seat},serverNow=now();
+        const resolution=rulesEngine.validateAndApplyMove(room.state,move,{now:serverNow});
         if(!resolution.ok){
           return {status:statusForEngineError(resolution.error),body:{ok:false,error:resolution.error,detail:resolution.detail||null}};
         }
@@ -76,9 +76,9 @@ function createSubmitMoveHandler({auth,db,rulesEngine=engine,now=Date.now}){
         transaction.update(roomRef,{state:resolution.state,events,eventSeq});
         for(let playerSeat=0;playerSeat<players.length;playerSeat++){
           const viewRef=roomRef.collection('views').doc(players[playerSeat]);
-          transaction.set(viewRef,{state:buildPlayerView(resolution.state,playerSeat,events),updatedAt:Date.now()});
+          transaction.set(viewRef,{state:buildPlayerView(resolution.state,playerSeat,events,serverNow),updatedAt:serverNow});
         }
-        return {status:200,body:{ok:true,state:buildPlayerView(resolution.state,seat,events)}};
+        return {status:200,body:{ok:true,autoResolved:!!resolution.autoResolved,state:buildPlayerView(resolution.state,seat,events,serverNow)}};
       });
       return send(res,result.status,result.body);
     }catch(error){

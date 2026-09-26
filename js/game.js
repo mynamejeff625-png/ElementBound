@@ -776,7 +776,7 @@ function ebResponseLegal(el,defender,attacker,target,phase='BEFORE'){
  if(el==='FIRE')return false;
  if(el==='WATER')return defender.slots.includes(target)&&defender.slots.some(x=>!x);
  if(el==='NATURE')return defender.slots.some(m=>m&&m.h<m.max&&!(m.marks||[]).includes('Second Bloom Used'));
- if(el==='EARTH')return defender.slots.some(Boolean);
+ if(el==='EARTH')return defender.slots.some(m=>m&&m.armorGainRound!==G.turn&&(m.armor||0)<3);
  if(el==='LIGHTNING')return true;
  if(el==='AIR')return defender.slots.filter(Boolean).some(m=>m!==target);
  return false;
@@ -785,7 +785,7 @@ function ebResponseOptions(defender,attacker,target,phase='BEFORE'){
  let out=[];for(const el of ebResponseElements(defender)){if(!ebResponseLegal(el,defender,attacker,target,phase))continue;let c=ebResponseHandCard(defender,el);if(c&&defender.e>=c.c)out.push({el,source:'CARD',card:c});if(defender.initiationToken)out.push({el,source:'TOKEN',card:null})}return out
 }
 function ebSpendResponse(p,opt){if(opt.source==='TOKEN'){if(!p.initiationToken)return false;p.initiationToken=false}else{let c=ebResponseHandCard(p,opt.el);if(!c||p.e<c.c)return false;p.e-=c.c;p.hand=p.hand.filter(x=>x.id!==c.id);sendToWake(p,c,'response')}return true}
-function ebResponseTargetChoices(el,p,target){if(el==='NATURE')return p.slots.filter(m=>m&&m.h<m.max&&!(m.marks||[]).includes('Second Bloom Used'));if(el==='EARTH')return p.slots.filter(Boolean);if(el==='AIR')return p.slots.filter(m=>m&&m!==target);return [target]}
+function ebResponseTargetChoices(el,p,target){if(el==='NATURE')return p.slots.filter(m=>m&&m.h<m.max&&!(m.marks||[]).includes('Second Bloom Used'));if(el==='EARTH')return p.slots.filter(m=>m&&m.armorGainRound!==G.turn&&(m.armor||0)<3);if(el==='AIR')return p.slots.filter(m=>m&&m!==target);return [target]}
 function ebResolveResponse(opt,defender,attacker,target,pick=null,phase='BEFORE'){
  if(!ebResponseCanPay(defender,opt.el,opt.source)||!ebResponseLegal(opt.el,defender,attacker,target,phase))return {ok:false,target,cancel:false};
  if(!ebSpendResponse(defender,opt))return {ok:false,target,cancel:false};let chosen=pick||target,cancel=false,newTarget=target,r=RESPONSES[opt.el];add(`RESPONSE · ${r.n}${opt.source==='TOKEN'?' · Initiation Token':''}`);
@@ -1329,10 +1329,11 @@ function ebValidateActionEnvelope(a){
 
 // Browser multiplayer adapter. Single-player continues through the local reducer/game loop;
 // multiplayer submits commands to the referee and only accepts state from the private view listener.
-const EB_MP={enabled:false,roomId:null,uid:null,client:null,input:null,inputSafetyCleanup:null,responseTimer:null,responseKey:null,responseExpirySent:false,authSession:null,authPromise:null};
+const EB_MP={enabled:false,roomId:null,uid:null,client:null,input:null,inputSafetyCleanup:null,responseTimer:null,responseRetryTimer:null,responseKey:null,responseExpirySent:false,serverClockOffset:0,authSession:null,authPromise:null};
 function ebMpStatus(message){
  let el=document.getElementById('mpStatus');if(!el)return;
  el.hidden=!message;el.textContent=message?message.text:'';el.className=`mpStatus ${message?.kind||''}`;
+ el.onclick=typeof message?.onClick==='function'?message.onClick:null;el.tabIndex=el.onclick?0:-1;el.onkeydown=el.onclick?event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();el.click()}}:null;
 }
 function ebMpPlayPayload(c,slotIndex,target){
  let payload={cardId:c.id};
@@ -1360,28 +1361,27 @@ function ebMpPerspective(state){
  next.logs=Array.isArray(next.events)?next.events.map(item=>`#${item.seq} T${item.turn||next.turn} ${item.text}`):(Array.isArray(next.logs)?next.logs:[]);
  return next;
 }
-function ebMpClearResponseTimer(){if(EB_MP.responseTimer){clearInterval(EB_MP.responseTimer);EB_MP.responseTimer=null}EB_MP.responseKey=null;EB_MP.responseExpirySent=false}
+function ebMpClearResponseTimer(){if(EB_MP.responseTimer){clearInterval(EB_MP.responseTimer);EB_MP.responseTimer=null}if(EB_MP.responseRetryTimer){clearTimeout(EB_MP.responseRetryTimer);EB_MP.responseRetryTimer=null}EB_MP.responseKey=null;EB_MP.responseExpirySent=false}
 function ebMpResponseLabel(option,targetId){let target=me().slots.find(card=>card&&card.id===targetId),funding=option.source==='TOKEN'?'INITIATION':'USE';return `${funding} · ${option.responseName}${option.targetIds.length>1&&target?' → '+target.n:''}`}
+function ebMpServerNow(){return Date.now()+Number(EB_MP.serverClockOffset||0)}
+function ebMpOpenResponsePrompt(){let pending=G?.pendingResponse;if(!pending||pending.defenderSeat!==0)return;let buttons=[];for(const option of pending.legalOptions||[])for(const targetId of option.targetIds)buttons.push([ebMpResponseLabel(option,targetId),()=>{hideModal();ebMpSubmit('RESPOND',{element:option.element,source:option.source,cardId:option.cardId,targetId},{kind:'RESPONSE'})}]);buttons.push(['PASS',()=>{hideModal();ebMpSubmit('PASS',{}, {kind:'RESPONSE'})}]);modal('Incoming attack',buttons);let dismiss=document.getElementById('modalDismiss');if(dismiss)dismiss.style.display='none'}
 function ebMpHandleResponseWindow(){
  let pending=G?.pendingResponse;if(!EB_MP.enabled||!pending){let hadWindow=!!EB_MP.responseKey;ebMpClearResponseTimer();if(hadWindow)hideModal();return}
  let key=`${pending.deadline}:${pending.timing}`;
  let update=()=>{
-   let seconds=Math.max(0,Math.ceil((pending.deadline-Date.now())/1000)),defending=pending.defenderSeat===0;
-   ebMpStatus({kind:'pending',text:defending?`Response available · ${seconds}s remaining`:`Opponent is deciding… · ${seconds}s remaining`});
+   let seconds=Math.max(0,Math.ceil((pending.deadline-ebMpServerNow())/1000)),defending=pending.defenderSeat===0;
+   ebMpStatus({kind:'pending',text:defending?`Response available · ${seconds}s remaining`:`Opponent is deciding… · ${seconds}s remaining`,onClick:defending?ebMpOpenResponsePrompt:null});
    let title=document.getElementById('mt');if(defending&&title)title.textContent=`${pending.timing==='AFTER'?'Damage landed':'Incoming attack'} · ${seconds}s`;
-   if(!seconds&&!defending&&!EB_MP.responseExpirySent){EB_MP.responseExpirySent=true;ebMpSubmit('RESOLVE_EXPIRED',{}, {kind:'RESPONSE_EXPIRY'})}
+   if(!seconds&&!EB_MP.responseExpirySent){EB_MP.responseExpirySent=true;ebMpSubmit('RESOLVE_EXPIRED',{}, {kind:'RESPONSE_EXPIRY'})}
  };
  if(EB_MP.responseKey!==key){
    ebMpClearResponseTimer();EB_MP.responseKey=key;
-   if(pending.defenderSeat===0){
-     let buttons=[];for(const option of pending.legalOptions||[])for(const targetId of option.targetIds)buttons.push([ebMpResponseLabel(option,targetId),()=>{hideModal();ebMpSubmit('RESPOND',{element:option.element,source:option.source,cardId:option.cardId,targetId},{kind:'RESPONSE'})}]);
-     buttons.push(['PASS',()=>{hideModal();ebMpSubmit('PASS',{}, {kind:'RESPONSE'})}]);modal('Incoming attack',buttons);
-   }
+   if(pending.defenderSeat===0)ebMpOpenResponsePrompt();
    update();EB_MP.responseTimer=setInterval(update,250);
  }
 }
 function ebMpApplyView(state){
- let apply=view=>{G=ebMpPerspective(view);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render();ebMpHandleResponseWindow()};
+ let apply=view=>{if(Number.isFinite(view?.serverNow))EB_MP.serverClockOffset=view.serverNow-Date.now();G=ebMpPerspective(view);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render();ebMpHandleResponseWindow()};
  let force=window.ElementBoundMultiplayer.shouldForceWaitingView(G,state);
  if(!EB_MP.input)apply(state);else EB_MP.input.receiveView(state,force);
 }
@@ -1390,7 +1390,12 @@ async function ebMpSubmit(type,payload={},pendingMeta={kind:type}){
  if(!EB_MP.enabled||!EB_MP.client)return {ok:false,error:'MULTIPLAYER_NOT_CONNECTED'};
  if(!EB_MP.input.beginMove(pendingMeta,Number(G?.rev||0)))return {ok:false,error:'MOVE_PENDING'};
  let result=await EB_MP.client.submit({v:1,type,rev:Number(G?.rev||0),payload:JSON.parse(JSON.stringify(payload))});
- return EB_MP.input.resolveMove(result);
+ result=EB_MP.input.resolveMove(result);
+ if(type==='RESOLVE_EXPIRED'&&result.error==='RESPONSE_NOT_EXPIRED'){
+   EB_MP.responseExpirySent=true;let wait=Math.max(50,Number(result.detail?.remainingMs)||250);
+   clearTimeout(EB_MP.responseRetryTimer);EB_MP.responseRetryTimer=setTimeout(()=>{EB_MP.responseRetryTimer=null;EB_MP.responseExpirySent=false;ebMpHandleResponseWindow()},wait);
+ }
+ return result;
 }
 function ebMpSubscribeCompat(db){
  return (roomId,uid,next,error)=>db.collection('rooms').doc(roomId).collection('views').doc(uid).onSnapshot(snapshot=>{
@@ -1402,7 +1407,7 @@ function ebStartMultiplayer({roomId,user,db,fetchImpl=window.fetch.bind(window)}
  if(!window.ElementBoundMultiplayer)throw new Error('Multiplayer client unavailable');
  if(!roomId||!user?.uid||typeof user.getIdToken!=='function'||!db)throw new Error('Authenticated user, roomId, and Firestore are required');
  EB_MP.client?.stop();EB_MP.enabled=true;EB_MP.roomId=roomId;EB_MP.uid=user.uid;
- EB_MP.input=window.ElementBoundMultiplayer.createInputCoordinator({onView:state=>{G=ebMpPerspective(state);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render();ebMpHandleResponseWindow()},onPending:ebMpPendingChanged,onPendingTimeout:()=>ebMpStatus({kind:'pending',text:'Connection slow — board will refresh when the match updates.'})});
+ EB_MP.input=window.ElementBoundMultiplayer.createInputCoordinator({onView:state=>{if(Number.isFinite(state?.serverNow))EB_MP.serverClockOffset=state.serverNow-Date.now();G=ebMpPerspective(state);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render();ebMpHandleResponseWindow()},onPending:ebMpPendingChanged,onPendingTimeout:()=>ebMpStatus({kind:'pending',text:'Connection slow — board will refresh when the match updates.'})});
  EB_MP.inputSafetyCleanup?.();EB_MP.inputSafetyCleanup=window.ElementBoundMultiplayer.bindInteractionSafety(EB_MP.input,document,ebCancelActivePointerInteraction);
  EB_MP.client=window.ElementBoundMultiplayer.createMultiplayerClient({roomId,uid:user.uid,getIdToken:()=>user.getIdToken(),subscribeView:ebMpSubscribeCompat(db),fetchImpl,onView:ebMpApplyView,onMessage:ebMpStatus});
  ebMpStatus({kind:'pending',text:'Connecting to live match…'});EB_MP.client.start();return EB_MP.client;
@@ -1468,7 +1473,7 @@ function ebStateFingerprint(state=G){
 }
 function ebReduceAction(state,action){
  if(!window.ElementBoundEngine)return {ok:false,error:'ENGINE_UNAVAILABLE',state};
- return window.ElementBoundEngine.validateAndApplyMove(state,action);
+ return window.ElementBoundEngine.validateAndApplyMove(state,action,{now:Date.now()});
 }
 
 /* Alpha 0.8.32 — Elemental FX 2.0. Visual-only; bounded DOM particles. */

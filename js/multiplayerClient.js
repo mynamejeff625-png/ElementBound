@@ -42,7 +42,7 @@
         if(view?.status==='WAITING'){notify('waiting','Room created. Waiting for the invited player…');return}
         if(!view||!view.state){notify('error',messageFor('VIEW_UNAVAILABLE'),'VIEW_UNAVAILABLE');return}
         onView(view.state);
-        notify('connected','Live match connected.');
+        if(!view.state.pendingResponse)notify('connected','Live match connected.');
       },()=>notify('error',messageFor('VIEW_UNAVAILABLE'),'VIEW_UNAVAILABLE'));
       return unsubscribe;
     }
@@ -59,11 +59,11 @@
         try{body=await response.json()}catch(error){body={ok:false,error:'INVALID_SERVER_RESPONSE'}}
         if(!response.ok||!body.ok){
           const code=body.error||`HTTP_${response.status}`;
-          notify('error',messageFor(code),code);
-          return {ok:false,error:code};
+          if(code!=='RESPONSE_NOT_EXPIRED')notify('error',messageFor(code),code);
+          return {ok:false,error:code,detail:body.detail||null};
         }
-        notify('pending','Move accepted. Waiting for the live board…');
-        return {ok:true};
+        notify('pending',body.autoResolved?'Response window expired — the attack continued.':'Move accepted. Waiting for the live board…');
+        return {ok:true,autoResolved:!!body.autoResolved};
       }catch(error){
         notify('error',messageFor('NETWORK_ERROR'),'NETWORK_ERROR');
         return {ok:false,error:'NETWORK_ERROR'};

@@ -29,7 +29,7 @@ function mockDb(room){
   {
     const original=state(),attacker=card({id:'attacker',n:'Flare Hawk',a:3}),target=card({id:'target',n:'Guard',h:4,max:4,armor:2,el:'EARTH'});
     original.p[0].slots[0]=attacker;original.p[1].slots[0]=target;
-    const result=engine.validateAndApplyMove(original,move('ATTACK',{attackerId:'attacker',targetId:'target'}));
+    const result=engine.validateAndApplyMove(original,move('ATTACK',{attackerId:'attacker',targetId:'target'}),{now:0});
     const damage=result.events.find(item=>item.type==='DAMAGE');
     check(result.ok&&result.events[0].type==='ATTACK'&&result.events[0].text==='Flare Hawk attacks Guard for 1','an accepted attack emits ATTACK first with existing log wording');
     check(damage.amount===1&&damage.armorAbsorbed===2&&damage.remainingHp===3,'damage reports immediate HP, armor absorption, and remaining HP');
@@ -48,7 +48,7 @@ function mockDb(room){
   {
     const original=state(),attacker=card({id:'attacker'}),target=card({id:'target'}),responseCard=card({id:'response',type:'RESPONSE',zone:'HAND',c:1,el:'WATER'});
     original.p[0].slots[0]=attacker;original.p[1].slots[0]=target;original.p[1].hand=[responseCard];
-    const result=engine.validateAndApplyMove(original,move('ATTACK',{attackerId:'attacker',targetId:'target'}));
+    const result=engine.validateAndApplyMove(original,move('ATTACK',{attackerId:'attacker',targetId:'target'}),{now:0});
     check(result.ok&&result.state.pendingResponse&&result.events.some(item=>item.type==='RESPONSE_OFFERED')&&result.state.p[1].slots[0].h===target.h,'response-gated attacks emit an offer and defer damage');
   }
 

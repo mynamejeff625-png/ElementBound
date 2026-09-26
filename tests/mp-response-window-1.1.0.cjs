@@ -3,6 +3,7 @@ const fs=require('node:fs');
 const engine=require('../lib/gameEngine.js');
 const {buildPlayerView}=require('../lib/playerView.js');
 const {createSubmitMoveHandler}=require('../api/submit-move.js');
+const {createMultiplayerClient}=require('../js/multiplayerClient.js');
 
 function card(overrides={}){return{id:'card',el:'FIRE',n:'Unit',c:1,type:'MANIFESTATION',a:2,h:3,max:3,armor:0,ready:true,sick:false,guard:false,zone:'FIELD',marks:[],growth:0,momentum:0,quick:null,turnFlags:{},...overrides}}
 function response(element,name){return card({id:`response-${element}`,el:element,n:name,c:2,type:'RESPONSE',zone:'HAND',a:undefined,h:undefined,max:undefined})}
@@ -43,6 +44,13 @@ let checks=0;const check=(value,message)=>{assert.ok(value,message);checks++};
   const used=engine.validateAndApplyMove(offered.state,action('RESPOND',1,1,{element:'EARTH',source:'CARD',cardId:'response-EARTH',targetId:'target'}),{now:1});
   check(used.ok&&used.state.p[1].e===5&&used.state.p[1].hand.length===0&&used.state.p[1].wake.some(item=>item.id==='response-EARTH'),'card funding spends Essence and sends the Response to Wake');
   check(used.state.p[1].slots[0].h===2,'Stonewall applies Armor before the continuing attack');
+}
+
+{
+  const original=battle('EARTH',{token:true});
+  original.p[1].slots[0].armor=3;original.p[1].slots[1]=card({id:'already-armored',el:'EARTH',armor:1,armorGainRound:1});
+  const result=engine.validateAndApplyMove(original,attackMove(),{now:0});
+  check(!result.state.pendingResponse,'Stonewall is not offered when every friendly unit is capped or already gained Armor this round');
 }
 
 {
@@ -90,7 +98,19 @@ let checks=0;const check=(value,message)=>{assert.ok(value,message);checks++};
   check(engine.validateAndApplyMove(offered.state,action('END_TURN',0,1),{now:1001}).error==='RESPONSE_PENDING','all ordinary actions are blocked while pending');
   check(engine.validateAndApplyMove(offered.state,action('RESOLVE_EXPIRED',0,1),{now:30999}).error==='RESPONSE_NOT_EXPIRED','auto-pass is rejected before the deadline');
   const auto=engine.validateAndApplyMove(offered.state,action('RESOLVE_EXPIRED',0,1),{now:31000});
-  check(auto.ok&&types(auto).includes('RESPONSE_AUTO_PASSED')&&auto.state.p[1].slots[0].h===1,'deadline resolution auto-passes and continues the attack');
+  check(auto.ok&&auto.autoResolved&&types(auto).includes('RESPONSE_AUTO_PASSED')&&auto.state.p[1].slots[0].h===1,'attacker deadline resolution auto-passes and continues the attack');
+  const defenderAuto=engine.validateAndApplyMove(offered.state,action('RESOLVE_EXPIRED',1,1),{now:31000});
+  check(defenderAuto.ok&&defenderAuto.autoResolved,'either connected client can resolve an expired window');
+  const late=engine.validateAndApplyMove(offered.state,action('RESPOND',1,1,{element:'WATER',source:'TOKEN',targetId:'target'}),{now:31000});
+  check(late.ok&&late.autoResolved&&late.state.p[1].initiationToken,'late RESPOND auto-resolves as PASS instead of applying the submitted response');
+}
+
+{
+  const original=battle('WATER',{token:true}),missing=engine.validateAndApplyMove(original,attackMove());
+  check(!missing.ok&&missing.error==='MISSING_SERVER_TIME','an attack that would open a response window requires finite server time');
+  const offered=engine.validateAndApplyMove(original,attackMove(),{now:0});
+  const pendingMissing=engine.validateAndApplyMove(offered.state,action('PASS',1,1));
+  check(!pendingMissing.ok&&pendingMissing.error==='MISSING_SERVER_TIME','every action against a pending response requires finite server time');
 }
 
 {
@@ -112,11 +132,12 @@ let checks=0;const check=(value,message)=>{assert.ok(value,message);checks++};
 
 {
   const original=battle('EARTH',{responseCard:response('EARTH','Stonewall')}),offered=engine.validateAndApplyMove(original,attackMove(),{now:500});
-  const attackerView=buildPlayerView(offered.state,0,offered.events),defenderView=buildPlayerView(offered.state,1,offered.events);
+  const attackerView=buildPlayerView(offered.state,0,offered.events,750),defenderView=buildPlayerView(offered.state,1,offered.events,750);
   check(!attackerView.pendingResponse.legalOptions&&attackerView.pendingResponse.waiting,'attacker view contains only a generic waiting window');
   check(defenderView.pendingResponse.legalOptions.some(item=>item.responseName==='Stonewall'),'defender view contains legal options');
   const serialized=JSON.stringify(attackerView.pendingResponse);
   check(!serialized.includes('Stonewall')&&!serialized.includes('cardId')&&!serialized.includes('source'),'attacker view and offered event do not reveal card or funding source');
+  check(attackerView.serverNow===750&&defenderView.serverNow===750,'both private views carry the same server clock sample');
 }
 
 {
@@ -130,8 +151,18 @@ let checks=0;const check=(value,message)=>{assert.ok(value,message);checks++};
   async function request(uid,type){const db=mockDb({players:['attacker-uid','defender-uid'],state:offered,events:[],eventSeq:0}),handler=createSubmitMoveHandler({auth:{async verifyIdToken(){return{uid}}},db,now:()=>2000}),res=httpResponse();await handler({method:'POST',headers:{authorization:'Bearer token'},body:{roomId:'ROOM01',move:{v:1,type,rev:1,payload:type==='RESPOND'?{element:'WATER',source:'TOKEN',targetId:'target'}:{}}}},res);return{res,db}}
   const spoof=await request('attacker-uid','RESPOND');check(spoof.res.statusCode===403&&spoof.res.body.error==='NOT_RESPONSE_DEFENDER'&&spoof.db.writes.length===0,'server rejects authenticated attacker spoofing RESPOND without writes');
   const defender=await request('defender-uid','PASS');check(defender.res.statusCode===200&&defender.db.writes.length===3,'server accepts PASS from authenticated defender and updates room plus both views');
+  check(defender.res.body.state.serverNow===2000&&defender.db.writes.filter(write=>write.path.includes('/views/')).every(write=>write.data.state.serverNow===2000),'submit-move stamps both views and its response with server time');
   const game=fs.readFileSync('js/game.js','utf8');
   check(/Opponent is deciding…/.test(game)&&/Response available/.test(game)&&/setInterval\(update,250\)/.test(game),'client renders attacker waiting and defender countdown states');
   check(/ebMpSubmit\('RESPOND'/.test(game)&&/ebMpSubmit\('PASS'/.test(game)&&/ebMpSubmit\('RESOLVE_EXPIRED'/.test(game),'client submits response, pass, and attacker expiry actions');
+  check(/modalDismiss.*style\.display='none'/.test(game)&&/onClick:defending\?ebMpOpenResponsePrompt/.test(game),'response prompt has no dismiss action and its status banner can reopen it');
+  check(/Date\.now\(\)\+Number\(EB_MP\.serverClockOffset/.test(game)&&/view\.serverNow-Date\.now\(\)/.test(game),'response countdown uses a server-derived clock offset');
+  check(/!seconds&&!EB_MP\.responseExpirySent/.test(game),'both attacker and defender clients request expiry when the countdown ends');
+  check(/RESPONSE_NOT_EXPIRED/.test(game)&&/remainingMs/.test(game)&&/responseRetryTimer/.test(game),'an early expiry rejection schedules a retry using the server remaining time');
+  const messages=[],replies=[{ok:false,status:400,body:{ok:false,error:'RESPONSE_NOT_EXPIRED',detail:{remainingMs:125}}},{ok:true,status:200,body:{ok:true,autoResolved:true}}];
+  const client=createMultiplayerClient({roomId:'ROOM01',uid:'attacker-uid',getIdToken:async()=>'token',subscribeView:()=>()=>{},fetchImpl:async()=>{const reply=replies.shift();return{ok:reply.ok,status:reply.status,json:async()=>reply.body}},onView(){},onMessage:message=>messages.push(message)});
+  const early=await client.submit(action('RESOLVE_EXPIRED',0,1)),eventual=await client.submit(action('RESOLVE_EXPIRED',0,1));
+  check(!early.ok&&early.error==='RESPONSE_NOT_EXPIRED'&&early.detail.remainingMs===125&&!messages.some(message=>message.kind==='error'),'early expiry preserves retry timing without showing an error banner');
+  check(eventual.ok&&eventual.autoResolved&&messages.at(-1).text==='Response window expired — the attack continued.','auto-resolved transport result shows the dedicated expiry message');
   console.log(`Multiplayer Response Window 1.1.0: ${checks} checks passed`);
 })().catch(error=>{console.error(error);process.exitCode=1});

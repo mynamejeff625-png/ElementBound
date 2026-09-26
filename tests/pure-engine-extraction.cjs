@@ -84,7 +84,7 @@ function snapshot(value){return JSON.stringify(value)}
   const original=state(),attacker=card({id:'attacker',zone:'FIELD',sick:false,ready:true}),defender=card({id:'defender',zone:'FIELD'});
   const response=card({id:'response',n:'Undertow',el:'WATER',type:'RESPONSE',c:2});
   original.p[0].slots[0]=attacker;original.p[1].slots[0]=defender;original.p[1].hand=[response];
-  const before=snapshot(original),result=engine.validateAndApplyMove(original,move('ATTACK',{attackerId:'attacker',targetId:'defender'}));
+  const before=snapshot(original),result=engine.validateAndApplyMove(original,move('ATTACK',{attackerId:'attacker',targetId:'defender'}),{now:0});
   check(result.ok&&result.state.pendingResponse?.timing==='BEFORE','reactive combat must open the dedicated Response Window before damage');
   check(result.state.p[1].slots[0].h===defender.h&&snapshot(original)===before,'response offer must defer damage without mutating input');
 }
@@ -98,7 +98,7 @@ function snapshot(value){return JSON.stringify(value)}
   const html=fs.readFileSync('index.html','utf8');
   check(html.indexOf('lib/gameEngine.js')<html.indexOf('js/game.js'),'browser must load pure engine before game adapter');
   const source=fs.readFileSync('js/game.js','utf8');
-  check(/ElementBoundEngine\.validateAndApplyMove\(state,action\)/.test(source),'browser reducer must call shared engine');
+  check(/ElementBoundEngine\.validateAndApplyMove\(state,action,\{now:Date\.now\(\)\}\)/.test(source),'browser reducer must call shared engine with explicit current time');
 }
 {
   const source=fs.readFileSync('lib/gameEngine.js','utf8');

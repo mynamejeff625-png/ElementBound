@@ -8,7 +8,7 @@ const ROOM_ID_PATTERN=/^[A-Z2-9]{6}$/;
 function token(req){const match=(req.headers?.authorization||req.headers?.Authorization||'').match(/^Bearer\s+(.+)$/i);return match?.[1]||null}
 function send(res,status,body){return res.status(status).json(body)}
 
-function createJoinRoomHandler({auth,db,random=Math.random}){
+function createJoinRoomHandler({auth,db,random=Math.random,now=Date.now}){
   return async function joinRoom(req,res){
     if(req.method!=='POST'){res.setHeader?.('Allow','POST');return send(res,405,{ok:false,error:'METHOD_NOT_ALLOWED'})}
     const idToken=token(req);if(!idToken)return send(res,401,{ok:false,error:'AUTH_REQUIRED'});
@@ -32,8 +32,9 @@ function createJoinRoomHandler({auth,db,random=Math.random}){
         const state=matchFactory.createInitialState({players:[{name:'Player 1',...creatorSelection},{name:'Player 2',...joinSelection}],random});
         const events=engine.createMatchEvents(state).map((item,index)=>({...item,seq:index+1})),eventSeq=events.length;
         const activePlayers=[players[0],user.uid];
-        transaction.update(roomRef,{status:'ACTIVE',players:activePlayers,deckSelections:[creatorSelection,joinSelection],state,events,eventSeq,updatedAt:Date.now()});
-        for(let seat=0;seat<2;seat++)transaction.set(roomRef.collection('views').doc(activePlayers[seat]),{status:'ACTIVE',roomId,seat,state:buildPlayerView(state,seat,events),updatedAt:Date.now()});
+        const serverNow=now();
+        transaction.update(roomRef,{status:'ACTIVE',players:activePlayers,deckSelections:[creatorSelection,joinSelection],state,events,eventSeq,updatedAt:serverNow});
+        for(let seat=0;seat<2;seat++)transaction.set(roomRef.collection('views').doc(activePlayers[seat]),{status:'ACTIVE',roomId,seat,state:buildPlayerView(state,seat,events,serverNow),updatedAt:serverNow});
         return{status:200,body:{ok:true,roomId,status:'ACTIVE',seat:1}};
       });
       return send(res,result.status,result.body);
