@@ -85,8 +85,8 @@ function snapshot(value){return JSON.stringify(value)}
   const response=card({id:'response',n:'Undertow',el:'WATER',type:'RESPONSE',c:2});
   original.p[0].slots[0]=attacker;original.p[1].slots[0]=defender;original.p[1].hand=[response];
   const before=snapshot(original),result=engine.validateAndApplyMove(original,move('ATTACK',{attackerId:'attacker',targetId:'defender'}));
-  check(!result.ok&&result.error==='RESPONSE_WINDOW_REQUIRED','reactive combat must remain gated for the dedicated Response branch');
-  check(snapshot(original)===before,'response-window rejection must not mutate input');
+  check(result.ok&&result.state.pendingResponse?.timing==='BEFORE','reactive combat must open the dedicated Response Window before damage');
+  check(result.state.p[1].slots[0].h===defender.h&&snapshot(original)===before,'response offer must defer damage without mutating input');
 }
 {
   const original=state();original.p[1].deck=[card({id:'draw',zone:'DECK'})];

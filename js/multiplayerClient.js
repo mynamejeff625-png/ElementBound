@@ -128,6 +128,7 @@
       if(Number.isInteger(next.startSeat))next.startSeat=1-next.startSeat;
       if(next.initiative&&Number.isInteger(next.initiative.starter))next.initiative.starter=1-next.initiative.starter;
       if(Array.isArray(next.events))next.events=next.events.map(item=>{const event={...item};for(const key of ['actor','seat','starter','tokenSeat'])if(event[key]===0||event[key]===1)event[key]=1-event[key];return event});
+      if(next.pendingResponse)for(const key of ['attackerSeat','defenderSeat'])if(next.pendingResponse[key]===0||next.pendingResponse[key]===1)next.pendingResponse[key]=1-next.pendingResponse[key];
     }
     return next;
   }

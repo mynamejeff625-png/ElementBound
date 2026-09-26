@@ -49,7 +49,7 @@ function mockDb(room){
     const original=state(),attacker=card({id:'attacker'}),target=card({id:'target'}),responseCard=card({id:'response',type:'RESPONSE',zone:'HAND',c:1,el:'WATER'});
     original.p[0].slots[0]=attacker;original.p[1].slots[0]=target;original.p[1].hand=[responseCard];
     const result=engine.validateAndApplyMove(original,move('ATTACK',{attackerId:'attacker',targetId:'target'}));
-    check(!result.ok&&result.error==='RESPONSE_WINDOW_REQUIRED'&&result.events.length===0,'response-gated attacks are refused and cannot produce delayed damage or events');
+    check(result.ok&&result.state.pendingResponse&&result.events.some(item=>item.type==='RESPONSE_OFFERED')&&result.state.p[1].slots[0].h===target.h,'response-gated attacks emit an offer and defer damage');
   }
 
   {

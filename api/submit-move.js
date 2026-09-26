@@ -17,11 +17,11 @@ function send(res,status,body){
 
 function statusForEngineError(error){
   if(error==='REVISION_MISMATCH')return 409;
-  if(error==='NOT_YOUR_TURN')return 403;
+  if(error==='NOT_YOUR_TURN'||error==='NOT_RESPONSE_DEFENDER')return 403;
   return 400;
 }
 
-function createSubmitMoveHandler({auth,db,rulesEngine=engine}){
+function createSubmitMoveHandler({auth,db,rulesEngine=engine,now=Date.now}){
   if(!auth||!db)throw new TypeError('auth and db are required');
 
   return async function submitMove(req,res){
@@ -65,7 +65,7 @@ function createSubmitMoveHandler({auth,db,rulesEngine=engine}){
         }
 
         const move={...requestedMove,actor:seat};
-        const resolution=rulesEngine.validateAndApplyMove(room.state,move);
+        const resolution=rulesEngine.validateAndApplyMove(room.state,move,{now:now()});
         if(!resolution.ok){
           return {status:statusForEngineError(resolution.error),body:{ok:false,error:resolution.error,detail:resolution.detail||null}};
         }
