@@ -92,7 +92,7 @@
     }
     function beginInteraction(){if(pending)return false;interacting=true;return true}
     function endInteraction(){interacting=false;if(queuedView){const view=queuedView;queuedView=null;apply(view)} }
-    function receiveView(view){if(interacting){queuedView=view;return false}apply(view);return true}
+    function receiveView(view,force=false){if(force){interacting=false;queuedView=null;apply(view);return true}if(interacting){queuedView=view;return false}apply(view);return true}
     function beginMove(meta,baseRev){
       if(pending)return false;
       publish({...meta,baseRev:Number(baseRev||0)});
@@ -121,5 +121,19 @@
     };
   }
 
-  return Object.freeze({ERROR_MESSAGES,messageFor,withoutClientIdentity,createMultiplayerClient,createActionDispatcher,createInputCoordinator,bindInteractionSafety});
+  function orientPlayerView(state){
+    const next=JSON.parse(JSON.stringify(state)),seat=Number(next.viewerSeat||0);delete next.viewerSeat;
+    if(seat===1){
+      next.p=[next.p[1],next.p[0]];next.active=1-next.active;
+      if(Number.isInteger(next.startSeat))next.startSeat=1-next.startSeat;
+      if(next.initiative&&Number.isInteger(next.initiative.starter))next.initiative.starter=1-next.initiative.starter;
+      if(Array.isArray(next.events))next.events=next.events.map(item=>{const event={...item};for(const key of ['actor','seat','starter','tokenSeat'])if(event[key]===0||event[key]===1)event[key]=1-event[key];return event});
+    }
+    return next;
+  }
+
+  function viewerActiveSeat(state){const seat=Number(state?.viewerSeat||0);return seat===1?1-Number(state?.active):Number(state?.active)}
+  function shouldForceWaitingView(currentOriented,incoming){return (!!currentOriented&&currentOriented.active!==0)||viewerActiveSeat(incoming)!==0}
+
+  return Object.freeze({ERROR_MESSAGES,messageFor,withoutClientIdentity,createMultiplayerClient,createActionDispatcher,createInputCoordinator,bindInteractionSafety,orientPlayerView,viewerActiveSeat,shouldForceWaitingView});
 });
