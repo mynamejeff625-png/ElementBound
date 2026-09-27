@@ -1365,7 +1365,7 @@ function ebMpClearResponseTimer(){if(EB_MP.responseTimer){clearInterval(EB_MP.re
 function ebMpResponseLabel(option,targetId){let target=me().slots.find(card=>card&&card.id===targetId),funding=option.source==='TOKEN'?'INITIATION':'USE';return `${funding} · ${option.responseName}${option.targetIds.length>1&&target?' → '+target.n:''}`}
 function ebMpServerNow(){return Date.now()+Number(EB_MP.serverClockOffset||0)}
 function ebMpSyncServerClock(serverNow){if(!Number.isFinite(serverNow))return;let candidate=serverNow-Date.now();if(!EB_MP.serverClockReady){EB_MP.serverClockOffset=Math.max(0,candidate);EB_MP.serverClockReady=true}else EB_MP.serverClockOffset=Math.max(EB_MP.serverClockOffset,candidate)}
-function ebMpOpenResponsePrompt(){let pending=G?.pendingResponse;if(!pending||pending.defenderSeat!==0)return;let buttons=[];for(const option of pending.legalOptions||[])for(const targetId of option.targetIds)buttons.push([ebMpResponseLabel(option,targetId),()=>{hideModal();ebMpSubmit('RESPOND',{element:option.element,source:option.source,cardId:option.cardId,targetId},{kind:'RESPONSE'})}]);buttons.push(['PASS',()=>{hideModal();ebMpSubmit('PASS',{}, {kind:'RESPONSE'})}]);modal('Incoming attack',buttons,{dismissible:false})}
+function ebMpOpenResponsePrompt(){let pending=G?.pendingResponse;if(!pending||pending.defenderSeat!==0)return;let buttons=[];for(const option of pending.legalOptions||[])for(const targetId of option.targetIds)buttons.push([ebMpResponseLabel(option,targetId),()=>ebMpSubmit('RESPOND',{element:option.element,source:option.source,cardId:option.cardId,targetId},{kind:'RESPONSE'})]);buttons.push(['PASS',()=>ebMpSubmit('PASS',{}, {kind:'RESPONSE'})]);modal('Incoming attack',buttons,{dismissible:false})}
 function ebMpHandleResponseWindow(){
  let pending=G?.pendingResponse;if(!EB_MP.enabled||!pending){let hadWindow=!!EB_MP.responseKey;ebMpClearResponseTimer();if(hadWindow)hideModal();return}
  let key=`${pending.deadline}:${pending.timing}`;
@@ -1389,7 +1389,7 @@ function ebMpApplyView(state){
 function ebMpPendingChanged(pending){if(!G)return;selectedCardId=null;render()}
 async function ebMpSubmit(type,payload={},pendingMeta={kind:type}){
  if(!EB_MP.enabled||!EB_MP.client)return {ok:false,error:'MULTIPLAYER_NOT_CONNECTED'};
- if(!EB_MP.input.beginMove(pendingMeta,Number(G?.rev||0)))return {ok:false,error:'MOVE_PENDING'};
+ if(!EB_MP.input.beginMove(pendingMeta,Number(G?.rev||0))){if(type==='RESPOND'||type==='PASS'){ebMpStatus({kind:'pending',text:'Still sending your last move — tap Pass again',onClick:ebMpOpenResponsePrompt});ebMpOpenResponsePrompt()}return {ok:false,error:'MOVE_PENDING'}}
  let result=await EB_MP.client.submit({v:1,type,rev:Number(G?.rev||0),payload:JSON.parse(JSON.stringify(payload))});
  result=EB_MP.input.resolveMove(result);
  if(type==='RESOLVE_EXPIRED'&&result.error==='RESPONSE_NOT_EXPIRED'){
