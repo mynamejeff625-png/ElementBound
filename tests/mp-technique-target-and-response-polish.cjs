@@ -80,5 +80,7 @@ for(const burning of [false,true])for(const guarded of [false,true]){
   let status=null,reopened=0;const context=vm.createContext({G:{rev:3},EB_MP:{enabled:true,client:{},input:{beginMove:()=>false}},ebMpStatus:value=>{status=value},ebMpOpenResponsePrompt:()=>{reopened++},clearTimeout(){},setTimeout(){},JSON});vm.runInContext(submitSource,context);
   const result=await vm.runInContext("ebMpSubmit('PASS',{}, {kind:'RESPONSE'})",context);
   check(result.error==='MOVE_PENDING'&&status.text==='Still sending your last move — tap Pass again'&&reopened===1,'a pending PASS is never silent and keeps/reopens the Response prompt');
+  const respond=await vm.runInContext("ebMpSubmit('RESPOND',{element:'FIRE'}, {kind:'RESPONSE'})",context);
+  check(respond.error==='MOVE_PENDING'&&status.text==='Still sending your last move — tap your response again'&&reopened===2,'a pending named response gets response-specific retry guidance');
   console.log(`Multiplayer Technique targeting and Response polish: ${checks} checks passed`);
 })().catch(error=>{console.error(error);process.exitCode=1});
