@@ -11,7 +11,7 @@ const adapterSource=source.slice(start,end);
 const queued=[];
 const context=vm.createContext({
   G:null,EB_VIS:null,EB_INIT_LOCK:false,
-  EB_MP:{lastAnimatedSeq:null,initiativeShown:false},
+  EB_MP:{lastAnimatedSeq:null,initiativeShown:false,attackFxContext:null},
   ebQueueFx:event=>queued.push(event),
   ebInitiativeShow:()=>{context.initiativeShows++},initiativeShows:0,
   setTimeout:callback=>{callback();return 1},
@@ -42,6 +42,14 @@ function visualState(events=[],rev=1){return{rev,active:0,initiative:{starter:0,
   check(queued.map(event=>event.kind).join(',')==='attack,hit,benderHit,defeat,status,summon,announce,announce,announce,announce','structured events enter the existing FX queue in event sequence order');
   check(queued[1].side===0&&queued[2].side===0&&queued[3].side===1,'damage, Bender, and destruction FX retain their oriented sides');
   check(queued[1].el==='FIRE'&&queued[4].el==='WATER'&&queued[5].el==='NATURE','damage inherits its attack element while status and summon FX use their matching elements');
+}
+
+{
+  queued.length=0;context.EB_MP.attackFxContext=null;context.G=visualState();
+  vm.runInContext('ebMpQueueVisualEvents',context)([{seq:1,type:'ATTACK',actor:1,attackerId:'attacker',attackerName:'Attacker'}]);
+  queued.length=0;
+  vm.runInContext('ebMpQueueVisualEvents',context)([{seq:2,type:'RESPONSE_PASSED'},{seq:3,type:'DAMAGE',seat:0,targetId:'friendly',amount:2}]);
+  check(queued.length===1&&queued[0].kind==='hit'&&queued[0].el==='FIRE'&&queued[0].label==='Attacker','attack context survives a Response-window snapshot boundary');
 }
 
 {
@@ -77,6 +85,7 @@ function visualState(events=[],rev=1){return{rev,active:0,initiative:{starter:0,
   check(/if\(EB_INIT_LOCK\)return \{ok:false,error:'INITIATIVE_PENDING'\}/.test(source),'online moves are blocked only while the initiative overlay is active');
   check(!adapterSource.includes('Math.random'),'online initiative presentation never randomizes the server result locally');
   check(!adapterSource.includes('hideModal')&&!adapterSource.includes('modal('),'event FX do not close or replace the Response prompt');
+  check(/eventlessChanged=o\.armor!==n\.armor[\s\S]*o\.growth!==n\.growth[\s\S]*o\.quick!==n\.quick/.test(source)&&/!EB_MP\.enabled\|\|eventlessChanged/.test(source),'online Armor, Growth, and quick changes retain snapshot-derived target feedback');
 }
 
 console.log(`Multiplayer visual parity 1.1.1: ${checks} checks passed`);

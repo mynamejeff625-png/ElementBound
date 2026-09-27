@@ -1121,12 +1121,12 @@ function ebRenderFx(){
      }
 
      // Status-only changes remain safe to infer because they never display damage.
-     let changed=o.armor!==n.armor||
+     let eventlessChanged=o.armor!==n.armor||
        o.growth!==n.growth||
-       o.quick!==n.quick||
-       o.marks.join('|')!==n.marks.join('|');
+       o.quick!==n.quick;
+     let changed=eventlessChanged||o.marks.join('|')!==n.marks.join('|');
 
-     if(changed&&!EB_MP.enabled){
+     if(changed&&(!EB_MP.enabled||eventlessChanged)){
        ebPulse(cardEl,'fx-status');
        ebBurst(cardEl,n.el); // no numeric payload
      }
@@ -1340,7 +1340,7 @@ function ebValidateActionEnvelope(a){
 
 // Browser multiplayer adapter. Single-player continues through the local reducer/game loop;
 // multiplayer submits commands to the referee and only accepts state from the private view listener.
-const EB_MP={enabled:false,roomId:null,uid:null,client:null,input:null,inputSafetyCleanup:null,responseTimer:null,responseRetryTimer:null,responseKey:null,responseExpirySent:false,serverClockOffset:0,serverClockReady:false,visualRoomId:null,lastAnimatedSeq:null,initiativeShown:false,authSession:null,authPromise:null};
+const EB_MP={enabled:false,roomId:null,uid:null,client:null,input:null,inputSafetyCleanup:null,responseTimer:null,responseRetryTimer:null,responseKey:null,responseExpirySent:false,serverClockOffset:0,serverClockReady:false,visualRoomId:null,lastAnimatedSeq:null,initiativeShown:false,attackFxContext:null,authSession:null,authPromise:null};
 function ebMpStatus(message){
  let el=document.getElementById('mpStatus');if(!el)return;
  el.hidden=!message;el.textContent=message?message.text:'';el.className=`mpStatus ${message?.kind||''}`;
@@ -1375,15 +1375,15 @@ function ebMpPerspective(state){
 function ebMpCardLocation(id,state=G){if(!state||id==null)return null;for(let side=0;side<2;side++){let player=state.p[side];for(let slot=0;slot<3;slot++)if(player.slots[slot]?.id===id)return{card:player.slots[slot],side,slot};for(const zone of ['hand','deck','wake']){let card=(player[zone]||[]).find(item=>item?.id===id);if(card)return{card,side,slot:null}}}return null}
 function ebMpOldSlot(id){if(!EB_VIS||id==null)return null;for(let side=0;side<2;side++)for(let slot=0;slot<3;slot++)if(EB_VIS.p[side].slots[slot]?.id===id)return{side,slot};return null}
 function ebMpStatusElement(status){return({Burning:'FIRE',Soaked:'WATER',Charged:'LIGHTNING',Seeded:'NATURE',Momentum:'AIR',Weakened:'AIR'})[status]||'AIR'}
-function ebMpQueueVisualEvents(events){let context={el:'AIR',label:'ACTION'};for(const item of events.slice(0,40)){let source,target,old;
- if(item.type==='ATTACK'){source=ebMpCardLocation(item.attackerId);context={el:source?.card?.el||'AIR',label:item.attackerName||'ATTACK'};ebQueueFx({kind:'attack',id:item.attackerId,side:item.actor,slot:source?.slot,el:context.el,label:context.label})}
+function ebMpQueueVisualEvents(events){let context=EB_MP.attackFxContext||{el:'AIR',label:'ACTION'};for(const item of events.slice(0,40)){let source,target,old;
+ if(item.type==='ATTACK'){source=ebMpCardLocation(item.attackerId);context={el:source?.card?.el||'AIR',label:item.attackerName||'ATTACK'};EB_MP.attackFxContext=context;ebQueueFx({kind:'attack',id:item.attackerId,side:item.actor,slot:source?.slot,el:context.el,label:context.label})}
  else if(item.type==='CARD_PLAYED'){source=ebMpCardLocation(item.cardId);context={el:source?.card?.el||'AIR',label:item.cardName||'CARD'};if(item.cardType==='MANIFESTATION')ebQueueFx({kind:'summon',id:item.cardId,side:item.actor,slot:item.slotIndex,el:context.el,label:context.label});if(item.cardName==='Spark Runner'&&Number(G?.chain)>=3)ebQueueFx({kind:'chain'})}
  else if(item.type==='TECHNIQUE_RESOLVED'){source=ebMpCardLocation(item.cardId);context={el:source?.card?.el||context.el,label:item.cardName||'TECHNIQUE'};ebQueueFx({kind:'announce',el:context.el,label:`${context.label} · RESOLVED`})}
  else if(item.type==='DAMAGE'){target=ebMpCardLocation(item.targetId);old=ebMpOldSlot(item.targetId);ebQueueFx({kind:'hit',id:item.targetId,side:item.seat,slot:target?.slot??old?.slot,damage:item.amount||0,el:context.el,label:context.label,targetLabel:item.targetName})}
  else if(item.type==='BENDER_DAMAGE')ebQueueFx({kind:'benderHit',side:item.seat,damage:item.amount||0,el:context.el,label:context.label})
  else if(item.type==='DESTROYED'){target=ebMpCardLocation(item.cardId);old=ebMpOldSlot(item.cardId);ebQueueFx({kind:'defeat',id:item.cardId,side:item.seat,slot:old?.slot??target?.slot,el:target?.card?.el||context.el,label:item.cardName})}
  else if(item.type==='STATUS_APPLIED'){target=ebMpCardLocation(item.targetId);ebQueueFx({kind:'status',id:item.targetId,side:item.seat,slot:target?.slot,targetType:item.targetType,el:ebMpStatusElement(item.status),label:`${item.status} · APPLIED`})}
- else if(item.type==='RESPONSE_USED'){context={el:item.element||'AIR',label:item.responseName||'RESPONSE'};ebQueueFx({kind:'announce',el:context.el,label:`RESPONSE · ${context.label}`})}
+ else if(item.type==='RESPONSE_USED'){ebQueueFx({kind:'announce',el:item.element||'AIR',label:`RESPONSE · ${item.responseName||'RESPONSE'}`})}
  else if(item.type==='INITIATION_TOKEN_SPENT')ebQueueFx({kind:'announce',el:'AIR',label:'INITIATION TOKEN · SPENT'})
  else if(item.type==='WIN')ebQueueFx({kind:'announce',el:'LIGHTNING',label:item.text||'DUEL COMPLETE'})
  }}
@@ -1436,7 +1436,7 @@ function ebMpSubscribeCompat(db){
 function ebStartMultiplayer({roomId,user,db,fetchImpl=window.fetch.bind(window)}){
  if(!window.ElementBoundMultiplayer)throw new Error('Multiplayer client unavailable');
  if(!roomId||!user?.uid||typeof user.getIdToken!=='function'||!db)throw new Error('Authenticated user, roomId, and Firestore are required');
- EB_MP.client?.stop();let newVisualRoom=EB_MP.visualRoomId!==roomId;EB_MP.enabled=true;EB_MP.roomId=roomId;EB_MP.uid=user.uid;if(newVisualRoom){EB_MP.visualRoomId=roomId;EB_MP.lastAnimatedSeq=null;EB_MP.initiativeShown=false;EB_VIS=null;EB_INIT_LOCK=false;ebInitiativeCancelPresentation();document.getElementById('initiativeOverlay')?.classList.add('hide')}
+ EB_MP.client?.stop();let newVisualRoom=EB_MP.visualRoomId!==roomId;EB_MP.enabled=true;EB_MP.roomId=roomId;EB_MP.uid=user.uid;if(newVisualRoom){EB_MP.visualRoomId=roomId;EB_MP.lastAnimatedSeq=null;EB_MP.initiativeShown=false;EB_MP.attackFxContext=null;EB_VIS=null;EB_INIT_LOCK=false;ebInitiativeCancelPresentation();document.getElementById('initiativeOverlay')?.classList.add('hide')}
  EB_MP.serverClockOffset=0;EB_MP.serverClockReady=false;
  EB_MP.input=window.ElementBoundMultiplayer.createInputCoordinator({onView:ebMpRenderAuthoritativeView,onPending:ebMpPendingChanged,onPendingTimeout:()=>ebMpStatus({kind:'pending',text:'Connection slow — board will refresh when the match updates.'})});
  EB_MP.inputSafetyCleanup?.();EB_MP.inputSafetyCleanup=window.ElementBoundMultiplayer.bindInteractionSafety(EB_MP.input,document,ebCancelActivePointerInteraction);
