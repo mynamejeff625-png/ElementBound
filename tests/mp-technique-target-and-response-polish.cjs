@@ -77,7 +77,7 @@ for(const burning of [false,true])for(const guarded of [false,true]){
 
 (async()=>{
   const submitSource=gameSource.slice(gameSource.indexOf('async function ebMpSubmit('),gameSource.indexOf('function ebMpSubscribeCompat',gameSource.indexOf('async function ebMpSubmit(')));
-  let status=null,reopened=0;const context=vm.createContext({G:{rev:3},EB_MP:{enabled:true,client:{},input:{beginMove:()=>false}},ebMpStatus:value=>{status=value},ebMpOpenResponsePrompt:()=>{reopened++},clearTimeout(){},setTimeout(){},JSON});vm.runInContext(submitSource,context);
+  let status=null,reopened=0;const context=vm.createContext({G:{rev:3},EB_INIT_LOCK:false,EB_MP:{enabled:true,client:{},input:{beginMove:()=>false}},ebMpStatus:value=>{status=value},ebMpOpenResponsePrompt:()=>{reopened++},clearTimeout(){},setTimeout(){},JSON});vm.runInContext(submitSource,context);
   const result=await vm.runInContext("ebMpSubmit('PASS',{}, {kind:'RESPONSE'})",context);
   check(result.error==='MOVE_PENDING'&&status.text==='Still sending your last move — tap Pass again'&&reopened===1,'a pending PASS is never silent and keeps/reopens the Response prompt');
   const respond=await vm.runInContext("ebMpSubmit('RESPOND',{element:'FIRE'}, {kind:'RESPONSE'})",context);
