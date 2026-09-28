@@ -1,6 +1,8 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
+const ElementBoundCards=require('../lib/cardCatalog.js');
+const ElementBoundMatchFactory=require('../lib/matchFactory.js');
 
 let source = fs.readFileSync('js/game.js', 'utf8');
 source = source.slice(0, source.lastIndexOf('\nsetup();'));
@@ -11,7 +13,7 @@ source = source.replace(
 
 const ctx = vm.createContext({
   console,
-  window: {},
+  window: {ElementBoundCards,ElementBoundMatchFactory},
   document: {getElementById: () => null},
   setTimeout: () => 0,
   clearTimeout() {},
