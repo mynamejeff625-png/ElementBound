@@ -81,10 +81,11 @@
     };
   }
 
-  function createInputCoordinator({onView,onPending=()=>{}}){
+  function createInputCoordinator({onView,onPending=()=>{},onPendingTimeout=()=>{},pendingTimeoutMs=10000,setTimer=setTimeout,clearTimer=clearTimeout}){
     if(typeof onView!=='function')throw new TypeError('onView is required');
-    let interacting=false,queuedView=null,pending=null;
-    function publish(value){pending=value;onPending(value)}
+    let interacting=false,queuedView=null,pending=null,pendingTimer=null;
+    function cancelPendingTimer(){if(pendingTimer!==null){clearTimer(pendingTimer);pendingTimer=null}}
+    function publish(value){if(!value)cancelPendingTimer();pending=value;onPending(value)}
     function apply(view){
       if(pending&&Number(view?.rev)>pending.baseRev)publish(null);
       onView(view);
@@ -93,10 +94,31 @@
     function endInteraction(){interacting=false;if(queuedView){const view=queuedView;queuedView=null;apply(view)} }
     function receiveView(view){if(interacting){queuedView=view;return false}apply(view);return true}
     function beginMove(meta,baseRev){if(pending)return false;publish({...meta,baseRev:Number(baseRev||0)});return true}
-    function resolveMove(result){if(!result?.ok)publish(null);return result}
+    function resolveMove(result){
+      if(!result?.ok)publish(null);
+      else if(pending){
+        cancelPendingTimer();
+        pendingTimer=setTimer(()=>{pendingTimer=null;if(!pending)return;publish(null);onPendingTimeout()},pendingTimeoutMs);
+      }
+      return result;
+    }
     function reset(){interacting=false;queuedView=null;publish(null)}
     return Object.freeze({beginInteraction,endInteraction,receiveView,beginMove,resolveMove,reset,isLocked:()=>!!pending,isInteracting:()=>interacting,pending:()=>pending});
   }
 
-  return Object.freeze({ERROR_MESSAGES,messageFor,withoutClientIdentity,createMultiplayerClient,createActionDispatcher,createInputCoordinator});
+  function bindInteractionSafety(input,documentObject){
+    if(!input||typeof input.endInteraction!=='function'||!documentObject?.addEventListener)return()=>{};
+    const end=()=>input.endInteraction();
+    const hidden=()=>{if(documentObject.hidden)end()};
+    documentObject.addEventListener('pointerup',end);
+    documentObject.addEventListener('pointercancel',end);
+    documentObject.addEventListener('visibilitychange',hidden);
+    return()=>{
+      documentObject.removeEventListener('pointerup',end);
+      documentObject.removeEventListener('pointercancel',end);
+      documentObject.removeEventListener('visibilitychange',hidden);
+    };
+  }
+
+  return Object.freeze({ERROR_MESSAGES,messageFor,withoutClientIdentity,createMultiplayerClient,createActionDispatcher,createInputCoordinator,bindInteractionSafety});
 });

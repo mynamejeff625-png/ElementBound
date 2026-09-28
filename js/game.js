@@ -1325,7 +1325,7 @@ function ebValidateActionEnvelope(a){
 
 // Browser multiplayer adapter. Single-player continues through the local reducer/game loop;
 // multiplayer submits commands to the referee and only accepts state from the private view listener.
-const EB_MP={enabled:false,roomId:null,uid:null,client:null,input:null,authSession:null,authPromise:null};
+const EB_MP={enabled:false,roomId:null,uid:null,client:null,input:null,inputSafetyCleanup:null,authSession:null,authPromise:null};
 function ebMpStatus(message){
  let el=document.getElementById('mpStatus');if(!el)return;
  el.hidden=!message;el.textContent=message?message.text:'';el.className=`mpStatus ${message?.kind||''}`;
@@ -1378,11 +1378,12 @@ function ebStartMultiplayer({roomId,user,db,fetchImpl=window.fetch.bind(window)}
  if(!window.ElementBoundMultiplayer)throw new Error('Multiplayer client unavailable');
  if(!roomId||!user?.uid||typeof user.getIdToken!=='function'||!db)throw new Error('Authenticated user, roomId, and Firestore are required');
  EB_MP.client?.stop();EB_MP.enabled=true;EB_MP.roomId=roomId;EB_MP.uid=user.uid;
- EB_MP.input=window.ElementBoundMultiplayer.createInputCoordinator({onView:state=>{G=ebMpPerspective(state);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render()},onPending:ebMpPendingChanged});
+ EB_MP.input=window.ElementBoundMultiplayer.createInputCoordinator({onView:state=>{G=ebMpPerspective(state);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render()},onPending:ebMpPendingChanged,onPendingTimeout:()=>ebMpStatus({kind:'pending',text:'Connection slow — board will refresh when the match updates.'})});
+ EB_MP.inputSafetyCleanup?.();EB_MP.inputSafetyCleanup=window.ElementBoundMultiplayer.bindInteractionSafety(EB_MP.input,document);
  EB_MP.client=window.ElementBoundMultiplayer.createMultiplayerClient({roomId,uid:user.uid,getIdToken:()=>user.getIdToken(),subscribeView:ebMpSubscribeCompat(db),fetchImpl,onView:ebMpApplyView,onMessage:ebMpStatus});
  ebMpStatus({kind:'pending',text:'Connecting to live match…'});EB_MP.client.start();return EB_MP.client;
 }
-function ebStopMultiplayer(){EB_MP.client?.stop();EB_MP.input?.reset();EB_MP.enabled=false;EB_MP.roomId=null;EB_MP.uid=null;EB_MP.client=null;EB_MP.input=null;ebMpStatus(null)}
+function ebStopMultiplayer(){EB_MP.client?.stop();EB_MP.inputSafetyCleanup?.();EB_MP.input?.reset();EB_MP.enabled=false;EB_MP.roomId=null;EB_MP.uid=null;EB_MP.client=null;EB_MP.input=null;EB_MP.inputSafetyCleanup=null;ebMpStatus(null)}
 function ebMatchmakingSession(){
  let deps=window.EB_MULTIPLAYER_DEPS;if(deps?.user&&deps?.db)return{user:deps.user,db:deps.db,fetchImpl:deps.fetchImpl||window.fetch.bind(window)};
  if(EB_MP.authSession)return EB_MP.authSession;
