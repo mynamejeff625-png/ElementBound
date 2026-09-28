@@ -251,6 +251,9 @@ body{
   position:relative;z-index:4;border-radius:10px;overflow:hidden;
 }
 #battle #hand .card.tech-activating .eb-tech-activate{opacity:.55;pointer-events:none!important}
+#battle .slot.mp-pending{outline:2px solid #8ed1ff;background:rgba(100,190,255,.14)}
+#battle .slot.mp-pending::after{content:"Placing…";display:grid;place-items:center;height:100%;min-height:140px;color:#cfe8ff;font-weight:900}
+#battle #hand .card.mp-pending{opacity:.5;pointer-events:none}
 #mw.cardInspectMode{padding:clamp(24px,7vh,58px) 22px}
 #mw.cardInspectMode .modal{width:min(86vw,400px);max-height:min(76vh,650px);transform-origin:center}
 #mw.cardInspectMode #mb{max-height:calc(76vh - 78px)}

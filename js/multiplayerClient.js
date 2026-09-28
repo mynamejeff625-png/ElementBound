@@ -81,5 +81,22 @@
     };
   }
 
-  return Object.freeze({ERROR_MESSAGES,messageFor,withoutClientIdentity,createMultiplayerClient,createActionDispatcher});
+  function createInputCoordinator({onView,onPending=()=>{}}){
+    if(typeof onView!=='function')throw new TypeError('onView is required');
+    let interacting=false,queuedView=null,pending=null;
+    function publish(value){pending=value;onPending(value)}
+    function apply(view){
+      if(pending&&Number(view?.rev)>pending.baseRev)publish(null);
+      onView(view);
+    }
+    function beginInteraction(){if(pending)return false;interacting=true;return true}
+    function endInteraction(){interacting=false;if(queuedView){const view=queuedView;queuedView=null;apply(view)} }
+    function receiveView(view){if(interacting){queuedView=view;return false}apply(view);return true}
+    function beginMove(meta,baseRev){if(pending)return false;publish({...meta,baseRev:Number(baseRev||0)});return true}
+    function resolveMove(result){if(!result?.ok)publish(null);return result}
+    function reset(){interacting=false;queuedView=null;publish(null)}
+    return Object.freeze({beginInteraction,endInteraction,receiveView,beginMove,resolveMove,reset,isLocked:()=>!!pending,isInteracting:()=>interacting,pending:()=>pending});
+  }
+
+  return Object.freeze({ERROR_MESSAGES,messageFor,withoutClientIdentity,createMultiplayerClient,createActionDispatcher,createInputCoordinator});
 });
