@@ -71,7 +71,7 @@ function freshTurnState(el){return window.ElementBoundMatchFactory.freshTurnStat
 function player(name,el,responseEl=null){return window.ElementBoundMatchFactory.createPlayer({name,element:el,responseElement:responseEl,nextId:()=>++uid,random:Math.random})}
 function draw(p,ex=true){if(!p.deck.length){if(ex){p.vit-=EXHAUSTION_DAMAGE;add(`${p.name} takes ${EXHAUSTION_DAMAGE} Exhaustion Damage`);winCheck()}return}let c=p.deck.shift();c.zone='HAND';p.hand.push(c)}
 let EB_INIT_T=null,EB_INIT_LOCK=false;
-function ebInitiativeFinish(){if(!G||!G.initiative||G.initiative.finished)return;G.initiative.finished=true;EB_INIT_LOCK=false;clearTimeout(EB_INIT_T);EB_INIT_T=0;if(EB_INIT_RAF1)cancelAnimationFrame(EB_INIT_RAF1);if(EB_INIT_RAF2)cancelAnimationFrame(EB_INIT_RAF2);EB_INIT_RAF1=EB_INIT_RAF2=0;let o=document.getElementById('initiativeOverlay');if(o)o.classList.add('hide');if(G.active===1&&!G.winner)setTimeout(ai,220);render()}
+function ebInitiativeFinish(){if(!G||!G.initiative||G.initiative.finished)return;G.initiative.finished=true;EB_INIT_LOCK=false;clearTimeout(EB_INIT_T);EB_INIT_T=0;if(EB_INIT_RAF1)cancelAnimationFrame(EB_INIT_RAF1);if(EB_INIT_RAF2)cancelAnimationFrame(EB_INIT_RAF2);EB_INIT_RAF1=EB_INIT_RAF2=0;let o=document.getElementById('initiativeOverlay');if(o)o.classList.add('hide');if(!EB_MP.enabled&&G.active===1&&!G.winner)setTimeout(ai,220);render()}
 /* Alpha 0.8.51 — Initiative presentation controller. The result is precommitted by startMatch(); presentation waits for painted frames before beginning the 1.5s flip. Skip never rerolls. */
 let EB_INIT_RAF1=0,EB_INIT_RAF2=0,EB_INIT_RUN=0;
 function ebInitiativeCancelPresentation(){clearTimeout(EB_INIT_T);EB_INIT_T=0;if(EB_INIT_RAF1)cancelAnimationFrame(EB_INIT_RAF1);if(EB_INIT_RAF2)cancelAnimationFrame(EB_INIT_RAF2);EB_INIT_RAF1=EB_INIT_RAF2=0;EB_INIT_RUN++}
@@ -1027,6 +1027,17 @@ function ebDrainFx(){
      if(live)ebPulse(live,'fx-defeat');else if(slot)ebPulse(slot,'fx-defeat-slot');
      if(live)ebBurst(live,ev.el||'AIR');else if(ev.anchor)ebBurstAt(ev.anchor,ev.el||'AIR');else if(slot)ebBurst(slot,ev.el||'AIR');
      ebBattleImpact(1);ebFocus(`${(ev.label||'MANIFESTATION').toUpperCase()} · BROKEN`,ev.el||'AIR');
+   }else if(ev.kind==='attack'){
+     let card=ev.id?ebCardById(ev.id):null;if(card)ebPulse(card,'fx-attack');
+   }else if(ev.kind==='status'){
+     let el=ev.targetType==='BENDER'?document.getElementById(ev.side===0?'you':'enemy'):(ev.id?ebCardById(ev.id):null);
+     if(el){ebPulse(el,'fx-status');ebBurst(el,ev.el||'AIR')}
+     ebFocus(String(ev.label||'STATUS').toUpperCase(),ev.el||'AIR');
+   }else if(ev.kind==='announce'){
+     let el=ev.id?ebCardById(ev.id):null;if(el)ebBurst(el,ev.el||'AIR');
+     ebFocus(String(ev.label||'').toUpperCase(),ev.el||'AIR');
+   }else if(ev.kind==='chain'){
+     ebPulseChain();
    }
  },ix*110)));
 }
@@ -1110,18 +1121,18 @@ function ebRenderFx(){
      }
 
      // Status-only changes remain safe to infer because they never display damage.
-     let changed=o.armor!==n.armor||
+     let eventlessChanged=o.armor!==n.armor||
        o.growth!==n.growth||
-       o.quick!==n.quick||
-       o.marks.join('|')!==n.marks.join('|');
+       o.quick!==n.quick;
+     let changed=eventlessChanged||o.marks.join('|')!==n.marks.join('|');
 
-     if(changed){
+     if(changed&&(!EB_MP.enabled||eventlessChanged)){
        ebPulse(cardEl,'fx-status');
        ebBurst(cardEl,n.el); // no numeric payload
      }
 
      // Attacker motion only. Actual target impact/number comes from EB_FX_QUEUE.
-     if(o.ready&&!n.ready)ebPulse(cardEl,'fx-attack');
+     if(o.ready&&!n.ready&&!EB_MP.enabled)ebPulse(cardEl,'fx-attack');
    }
  }
 
@@ -1329,7 +1340,7 @@ function ebValidateActionEnvelope(a){
 
 // Browser multiplayer adapter. Single-player continues through the local reducer/game loop;
 // multiplayer submits commands to the referee and only accepts state from the private view listener.
-const EB_MP={enabled:false,roomId:null,uid:null,client:null,input:null,inputSafetyCleanup:null,responseTimer:null,responseRetryTimer:null,responseKey:null,responseExpirySent:false,serverClockOffset:0,serverClockReady:false,authSession:null,authPromise:null};
+const EB_MP={enabled:false,roomId:null,uid:null,client:null,input:null,inputSafetyCleanup:null,responseTimer:null,responseRetryTimer:null,responseKey:null,responseExpirySent:false,serverClockOffset:0,serverClockReady:false,visualRoomId:null,lastAnimatedSeq:null,initiativeShown:false,attackFxContext:null,authSession:null,authPromise:null};
 function ebMpStatus(message){
  let el=document.getElementById('mpStatus');if(!el)return;
  el.hidden=!message;el.textContent=message?message.text:'';el.className=`mpStatus ${message?.kind||''}`;
@@ -1361,6 +1372,23 @@ function ebMpPerspective(state){
  next.logs=Array.isArray(next.events)?next.events.map(item=>`#${item.seq} T${item.turn||next.turn} ${item.text}`):(Array.isArray(next.logs)?next.logs:[]);
  return next;
 }
+function ebMpCardLocation(id,state=G){if(!state||id==null)return null;for(let side=0;side<2;side++){let player=state.p[side];for(let slot=0;slot<3;slot++)if(player.slots[slot]?.id===id)return{card:player.slots[slot],side,slot};for(const zone of ['hand','deck','wake']){let card=(player[zone]||[]).find(item=>item?.id===id);if(card)return{card,side,slot:null}}}return null}
+function ebMpOldSlot(id){if(!EB_VIS||id==null)return null;for(let side=0;side<2;side++)for(let slot=0;slot<3;slot++)if(EB_VIS.p[side].slots[slot]?.id===id)return{side,slot};return null}
+function ebMpStatusElement(status){return({Burning:'FIRE',Soaked:'WATER',Charged:'LIGHTNING',Seeded:'NATURE',Momentum:'AIR',Weakened:'AIR'})[status]||'AIR'}
+function ebMpQueueVisualEvents(events){let context=EB_MP.attackFxContext||{el:'AIR',label:'ACTION'};for(const item of events.slice(0,40)){let source,target,old;
+ if(item.type==='ATTACK'){source=ebMpCardLocation(item.attackerId);context={el:source?.card?.el||'AIR',label:item.attackerName||'ATTACK'};EB_MP.attackFxContext=context;ebQueueFx({kind:'attack',id:item.attackerId,side:item.actor,slot:source?.slot,el:context.el,label:context.label})}
+ else if(item.type==='CARD_PLAYED'){source=ebMpCardLocation(item.cardId);context={el:source?.card?.el||'AIR',label:item.cardName||'CARD'};if(item.cardType==='MANIFESTATION')ebQueueFx({kind:'summon',id:item.cardId,side:item.actor,slot:item.slotIndex,el:context.el,label:context.label});if(item.cardName==='Spark Runner'&&Number(G?.chain)>=3)ebQueueFx({kind:'chain'})}
+ else if(item.type==='TECHNIQUE_RESOLVED'){source=ebMpCardLocation(item.cardId);context={el:source?.card?.el||context.el,label:item.cardName||'TECHNIQUE'};ebQueueFx({kind:'announce',el:context.el,label:`${context.label} · RESOLVED`})}
+ else if(item.type==='DAMAGE'){target=ebMpCardLocation(item.targetId);old=ebMpOldSlot(item.targetId);ebQueueFx({kind:'hit',id:item.targetId,side:item.seat,slot:target?.slot??old?.slot,damage:item.amount||0,el:context.el,label:context.label,targetLabel:item.targetName})}
+ else if(item.type==='BENDER_DAMAGE')ebQueueFx({kind:'benderHit',side:item.seat,damage:item.amount||0,el:context.el,label:context.label})
+ else if(item.type==='DESTROYED'){target=ebMpCardLocation(item.cardId);old=ebMpOldSlot(item.cardId);ebQueueFx({kind:'defeat',id:item.cardId,side:item.seat,slot:old?.slot??target?.slot,el:target?.card?.el||context.el,label:item.cardName})}
+ else if(item.type==='STATUS_APPLIED'){target=ebMpCardLocation(item.targetId);ebQueueFx({kind:'status',id:item.targetId,side:item.seat,slot:target?.slot,targetType:item.targetType,el:ebMpStatusElement(item.status),label:`${item.status} · APPLIED`})}
+ else if(item.type==='RESPONSE_USED'){ebQueueFx({kind:'announce',el:item.element||'AIR',label:`RESPONSE · ${item.responseName||'RESPONSE'}`})}
+ else if(item.type==='INITIATION_TOKEN_SPENT')ebQueueFx({kind:'announce',el:'AIR',label:'INITIATION TOKEN · SPENT'})
+ else if(item.type==='WIN')ebQueueFx({kind:'announce',el:'LIGHTNING',label:item.text||'DUEL COMPLETE'})
+ }}
+function ebMpPrepareVisualEvents(){let events=Array.isArray(G?.events)?G.events:[],latest=events.at(-1)?.seq||0;if(EB_MP.lastAnimatedSeq===null){EB_MP.lastAnimatedSeq=latest;let initiative=events.find(item=>item.type==='INITIATIVE');if(Number(G?.rev||0)===0&&initiative&&!EB_MP.initiativeShown){EB_MP.initiativeShown=true;G.initiative={...(G.initiative||{}),starter:initiative.starter,revealed:false,finished:false};EB_INIT_LOCK=true;setTimeout(ebInitiativeShow,140)}return}let fresh=events.filter(item=>Number(item.seq)>EB_MP.lastAnimatedSeq).sort((a,b)=>a.seq-b.seq);if(fresh.length){EB_MP.lastAnimatedSeq=fresh.at(-1).seq;ebMpQueueVisualEvents(fresh)}}
+function ebMpRenderAuthoritativeView(view){ebMpSyncServerClock(view?.serverNow);let next=ebMpPerspective(view),presenting=EB_INIT_LOCK&&EB_MP.initiativeShown&&G?.initiative&&!G.initiative.finished;if(presenting)next.initiative={...(next.initiative||{}),revealed:!!G.initiative.revealed,finished:false};G=next;selectedCardId=null;if(!presenting&&(!G.initiative||G.initiative.finished))EB_INIT_LOCK=false;diff='Online';go('battle');ebMpPrepareVisualEvents();render();ebMpHandleResponseWindow()}
 function ebMpClearResponseTimer(){if(EB_MP.responseTimer){clearInterval(EB_MP.responseTimer);EB_MP.responseTimer=null}if(EB_MP.responseRetryTimer){clearTimeout(EB_MP.responseRetryTimer);EB_MP.responseRetryTimer=null}EB_MP.responseKey=null;EB_MP.responseExpirySent=false}
 function ebMpResponseLabel(option,targetId){let target=me().slots.find(card=>card&&card.id===targetId),funding=option.source==='TOKEN'?'INITIATION':'USE';return `${funding} · ${option.responseName}${option.targetIds.length>1&&target?' → '+target.n:''}`}
 function ebMpServerNow(){return Date.now()+Number(EB_MP.serverClockOffset||0)}
@@ -1382,13 +1410,14 @@ function ebMpHandleResponseWindow(){
  }
 }
 function ebMpApplyView(state){
- let apply=view=>{ebMpSyncServerClock(view?.serverNow);G=ebMpPerspective(view);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render();ebMpHandleResponseWindow()};
+ let apply=ebMpRenderAuthoritativeView;
  let force=window.ElementBoundMultiplayer.shouldForceWaitingView(G,state);
  if(!EB_MP.input)apply(state);else EB_MP.input.receiveView(state,force);
 }
 function ebMpPendingChanged(pending){if(!G)return;selectedCardId=null;render()}
 async function ebMpSubmit(type,payload={},pendingMeta={kind:type}){
  if(!EB_MP.enabled||!EB_MP.client)return {ok:false,error:'MULTIPLAYER_NOT_CONNECTED'};
+ if(EB_INIT_LOCK)return {ok:false,error:'INITIATIVE_PENDING'};
  if(!EB_MP.input.beginMove(pendingMeta,Number(G?.rev||0))){if(type==='RESPOND'||type==='PASS'){let retry=type==='PASS'?'tap Pass again':'tap your response again';ebMpStatus({kind:'pending',text:`Still sending your last move — ${retry}`,onClick:ebMpOpenResponsePrompt});ebMpOpenResponsePrompt()}return {ok:false,error:'MOVE_PENDING'}}
  let result=await EB_MP.client.submit({v:1,type,rev:Number(G?.rev||0),payload:JSON.parse(JSON.stringify(payload))});
  result=EB_MP.input.resolveMove(result);
@@ -1407,9 +1436,9 @@ function ebMpSubscribeCompat(db){
 function ebStartMultiplayer({roomId,user,db,fetchImpl=window.fetch.bind(window)}){
  if(!window.ElementBoundMultiplayer)throw new Error('Multiplayer client unavailable');
  if(!roomId||!user?.uid||typeof user.getIdToken!=='function'||!db)throw new Error('Authenticated user, roomId, and Firestore are required');
- EB_MP.client?.stop();EB_MP.enabled=true;EB_MP.roomId=roomId;EB_MP.uid=user.uid;
+ EB_MP.client?.stop();let newVisualRoom=EB_MP.visualRoomId!==roomId;EB_MP.enabled=true;EB_MP.roomId=roomId;EB_MP.uid=user.uid;if(newVisualRoom){EB_MP.visualRoomId=roomId;EB_MP.lastAnimatedSeq=null;EB_MP.initiativeShown=false;EB_MP.attackFxContext=null;EB_VIS=null;EB_INIT_LOCK=false;ebInitiativeCancelPresentation();document.getElementById('initiativeOverlay')?.classList.add('hide')}
  EB_MP.serverClockOffset=0;EB_MP.serverClockReady=false;
- EB_MP.input=window.ElementBoundMultiplayer.createInputCoordinator({onView:state=>{ebMpSyncServerClock(state?.serverNow);G=ebMpPerspective(state);selectedCardId=null;EB_INIT_LOCK=false;diff='Online';go('battle');render();ebMpHandleResponseWindow()},onPending:ebMpPendingChanged,onPendingTimeout:()=>ebMpStatus({kind:'pending',text:'Connection slow — board will refresh when the match updates.'})});
+ EB_MP.input=window.ElementBoundMultiplayer.createInputCoordinator({onView:ebMpRenderAuthoritativeView,onPending:ebMpPendingChanged,onPendingTimeout:()=>ebMpStatus({kind:'pending',text:'Connection slow — board will refresh when the match updates.'})});
  EB_MP.inputSafetyCleanup?.();EB_MP.inputSafetyCleanup=window.ElementBoundMultiplayer.bindInteractionSafety(EB_MP.input,document,ebCancelActivePointerInteraction);
  EB_MP.client=window.ElementBoundMultiplayer.createMultiplayerClient({roomId,uid:user.uid,getIdToken:()=>user.getIdToken(),subscribeView:ebMpSubscribeCompat(db),fetchImpl,onView:ebMpApplyView,onMessage:ebMpStatus});
  ebMpStatus({kind:'pending',text:'Connecting to live match…'});EB_MP.client.start();return EB_MP.client;
