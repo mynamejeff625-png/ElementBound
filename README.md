@@ -6,6 +6,8 @@ Multiplayer mode is additive and activates only when the player interacts with t
 
 The deployment must define the public Firebase Web configuration variables `FIREBASE_WEB_API_KEY` and `FIREBASE_PROJECT_ID`. Optional values are `FIREBASE_AUTH_DOMAIN`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`, and `FIREBASE_APP_ID`. The `/api/firebase-config` endpoint exposes only these public client settings; Admin credentials remain server-only. Anonymous Authentication must also be enabled in Firebase Console under **Authentication → Sign-in method**.
 
+Server endpoints also require `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and a Firebase Admin private key. Prefer the single-line `FIREBASE_PRIVATE_KEY_B64` setting in Vercel; generate it from a downloaded service-account JSON file with `jq -jr '.private_key' service-account.json | base64 | tr -d '\n'`. The legacy `FIREBASE_PRIVATE_KEY` setting remains supported for raw PEM values and values containing escaped `\\n` newlines.
+
 Test hosts may instead define `window.EB_MULTIPLAYER_DEPS` before `js/game.js` loads with `{user, db, fetchImpl?}`. The `user` must expose `uid` and `getIdToken()`, while `db` must expose the Firestore compat `collection().doc().onSnapshot()` interface.
 
 In multiplayer mode, moves are posted to `/api/submit-move` and the board is rendered only from `rooms/{roomId}/views/{uid}` snapshots. Without a `roomId`, the existing single-player startup and local game loop are unchanged.
