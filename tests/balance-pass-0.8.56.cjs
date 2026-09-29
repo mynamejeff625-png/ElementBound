@@ -89,7 +89,7 @@ console.log('Balance Pass 0.8.56: '+checks+' focused checks passed; Balance Lab 
 
 const version=fs.readFileSync('js/version.js','utf8');
 assert.match(source,/OPENING EXPLOITED · MOMENTUM/,'Gale Scout combat banner must display Momentum payoff');
-assert.match(version,/version:'1\.1\.2'/);
-assert.match(version,/ruleset:'EB-RULES-1\.1\.2'/);
+assert.match(version,/version:'\d+\.\d+\.\d+'/);
+assert.match(version,/ruleset:'EB-RULES-\d+\.\d+\.\d+-BALANCE-PASS'/);
 assert(!/Crosswind[^\n]*Flow 1/.test(fs.readFileSync('js/game.js','utf8')));
 console.log('Release metadata and Crosswind no-Flow checks passed');

@@ -55,9 +55,9 @@ Facts:
 - Target duel length: roughly 3–8 minutes depending on deck.
 - Product name in all player-facing text and docs: **Element Bound** (two words).
   Existing code identifiers (`ElementBoundCards`, `EB_*`, repo name) stay as they are.
-  Historical one-word strings ("Elementbound", "ELEMENTBOUND") may remain only
-  where explicitly exempted. All new or modified player-facing text uses
-  "Element Bound". Do not fix exempted strings in unrelated tasks.
+  Code identifiers, developer-only logs and error strings, workflow names, and
+  historical docs/migration files may keep "ElementBound"/"ELEMENTBOUND". All
+  player-facing text uses "Element Bound".
 
 ## 2. Roles *(team policy)*
 
