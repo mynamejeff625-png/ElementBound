@@ -42,6 +42,7 @@ Facts:
 - Hosting: two deployments of `main`. Stay on free tiers (Firebase Spark, Vercel Hobby).
   - **Vercel** serves the full game plus the `/api` serverless endpoints. This is
     the only deployment where online play works.
+  - Production online URL: `https://element-bound.vercel.app/`.
   - **GitHub Pages** (`mynamejeff625-png.github.io/ElementBound/`) serves a static
     copy. It has no `/api` endpoints, so online play cannot work there;
     single-player does.
@@ -266,7 +267,34 @@ in the PR and ask whether to fix them separately.
   exit only through a game action such as PASS.
 - Never convey information by color alone.
 
-## 10. When unsure
+## 10. Handoffs between the Owner and agents *(team policy)*
+
+The Owner works mostly from a phone, where moving files between AI apps is slow
+and error-prone. GitHub is the primary channel; manual relay is the fallback.
+
+**GitHub first:**
+- Task specs are **GitHub issues**, written by Claude or the Owner. Codex is
+  started with a one-line prompt such as "Implement issue #N per AGENTS.md" and
+  reads the spec from GitHub.
+- Work is delivered as **PRs**. Reviews, questions, and review responses go in
+  **PR comments**. Ask Codex for a re-review by commenting `@codex review`.
+- Reports meant for the Owner (audits, reviews, balance reports) are posted as
+  an issue or PR comment, or committed to a `docs/` branch. Never deliver them
+  only in a chat window.
+- Playtest screenshots are attached to the issue or PR comment (the GitHub
+  mobile app supports image uploads).
+
+**Manual relay (fallback):**
+- Never require the Owner to upload, attach, or paste files **into** Codex. If
+  an agent needs a file, read it from the repo; if it is not in the repo, ask
+  the Owner to commit it or share a link.
+- Agents may give the Owner files to download; the Owner can forward those to
+  another agent.
+- Any message meant to be relayed to another agent goes in **one** fenced code
+  block with no other text inside, so the Owner can copy it with a single tap.
+- In chat, keep replies to a short summary plus the relevant issue or PR link.
+
+## 11. When unsure
 
 Ask in the active task conversation before changing code. If a PR already
 exists, ask there. Never push a speculative implementation just to ask a
