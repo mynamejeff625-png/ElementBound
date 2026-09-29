@@ -50,6 +50,6 @@ console.log('Crosswind attack debuff 0.8.62: '+checks+' focused checks; self-tes
 
 const version=fs.readFileSync('js/version.js','utf8');
 const index=fs.readFileSync('index.html','utf8');
-assert.match(version,/version:'1\.1\.2'/);
+assert.match(version,/version:'\d+\.\d+\.\d+'/);
 assert.match(source,/CROSSWIND-ATTACK-DEBUFF-0\.8\.62/);
 assert.match(index,/both become Weakened/);

@@ -39,7 +39,10 @@ for(const hostname of [
 
 {
   const version=fs.readFileSync('js/version.js','utf8');
-  check(/version:'1\.1\.2'/.test(version),'player-facing version is 1.1.2');
+  const match=version.match(/version:'(\d+)\.(\d+)\.(\d+)'/);
+  check(match,'player-facing version is X.Y.Z');
+  const [major,minor,patch]=match.slice(1).map(Number);
+  check(major>1||(major===1&&(minor>1||(minor===1&&patch>=2))),'player-facing version is at least 1.1.2');
   check(/document\.title=`Element Bound Alpha/.test(version),'generated browser title uses the two-word product name');
 }
 

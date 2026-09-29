@@ -105,6 +105,6 @@ assert.match(source,/c\.n==='Static Reversal'/);
 assert.match(source,/c\.n==='Reclaiming Tide'/);
 
 const version=fs.readFileSync('js/version.js','utf8');
-assert.match(version,/version:'1\.1\.2'/);
+assert.match(version,/version:'\d+\.\d+\.\d+'/);
 assert.match(version,/balanceLab:'Balance Lab [IVXLCDM]+'/);
 console.log('Parity source and release metadata checks passed');

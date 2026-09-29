@@ -4,7 +4,7 @@ window.EB_RELEASE=Object.freeze({
   label:'Housekeeping',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
-  ruleset:'EB-RULES-1.1.2',
+  ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
   focus:'Version sync · Element Bound naming · Vercel redirect',
   audience:'Prime & Hybrid Benders'
 });
