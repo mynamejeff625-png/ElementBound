@@ -1,4 +1,4 @@
-# ElementBound
+# Element Bound
 
 ## Multiplayer client entry point
 

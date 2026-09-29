@@ -55,9 +55,9 @@ Facts:
 - Target duel length: roughly 3–8 minutes depending on deck.
 - Product name in all player-facing text and docs: **Element Bound** (two words).
   Existing code identifiers (`ElementBoundCards`, `EB_*`, repo name) stay as they are.
-  Existing one-word strings ("Elementbound", "ELEMENTBOUND") are historical: the
-  next player-facing release reconciles them. Until then, all new or modified
-  player-facing text uses "Element Bound". Do not fix old strings in unrelated tasks.
+  Historical one-word strings ("Elementbound", "ELEMENTBOUND") may remain only
+  where explicitly exempted. All new or modified player-facing text uses
+  "Element Bound". Do not fix exempted strings in unrelated tasks.
 
 ## 2. Roles *(team policy)*
 
@@ -135,9 +135,8 @@ plays must update `js/version.js`: set `version` to the branch suffix and update
 actually change. Docs-only, test-only, and CI-only PRs do not bump the version.
 
 History note: the multiplayer work through 1.1.1 (merged in PR #31) did not
-bump `js/version.js`, which still says 0.8.62. The next player-facing PR
-reconciles it to its own branch version. After that, the policy above applies
-to every PR. `VERSIONING.md` follows this section.
+bump `js/version.js`; issue #35 reconciled the player-facing version to 1.1.2.
+The policy above applies to every later PR. `VERSIONING.md` follows this section.
 
 ## 6. Branches, commits, and PRs
 

@@ -124,6 +124,6 @@ console.log('Balance Pass 0.8.55: '+checks+' focused checks passed; Balance Lab 
 `, ctx);
 
 const versionSource = fs.readFileSync('js/version.js','utf8');
-assert.match(versionSource,/version:'\d+\.\d+\.\d+'/);
-assert.match(versionSource,/ruleset:'EB-RULES-\d+\.\d+\.\d+-BALANCE-PASS'/);
+assert.match(versionSource,/version:'1\.1\.2'/);
+assert.match(versionSource,/ruleset:'EB-RULES-1\.1\.2'/);
 console.log('Release metadata checks passed');
