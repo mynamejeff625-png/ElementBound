@@ -51,5 +51,8 @@ console.log('Crosswind attack debuff 0.8.62: '+checks+' focused checks; self-tes
 const version=fs.readFileSync('js/version.js','utf8');
 const index=fs.readFileSync('index.html','utf8');
 assert.match(version,/version:'\d+\.\d+\.\d+'/);
+// Current Balance Lab provenance. Update deliberately only when single-player rules change (AGENTS.md §5).
+assert.match(version,/ruleset:'EB-RULES-0\.8\.62-BALANCE-PASS'/);
+assert.match(version,/balanceLab:'Balance Lab XIX'/);
 assert.match(source,/CROSSWIND-ATTACK-DEBUFF-0\.8\.62/);
 assert.match(index,/both become Weakened/);
