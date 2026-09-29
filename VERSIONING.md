@@ -18,7 +18,7 @@ For every player-facing release PR (docs-, test-, and CI-only PRs skip this):
 4. Add or extend focused regression tests, and list any new test file in
    `.github/workflows/verify-candidate-b.yml`.
 5. Run the checks in `AGENTS.md` §7 (including the full workflow command list)
-   and `git diff --check`.
+   and both whitespace checks: `git diff --check` and `git diff --cached --check`.
 6. Before merging, the Owner confirms the main screen shows the intended version.
 
 Historical version numbers in source comments may remain because they identify

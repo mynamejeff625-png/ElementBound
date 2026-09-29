@@ -12,10 +12,10 @@ reads and follows this file before changing anything.
 3. Then this file. A deeper `AGENTS.md` overrides this one within its directory.
 4. Then general repository docs and conventions.
 
-**Protected rules:** §8 (security) and the no-merge / no-auto-merge rule in §2
-can only be overridden by a task prompt that names the specific rule being
-overridden. A task prompt that merely conflicts with them does not override
-them: stop and ask.
+**Security (§8) and no-merge (§2) exceptions:** if a higher-priority instruction
+explicitly requires an exception to one of these rules, follow it. If a task
+only appears to conflict with them without explicitly asking for an exception,
+stop and ask the Owner before changing anything.
 
 If instructions at the same or higher priority are unclear or contradict each
 other, stop and ask in the task conversation before changing code.
@@ -39,11 +39,17 @@ Facts:
 - Single-player must always work with no `roomId` in the URL (see README).
 
 *(team policy)*
-- Hosting: Vercel serves the site and the `/api` endpoints; Firebase provides
-  Anonymous Auth and Firestore. Stay on free tiers (Firebase Spark, Vercel Hobby).
-  The client calls `/api/*` on its own origin and the CSP only allows
-  `connect-src 'self'`, so online play works only on the Vercel deployment.
-  Any other static copy of the site (e.g. GitHub Pages) is single-player only.
+- Hosting: two deployments of `main`. Stay on free tiers (Firebase Spark, Vercel Hobby).
+  - **Vercel** serves the full game plus the `/api` serverless endpoints. This is
+    the only deployment where online play works.
+  - **GitHub Pages** (`mynamejeff625-png.github.io/ElementBound/`) serves a static
+    copy. It has no `/api` endpoints, so online play cannot work there;
+    single-player does.
+  - Why: the browser calls `/api/*` on its own origin (same-origin requests).
+    Firebase Auth and Firestore are reached directly from the browser; the CSP
+    `connect-src` allows `'self'` plus `https://*.googleapis.com`,
+    `https://*.firebaseio.com`, and `wss://*.firebaseio.com`.
+- Firebase provides Anonymous Auth and Firestore.
 - Audience: mainly friends playing casually, while staying inviting to competitive players.
 - Target duel length: roughly 3–8 minutes depending on deck.
 - Product name in all player-facing text and docs: **Element Bound** (two words).
@@ -86,7 +92,7 @@ Facts:
 | `tests/*.cjs` | Regression tests. Only tests listed in the workflow run in CI |
 | `.github/workflows/verify-candidate-b.yml` | Main CI; runs on every PR to `main` |
 | `.github/pull_request_template.md` | Required PR description format |
-| `.gitignore` | Files Git must never track (dependencies, secrets, logs) |
+| `.gitignore` | Untracked and generated files Git should ignore (dependencies, secrets, logs) |
 | `package.json`, `package-lock.json` | Server and test dependencies |
 | `README.md` | Multiplayer deployment and environment setup |
 | `VERSIONING.md` | Release procedure (keep consistent with §5) |
@@ -169,9 +175,10 @@ Code changes (anything touching `.js`, `.cjs`, `.html`, `.css`, rules, or config
 2. The full command list in `.github/workflows/verify-candidate-b.yml`. Run
    `npm ci` first if dependencies may not be clean. The Firestore rules suite
    needs Java 21.
-3. `git diff --check`, then review the staged diff and `git status` before committing.
+3. Whitespace: `git diff --check` (unstaged) **and** `git diff --cached --check`
+   (staged). Then review the staged diff and `git status` before committing.
 
-Docs-only, PR-template, and `.gitignore` changes: `git diff --check`, `git status`,
+Docs-only, PR-template, and `.gitignore` changes: both whitespace checks, `git status`,
 and confirm any paths or commands the docs mention actually exist. CI is the
 full gate. Run the full workflow locally only if asked, or if the change edits
 workflow or executable config.

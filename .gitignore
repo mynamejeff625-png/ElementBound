@@ -1,5 +1,6 @@
-# Element Bound — files Git must never track.
-# Save this file in the repo root as ".gitignore" (leading dot, no extension).
+# Element Bound — untracked and generated files Git should ignore.
+# This does not protect files that are already tracked or force-added with
+# `git add -f`. Always review `git status` and the staged diff before committing.
 
 # Dependencies (reinstalled with `npm ci`)
 node_modules/
