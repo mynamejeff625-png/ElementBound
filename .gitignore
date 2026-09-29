@@ -1,0 +1,38 @@
+# Element Bound — files Git must never track.
+# Save this file in the repo root as ".gitignore" (leading dot, no extension).
+
+# Dependencies (reinstalled with `npm ci`)
+node_modules/
+
+# Secrets — never commit these
+.env
+.env.*
+!.env.example
+*service-account*.json
+*firebase-adminsdk*.json
+*.pem
+*.key
+
+# Firebase emulator and tool logs
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+ui-debug.log
+database-debug.log
+pubsub-debug.log
+.firebase/
+
+# Vercel local config
+.vercel/
+
+# General logs and debug output
+npm-debug.log*
+*.log
+coverage/
+
+# OS and editor clutter
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

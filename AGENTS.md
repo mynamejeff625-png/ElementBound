@@ -1,0 +1,266 @@
+# AGENTS.md — Element Bound Operating Rules (v3)
+
+Every AI agent working in this repository (ChatGPT/Codex, Claude, or any other)
+reads and follows this file before changing anything.
+
+---
+
+## 0. Precedence and scope
+
+1. System, platform, developer, and tool instructions always come first.
+2. Direct instructions in the active task prompt come next.
+3. Then this file. A deeper `AGENTS.md` overrides this one within its directory.
+4. Then general repository docs and conventions.
+
+**Protected rules:** §8 (security) and the no-merge / no-auto-merge rule in §2
+can only be overridden by a task prompt that names the specific rule being
+overridden. A task prompt that merely conflicts with them does not override
+them: stop and ask.
+
+If instructions at the same or higher priority are unclear or contradict each
+other, stop and ask in the task conversation before changing code.
+
+**Owner** means the repository owner (GitHub account `mynamejeff625-png`).
+**Owner approval** means an explicit approval written by the Owner in the task
+prompt or in a PR comment. An agent never assumes approval.
+
+Sections marked *(team policy)* are decisions made by the Owner, not facts that
+can be derived from the code. Follow them anyway.
+
+## 1. What Element Bound is
+
+Facts:
+- A turn-based elemental card game played in the browser: single-player vs. rival
+  AI, Element Trials, Codex, How to Play, a developer System Check, Balance Lab,
+  and live online 1v1 multiplayer.
+- The browser client is plain JavaScript and CSS with no bundler, transpiler, or
+  framework. Node dependencies are currently used only by server endpoints and
+  test tooling; keeping it that way is architecture policy (see §8 for approvals).
+- Single-player must always work with no `roomId` in the URL (see README).
+
+*(team policy)*
+- Hosting: Vercel serves the site and the `/api` endpoints; Firebase provides
+  Anonymous Auth and Firestore. Stay on free tiers (Firebase Spark, Vercel Hobby).
+  The client calls `/api/*` on its own origin and the CSP only allows
+  `connect-src 'self'`, so online play works only on the Vercel deployment.
+  Any other static copy of the site (e.g. GitHub Pages) is single-player only.
+- Audience: mainly friends playing casually, while staying inviting to competitive players.
+- Target duel length: roughly 3–8 minutes depending on deck.
+- Product name in all player-facing text and docs: **Element Bound** (two words).
+  Existing code identifiers (`ElementBoundCards`, `EB_*`, repo name) stay as they are.
+  Existing one-word strings ("Elementbound", "ELEMENTBOUND") are historical: the
+  next player-facing release reconciles them. Until then, all new or modified
+  player-facing text uses "Element Bound". Do not fix old strings in unrelated tasks.
+
+## 2. Roles *(team policy)*
+
+| Who | Role | Normally does | Normally does not |
+|---|---|---|---|
+| **Owner** | Product owner | Picks tasks, approves designs, balance, and security changes, playtests, merges | — |
+| **ChatGPT / Codex** | Primary implementer | Branches, writes code and tests, opens and updates PRs, fixes review feedback | Invent mechanics, change balance numbers, or redesign UI beyond the approved spec |
+| **Claude** | Architect, UI/UX lead designer, reviewer | Writes task specs and UI/UX designs, reviews PRs, maintains docs and prompts | Push commits (code or docs), **unless the Owner explicitly assigns that task to Claude** |
+
+- Agents may push commits and open or update PRs when the task asks for it.
+- Agents never merge PRs and never enable auto-merge. Only the Owner merges to `main`.
+- Do not intentionally run two implementation sessions against the same branch.
+  Before editing, run `git status` and check the branch's recent commits. If you
+  find changes you did not make, preserve them and ask; never overwrite them.
+
+## 3. Repository map
+
+| Path | Purpose |
+|---|---|
+| `index.html` | All screens, Content-Security-Policy, and script load order |
+| `css/game.css` | All styling, including reduced-motion rules |
+| `assets/` | Logo, background, and other images |
+| `js/version.js` | Player-facing release record (see §5) |
+| `js/game.js` | Browser game: live duel loop, rival AI, UI and FX, Balance Lab simulator, in-browser dev checks, multiplayer adapter (`EB_MP`) |
+| `js/firebaseBootstrap.js`, `js/multiplayerClient.js`, `js/matchmakingClient.js` | Online play client |
+| `lib/cardCatalog.js` | Card data and rules text (Manifestations, Techniques, Responses, hybrids). Loaded by the browser and Node |
+| `lib/gameEngine.js` | Pure, DOM-free authoritative rules engine. Used by the server, loaded in the browser (`window.ElementBoundEngine`), and used by Node tests |
+| `lib/matchFactory.js` | Builds match state. Loaded by the browser and the server |
+| `lib/playerView.js` | Builds each seat's private, filtered view (the main privacy filter) |
+| `lib/firebaseAdmin.js` | Admin SDK setup (server only) |
+| `api/submit-move.js`, `api/create-room.js`, `api/join-room.js`, `api/firebase-config.js` | The four Vercel endpoints |
+| `firestore.rules`, `firebase.json` | Firestore security rules and emulator config |
+| `tests/*.cjs` | Regression tests. Only tests listed in the workflow run in CI |
+| `.github/workflows/verify-candidate-b.yml` | Main CI; runs on every PR to `main` |
+| `.github/pull_request_template.md` | Required PR description format |
+| `.gitignore` | Files Git must never track (dependencies, secrets, logs) |
+| `package.json`, `package-lock.json` | Server and test dependencies |
+| `README.md` | Multiplayer deployment and environment setup |
+| `VERSIONING.md` | Release procedure (keep consistent with §5) |
+| `docs/DESIGN.md` | UI/UX and game-design decisions (create when the first one is recorded) |
+| `CANDIDATE_B.md`, `MIGRATION.md`, `MIGRATION_MANIFEST.json`, `migration/` | Historical migration records. Do not edit unless asked |
+
+## 4. Rules parity checklist
+
+Game rules are implemented in more than one place. For **any gameplay-rule change**,
+check each surface below and either update it or state in the PR why it does not apply:
+
+- [ ] Card text and data: `lib/cardCatalog.js`
+- [ ] Live duel resolution: `js/game.js`
+- [ ] Rival AI resolution **and** decision policy: `js/game.js`
+- [ ] Balance Lab simulator: `js/game.js` (do not copy simulator-only telemetry into live or server code)
+- [ ] Authoritative engine: `lib/gameEngine.js`
+- [ ] Player view and events, if the change adds state or events: `lib/playerView.js`
+- [ ] Focused tests proving the updated surfaces agree
+
+Response cards need extra care. Keep before-damage vs. after-damage timing,
+token-funded vs. card-funded responses, server deadlines, and hidden legal
+options consistent across single-player, AI, and server.
+
+## 5. Versioning
+
+There are separate version concepts. Do not synchronize them with each other:
+
+| Field | Meaning |
+|---|---|
+| `EB_RELEASE.version` in `js/version.js` | **Player-facing release.** Shown on the main menu, battle header, diagnostics, Balance Lab, and browser title |
+| `label`, `focus`, `audience` | Player-facing release description |
+| `engine`, `ruleset`, `balanceLab` | Engine, ruleset, and Balance Lab identifiers |
+| Branch suffix (e.g. `-1.1.1`) | The release number that branch is building toward |
+| `package.json` `version` | npm metadata only. Never change it for a release |
+
+**Policy *(team policy)*:** Any PR that changes what players see or how the game
+plays must update `js/version.js`: set `version` to the branch suffix and update
+`label` and `focus`. Update `engine`, `ruleset`, and `balanceLab` only when those
+actually change. Docs-only, test-only, and CI-only PRs do not bump the version.
+
+History note: the multiplayer work through 1.1.1 (merged in PR #31) did not
+bump `js/version.js`, which still says 0.8.62. The next player-facing PR
+reconciles it to its own branch version. After that, the policy above applies
+to every PR. `VERSIONING.md` follows this section.
+
+## 6. Branches, commits, and PRs
+
+Branch formats:
+- Player-facing release work: `type/short-name-X.Y.Z`
+  (types: `feature`, `fix`, `hotfix`, `refactor`).
+- Non-release work: `docs/short-name`, `test/short-name`, or `ci/short-name`
+  (no version suffix).
+
+Do not use agent-named prefixes (`claude/`, `codex/`, `chatgpt/`). Always
+allowed, never renamed: a branch name the Owner explicitly supplies, branches
+provided by the platform or task environment, and existing historical branches.
+
+Commits:
+- Focused commits with clear messages.
+- Stage files explicitly. Never use `git add -A` or `git add .` when unrelated
+  changes exist.
+- Never commit `node_modules/`, emulator logs, `.env` files, keys, or debug output.
+  `.gitignore` blocks most of these, but still check `git status` before committing.
+  Never edit `.gitignore` to un-ignore secrets.
+- Never clean, reset, stash, or delete changes you did not make.
+- No force-push, amend, or rebase of pushed work without Owner approval.
+- If the task says not to push until reviewed, do not push.
+
+Every PR fills in `.github/pull_request_template.md` completely. Do not delete
+sections; write "N/A" with a reason instead. PR title format:
+- Release PRs: `[X.Y.Z] type: short summary` (e.g. `[1.1.2] fix: reconnect window`)
+- Non-release PRs: `[docs] short summary`, `[test] short summary`, or `[ci] short summary`
+
+Deleting a branch after merge is the Owner's repository-maintenance task.
+
+## 7. Checks before requesting review
+
+Code changes (anything touching `.js`, `.cjs`, `.html`, `.css`, rules, or config):
+1. `node --check` on every changed `.js` and `.cjs` file.
+2. The full command list in `.github/workflows/verify-candidate-b.yml`. Run
+   `npm ci` first if dependencies may not be clean. The Firestore rules suite
+   needs Java 21.
+3. `git diff --check`, then review the staged diff and `git status` before committing.
+
+Docs-only, PR-template, and `.gitignore` changes: `git diff --check`, `git status`,
+and confirm any paths or commands the docs mention actually exist. CI is the
+full gate. Run the full workflow locally only if asked, or if the change edits
+workflow or executable config.
+
+By change type:
+- **Gameplay rules:** parity tests (§4), plus the Balance Lab parity tests if the simulator changed.
+- **Multiplayer or server:** endpoint tests; both seats' views; `npm run test:firestore-rules`.
+- **Security rules or auth:** everything above, plus Owner approval.
+- **UI:** a screenshot or preview on a phone-sized viewport when a browser is available.
+
+New behavior needs focused automated coverage. Extend a relevant existing test
+file when one fits; otherwise add a new file **and** add it to the workflow
+(files not listed there never run).
+
+If a check cannot be run in your environment (no browser, no Java), say so in
+the PR. Never claim a check passed that you did not run.
+
+## 8. Security and multiplayer invariants (non-negotiable)
+
+Authority:
+- All online moves go through `/api/submit-move`. Clients never write game state to Firestore.
+- The server derives the seat from the verified Firebase ID token. Never trust a
+  client-supplied `uid`, `actor`, or `playerSlot`. Keep the revision check.
+- The move is applied and **both** player views are written in the same Firestore
+  transaction, after every accepted state change.
+- Clients render the board only from their own `rooms/{roomId}/views/{uid}`
+  snapshot. An HTTP success never authorizes a client-side board change.
+- Authoritative timing (response deadlines, expiry) uses server time only, never
+  the client clock.
+
+Privacy:
+- Views and events never reveal the opponent's hand, deck order, drawn card
+  names, or private Response options.
+- Any change to room, view, or event document shapes (`pendingResponse`,
+  `serverNow`, event `seq`, etc.) is a privacy and sync change. Flag it in the PR
+  and test it for both seats.
+- State, events, and both player views must be Firestore-safe with no `undefined`
+  values. Events are built through the engine's `withoutUndefined` helper. Add
+  deep-scan regression coverage whenever these shapes change. (There is currently
+  no runtime scan before each write; adding one is a separate, approved code task.)
+
+Event stream:
+- Events are ordered by the server's increasing `seq`, and old events must not
+  replay on reconnect.
+- Seat and actor fields are converted to each player's perspective.
+- History stays bounded (currently the last 200 events).
+- Client FX and logs may react to events; the board still comes only from snapshots.
+
+Secrets and infrastructure:
+- `firestore.rules` stays deny-by-default. Any change needs Owner approval and
+  must pass the emulator rules suite.
+- Never commit or log secrets: private keys, service-account JSON, ID tokens,
+  `Authorization` headers. Never put tokens in URLs. Admin credentials exist only
+  as Vercel environment variables. `/api/firebase-config` returns public web config only.
+- Owner approval is required for: new browser scripts or CDN hosts, Firebase SDK
+  version changes, Content-Security-Policy changes, new server runtime packages,
+  new dev/test packages, and any paid service.
+- Never weaken, skip, or delete a test to make CI pass. Fix the code or ask.
+
+## 9. UI/UX direction *(team policy)*
+
+Claude designs and Codex implements from the approved spec. Record decisions in
+`docs/DESIGN.md`. Create that file with the first real design decision; never add
+an empty placeholder.
+- Match the art style of the main-page logo and background. Not neon, not flat-minimal.
+- Minimal UI with detailed framed outlines.
+- Orange must not be the dominant general UI color. Keep Fire and Magma
+  oranges/reds, warning colors, and the gold initiative coin where they carry meaning.
+- Reuse shared CSS classes and rendering helpers (e.g. `.primary`, `.ghost`) so
+  that changing one component type updates all of it. Avoid new inline styles
+  when a shared class can be extended.
+- Portrait-first; must work well on a phone.
+
+Accessibility: **new or modified** UI must meet these rules. Existing UI does not
+fully meet them yet (e.g. the initiative overlay, modal focus handling). Do not
+expand a focused task into unrelated legacy cleanup; flag existing violations
+in the PR and ask whether to fix them separately.
+- Controls work by both touch and keyboard, with visible focus states.
+- Respect `prefers-reduced-motion`.
+- Keep ARIA labels and live regions for status changes.
+- Touch targets at least 44×44 px.
+- Focus moves into a modal when it opens and returns to the opener when it closes.
+- Every modal has an intentional exit. Informational and selection modals are
+  dismissible. Rules-critical modals (e.g. the Response Window, `dismissible:false`)
+  exit only through a game action such as PASS.
+- Never convey information by color alone.
+
+## 10. When unsure
+
+Ask in the active task conversation before changing code. If a PR already
+exists, ask there. Never push a speculative implementation just to ask a
+question, rewrite a system in a new pattern, or touch files outside the task.
