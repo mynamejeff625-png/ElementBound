@@ -22,9 +22,7 @@ const TYPES = {
   '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json',
   '.woff': 'font/woff', '.woff2': 'font/woff2', '.txt': 'text/plain'
 };
-// Known issue: the CSP (style-src 'self') blocks the game's inline style attributes.
-// This ceiling stops it getting worse; UI Phase 1 must bring it to 0.
-const MAX_BLOCKED_INLINE_STYLES = Number(process.env.EB_MAX_BLOCKED_INLINE_STYLES ?? 6);
+const MAX_BLOCKED_INLINE_STYLES = Number(process.env.EB_MAX_BLOCKED_INLINE_STYLES ?? 0);
 const VIEWPORTS = [
   { name: 'iphone-se', width: 375, height: 667 },
   { name: 'iphone-14', width: 390, height: 844 }
@@ -92,23 +90,49 @@ async function run() {
         await visible(selector);
         await navUnlocked();
       };
+      const foundation = async label => {
+        const result=await page.evaluate(async()=>{
+          await Promise.all([
+            document.fonts.load('700 16px Cinzel'),
+            document.fonts.load('400 16px "Nunito Sans"')
+          ]);
+          const text=document.body.innerText.replace(/[✓✕⚠]/gu,'');
+          const icons=await fetch('assets/icons.svg');
+          return{
+            emoji:text.match(/\p{Extended_Pictographic}/gu)||[],
+            displayFont:document.fonts.check('700 16px Cinzel'),
+            uiFont:document.fonts.check('400 16px "Nunito Sans"'),
+            hasUI:!!window.EB_UI,
+            iconsStatus:icons.status
+          };
+        });
+        assert.deepEqual(result.emoji,[],`${label}: rendered text contains no emoji`);checks++;
+        assert.equal(result.displayFont,true,`${label}: Cinzel is available`);checks++;
+        assert.equal(result.uiFont,true,`${label}: Nunito Sans is available`);checks++;
+        assert.equal(result.hasUI,true,`${label}: EB_UI exists`);checks++;
+        assert.equal(result.iconsStatus,200,`${label}: icon sprite loads`);checks++;
+      };
 
       await page.goto(base, { waitUntil: 'load' });
       await visible('#home.on', 'home screen');
       const stamp = await page.locator('#buildStamp').textContent();
       assert.match(stamp, /Alpha \d+\.\d+\.\d+/, 'main menu shows the release version'); checks++;
+      await foundation('home');
       await shot('01-home');
 
       await navigate(() => goTrials(), '#trials.on');
+      await foundation('trials');
       await shot('02-trials');
 
       await navigate(() => goCodex(), '#codex.on');
       await visible('#codexList button', 'codex cards');
+      await foundation('codex');
       await shot('03-codex');
 
       await navigate(() => go('home'), '#home.on');
       await page.evaluate(() => showRules());
       await visible('#mw:not(.hide)', 'how to play sheet');
+      await foundation('how to play');
       await shot('04-how-to-play');
       await page.evaluate(() => hideModal());
       await page.locator('#mw').waitFor({ state: 'hidden', timeout: 5000 });
@@ -116,6 +140,7 @@ async function run() {
       await navigate(() => go('setup'), '#setup.on');
       await page.locator('#decks button').first().click();
       await page.locator('#diffs button').first().click();
+      await foundation('setup');
       await shot('05-setup');
       await page.locator('#start').click();
       await visible('#battle.on', 'duel screen');
@@ -134,6 +159,7 @@ async function run() {
       await page.locator('#initiativeOverlay').waitFor({ state: 'hidden', timeout: 5000 });
       checks++;
       await visible('#hand .card, #hand button, #hand > *', 'cards in hand');
+      await foundation('duel');
       await shot('06-duel');
 
       assert.deepEqual(errors, [], `${vp.name}: page errors:\n${errors.join('\n')}`); checks++;
