@@ -99,7 +99,7 @@ Facts:
 | `package.json`, `package-lock.json` | Server and test dependencies |
 | `README.md` | Multiplayer deployment and environment setup |
 | `VERSIONING.md` | Release procedure (keep consistent with §5) |
-| `docs/DESIGN.md` | UI/UX and game-design decisions (create when the first one is recorded) |
+| `docs/DESIGN.md` | Binding UI/UX design system: tokens, frames, components, icons, layout rules, roadmap. Read before any UI work |
 | `CANDIDATE_B.md`, `MIGRATION.md`, `MIGRATION_MANIFEST.json`, `migration/` | Historical migration records. Do not edit unless asked |
 
 ## 4. Rules parity checklist
