@@ -151,6 +151,10 @@ set inline styles.
   through a game action such as Pass.
 - Frequent actions live in the bottom third of the screen; rare ones (settings,
   exit, log) at the top.
+- Layering: screen content < sticky bars < sheets and the Inspect/zoom view <
+  dialogs < toasts. A sheet or zoom view always covers everything beneath it,
+  including dials and animated items (use fixed layer tokens, e.g.
+  `--eb-z-sheet: 100`, never ad-hoc z-index values).
 
 ## 5. Icons (`assets/icons.svg`)
 
