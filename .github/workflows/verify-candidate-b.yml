@@ -24,6 +24,9 @@ jobs:
       - run: node --check js/version.js
       - run: node --check js/hostRedirect.js
       - run: node tests/host-redirect-1.1.2.cjs
+      - run: node --check js/ui.js
+      - run: node --check tests/ui-foundation-1.2.0.cjs
+      - run: node tests/ui-foundation-1.2.0.cjs
       - run: node --check js/game.js
       - run: node --check lib/gameEngine.js
       - run: node tests/pure-engine-extraction.cjs

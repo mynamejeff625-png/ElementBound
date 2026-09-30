@@ -1,11 +1,11 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.1.2',
-  label:'Housekeeping',
+  version:'1.2.0',
+  label:'Foundation',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Version sync · Element Bound naming · Vercel redirect',
+  focus:'Design tokens · SVG icons · New fonts',
   audience:'Prime & Hybrid Benders'
 });
 

@@ -1,0 +1,63 @@
+@font-face{font-family:"Cinzel";src:url("../assets/fonts/cinzel-latin-wght.woff") format("woff");font-weight:600 800;font-display:swap}
+@font-face{font-family:"Nunito Sans";src:url("../assets/fonts/nunito-sans-latin-wght.woff") format("woff");font-weight:400 800;font-display:swap}
+
+:root{
+ --eb-ink:#EEF1F7;
+ --eb-ink-quiet:#B9C2D6;
+ --eb-plate:rgba(17, 21, 31, 0.92);
+ --eb-plate-edge:#0D111B;
+ --eb-bronze-hi:#E4CFA3;
+ --eb-bronze-lo:#8A7250;
+ --eb-select:#FFF3DC;
+ --eb-target:#FF6B6B;
+ --eb-drop:#9FD8FF;
+ --eb-danger:#D46A6A;
+ --eb-hp-hi:#FF7A6A;
+ --eb-hp-lo:#B8231C;
+ --eb-essence-hi:#E6FBFF;
+ --eb-essence-lo:#1F4FAE;
+ --eb-el-fire:#FF704D;
+ --eb-el-water:#55C7FF;
+ --eb-el-nature:#67D77A;
+ --eb-el-earth:#D0A25C;
+ --eb-el-lightning:#FFE45D;
+ --eb-el-air:#BDEAFF;
+ --eb-el-magma:#FF633F;
+ --eb-el-storm:#AA91FF;
+ --eb-el-bloom:#6BE8AE;
+ --eb-font-display:"Cinzel", Georgia, serif;
+ --eb-font-ui:"Nunito Sans", system-ui, sans-serif;
+ --eb-text-xs:11px;
+ --eb-text-sm:13px;
+ --eb-text-md:15px;
+ --eb-text-lg:19px;
+ --eb-text-xl:24px;
+ --eb-text-3xl:32px;
+ --eb-space-1:4px;
+ --eb-space-2:8px;
+ --eb-space-3:12px;
+ --eb-space-4:16px;
+ --eb-space-5:24px;
+ --eb-space-6:32px;
+ --eb-radius-sm:6px;
+ --eb-radius-md:9px;
+ --eb-radius-lg:14px;
+ --eb-dur-tap:80ms;
+ --eb-dur-lift:150ms;
+ --eb-dur-summon:250ms;
+ --eb-dur-attack:300ms;
+ --eb-dur-float:600ms;
+ --eb-dur-banner:900ms;
+ --eb-ease:cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion:reduce){
+ :root{
+  --eb-dur-tap:1ms;
+  --eb-dur-lift:1ms;
+  --eb-dur-summon:1ms;
+  --eb-dur-attack:1ms;
+  --eb-dur-float:200ms;
+  --eb-dur-banner:200ms;
+ }
+}

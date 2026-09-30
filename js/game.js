@@ -1,7 +1,13 @@
 
 const EB_RELEASE=window.EB_RELEASE||Object.freeze({version:'0.0.0',label:'Development',engine:'EB-development',balanceLab:'Balance Lab',ruleset:'EB-RULES-DEVELOPMENT'});
 
-const {E,HYBRIDS,INFO,BASE,RESPONSES,TECH,HYBRID_CARDS}=window.ElementBoundCards;
+const {HYBRIDS,INFO,BASE,RESPONSES,TECH,HYBRID_CARDS}=window.ElementBoundCards;
+const EB_ELEMENT_NAMES={FIRE:'Fire',WATER:'Water',NATURE:'Nature',EARTH:'Earth',LIGHTNING:'Lightning',AIR:'Air',MAGMA:'Magma',STORM:'Storm',BLOOM:'Bloom'};
+function ebElementName(element){return EB_ELEMENT_NAMES[element]||String(element||'')}
+function ebIconMarkup(name,label){return window.EB_UI.icon(name.toLowerCase(),label?{label}:{}).outerHTML}
+function ebElementIcon(element){let icon=window.EB_UI.icon(element.toLowerCase(),{label:ebElementName(element)});icon.classList.add('element-icon',`eb-element--${element.toLowerCase()}`);return icon.outerHTML}
+function ebSetIconText(node,icon,text,label){if(!node)return;node.replaceChildren(window.EB_UI.icon(icon,{label}),document.createTextNode(` ${text}`))}
+function ebHydrateStaticIcons(){if(!document.querySelectorAll)return;document.querySelectorAll('[data-eb-element-icon]').forEach(host=>{let name=host.dataset.ebElementIcon,icon=window.EB_UI.icon(name);icon.classList.add('element-icon',`eb-element--${name}`);host.replaceWith(icon)})}
 
 function responseCard(el){return window.ElementBoundMatchFactory.createResponseCard(()=>++uid,el)}
 let EB_HYBRID_RESPONSE_CHOICE=null;
@@ -62,7 +68,7 @@ function go(id){
  return true;
 }
 function ebPulseChain(){let el=document.getElementById('chain');if(!el)return;el.hidden=false;el.classList.remove('chainPulse');void el.offsetWidth;el.classList.add('chainPulse');setTimeout(()=>el.classList.remove('chainPulse'),420)}
-function setup(){EB_VIS=null;let d=document.getElementById('decks');d.innerHTML='';Object.keys(INFO).forEach(k=>{let x=document.createElement('button');x.className='deck';let kind=HYBRIDS[k]?'HYBRID':'PRIME';x.innerHTML=`<b>${E[k]} ${INFO[k][0]}</b><div class=small>${kind} · ${INFO[k][1]}</div><div class=small>${INFO[k][2]}</div>`;x.onclick=()=>{choice=k;EB_HYBRID_RESPONSE_CHOICE=null;document.querySelectorAll('.deck').forEach(y=>y.classList.remove('sel'));x.classList.add('sel');ready()};d.appendChild(x)});let q=document.getElementById('diffs');q.innerHTML='';['Easy','Medium','Difficult'].forEach(k=>{let x=document.createElement('button');x.className='diff';x.textContent=k;x.onclick=()=>{diff=k;document.querySelectorAll('.diff').forEach(y=>y.classList.remove('sel'));x.classList.add('sel');ready()};q.appendChild(x)})}
+function setup(){EB_VIS=null;let d=document.getElementById('decks');d.innerHTML='';Object.keys(INFO).forEach(k=>{let x=document.createElement('button');x.className='deck';let kind=HYBRIDS[k]?'HYBRID':'PRIME';x.innerHTML=`<b>${ebElementIcon(k)} ${INFO[k][0]}</b><div class=small>${kind} · ${INFO[k][1]}</div><div class=small>${INFO[k][2]}</div>`;x.onclick=()=>{choice=k;EB_HYBRID_RESPONSE_CHOICE=null;document.querySelectorAll('.deck').forEach(y=>y.classList.remove('sel'));x.classList.add('sel');ready()};d.appendChild(x)});let q=document.getElementById('diffs');q.innerHTML='';['Easy','Medium','Difficult'].forEach(k=>{let x=document.createElement('button');x.className='diff';x.textContent=k;x.onclick=()=>{diff=k;document.querySelectorAll('.diff').forEach(y=>y.classList.remove('sel'));x.classList.add('sel');ready()};q.appendChild(x)})}
 function ready(){document.getElementById('start').disabled=!(choice&&diff)}
 function mk(el,n,c,a,h,guard=false,text='',tip=''){return window.ElementBoundMatchFactory.manifestation(()=>++uid,el,n,c,a,h,guard,text,tip)}
 function deck(el,responseEl=null){return window.ElementBoundMatchFactory.createDeck(el,{responseElement:responseEl,nextId:()=>++uid})}
@@ -77,10 +83,10 @@ let EB_INIT_RAF1=0,EB_INIT_RAF2=0,EB_INIT_RUN=0;
 function ebInitiativeCancelPresentation(){clearTimeout(EB_INIT_T);EB_INIT_T=0;if(EB_INIT_RAF1)cancelAnimationFrame(EB_INIT_RAF1);if(EB_INIT_RAF2)cancelAnimationFrame(EB_INIT_RAF2);EB_INIT_RAF1=EB_INIT_RAF2=0;EB_INIT_RUN++}
 function ebInitiativeReveal(){if(!G||!G.initiative||G.initiative.finished||G.initiative.revealed)return;clearTimeout(EB_INIT_T);EB_INIT_T=0;let r=document.getElementById('initiativeResult'),b=document.getElementById('initiativeBonus'),p=document.getElementById('initiativePanel'),c=document.getElementById('initiativeCoin');if(c)c.classList.remove('flip');if(r)r.textContent=G.active===0?'YOU WON · YOU GO FIRST':'RIVAL WON · RIVAL GOES FIRST';if(b)b.textContent=G.active===0?'Rival receives the Initiation Token':'You receive the Initiation Token';if(p){p.classList.remove('land');void p.offsetWidth;p.classList.add('land')}G.initiative.revealed=true;EB_INIT_T=setTimeout(ebInitiativeFinish,1500)}
 function ebInitiativeSkip(){if(!G||!G.initiative||G.initiative.finished)return;EB_INIT_RUN++;if(EB_INIT_RAF1)cancelAnimationFrame(EB_INIT_RAF1);if(EB_INIT_RAF2)cancelAnimationFrame(EB_INIT_RAF2);EB_INIT_RAF1=EB_INIT_RAF2=0;clearTimeout(EB_INIT_T);EB_INIT_T=0;if(!G.initiative.revealed)ebInitiativeReveal();else ebInitiativeFinish()}
-function ebInitiativeShow(){let o=document.getElementById('initiativeOverlay'),c=document.getElementById('initiativeCoin'),r=document.getElementById('initiativeResult'),b=document.getElementById('initiativeBonus');if(!o)return ebInitiativeFinish();ebInitiativeCancelPresentation();let run=EB_INIT_RUN;o.classList.remove('hide');if(r)r.textContent='FLIPPING…';if(b)b.textContent='';if(c)c.classList.remove('flip');/* Two paint opportunities prevent iOS Safari from coalescing overlay reveal + animation start. */EB_INIT_RAF1=requestAnimationFrame(()=>{if(run!==EB_INIT_RUN||!G||!G.initiative||G.initiative.finished)return;EB_INIT_RAF2=requestAnimationFrame(()=>{if(run!==EB_INIT_RUN||!G||!G.initiative||G.initiative.finished)return;if(c)c.classList.add('flip');EB_INIT_T=setTimeout(ebInitiativeReveal,1500)})})}
+function ebInitiativeShow(){if(!G||!G.initiative||G.initiative.finished)return;let o=document.getElementById('initiativeOverlay'),c=document.getElementById('initiativeCoin'),r=document.getElementById('initiativeResult'),b=document.getElementById('initiativeBonus');if(!o)return ebInitiativeFinish();ebInitiativeCancelPresentation();let run=EB_INIT_RUN;o.classList.remove('hide');if(r)r.textContent='FLIPPING…';if(b)b.textContent='';if(c)c.classList.remove('flip');/* Two paint opportunities prevent iOS Safari from coalescing overlay reveal + animation start. */EB_INIT_RAF1=requestAnimationFrame(()=>{if(run!==EB_INIT_RUN||!G||!G.initiative||G.initiative.finished)return;EB_INIT_RAF2=requestAnimationFrame(()=>{if(run!==EB_INIT_RUN||!G||!G.initiative||G.initiative.finished)return;if(c)c.classList.add('flip');EB_INIT_T=setTimeout(ebInitiativeReveal,1500)})})}
 function startMatch(){
  if(HYBRIDS[choice]&&!HYBRIDS[choice].parents.includes(EB_HYBRID_RESPONSE_CHOICE)){
-  let h=HYBRIDS[choice];modal('Choose your Hybrid Response card',h.parents.map(el=>[`${E[el]} ${RESPONSES[el].n}`,()=>{EB_HYBRID_RESPONSE_CHOICE=el;hideModal();setTimeout(startMatch,190)}]));return;
+  let h=HYBRIDS[choice];modal('Choose your Hybrid Response card',h.parents.map(el=>[`${ebElementName(el)} ${RESPONSES[el].n}`,()=>{EB_HYBRID_RESPONSE_CHOICE=el;hideModal();setTimeout(startMatch,190)}]));return;
  }
  selectedCardId=null;clearTimeout(EB_INIT_T);let keys=Object.keys(INFO),pool=keys.filter(x=>x!==choice&&x!==window.lastOpp);if(!pool.length)pool=keys.filter(x=>x!==choice);let opp=pool[Math.floor(Math.random()*pool.length)];window.lastOpp=opp;
  let oppResp=HYBRIDS[opp]?HYBRIDS[opp].parents[Math.floor(Math.random()*HYBRIDS[opp].parents.length)]:opp;
@@ -134,7 +140,7 @@ function startTrial(el){
       id:'FIRE_01',
       element:'FIRE',
       title:'Trial of Flame',
-      icon:'🔥',
+      icon:'fire',
       objective:'Defeat the rival this turn by using Burning before your payoff.',
       fail:'Burning needed to come before the payoff.',
       mastered:'SETUP → PAYOFF',
@@ -161,7 +167,7 @@ function startTrial(el){
       id:'LIGHTNING_01',
       element:'LIGHTNING',
       title:'Trial of Storms',
-      icon:'⚡',
+      icon:'lightning',
       objective:'Use Static Step → build Charge → attack with Spark Runner to release it.',
       fail:'Charge first. Then release it with Spark Runner.',
       mastered:'CHARGE → RELEASE',
@@ -195,7 +201,7 @@ function startTrial(el){
       id:'AIR_01',
       element:'AIR',
       title:'Trial of Winds',
-      icon:'🌪️',
+      icon:'air',
       objective:'Use Crosswind to give Gale Scout Momentum and SWAP Stone Initiate with Wind Anchor → then attack Stone Initiate.',
       fail:'Give Gale Scout Momentum and swap the targets first. Then attack Stone Initiate.',
       mastered:'MOMENTUM + SWAP → EXPLOIT',
@@ -230,7 +236,7 @@ function startTrial(el){
       id:'EARTH_01',
       element:'EARTH',
       title:'Trial of Stone',
-      icon:'🪨',
+      icon:'earth',
       objective:'Use Fortify → gain Armor → survive the Trial Colossus strike.',
       fail:'Armor first. Without it, Earthen Guard cannot hold the line.',
       mastered:'GUARD → SURVIVE',
@@ -265,7 +271,7 @@ function startTrial(el){
       id:'NATURE_01',
       element:'NATURE',
       title:'Trial of Roots',
-      icon:'🌿',
+      icon:'nature',
       objective:'Use your Nature Technique on Root Keeper → gain Growth → attack with Grove Beast.',
       fail:'Use the Technique first. Growth must be created before Grove Beast can finish.',
       mastered:'GROW → STRIKE',
@@ -299,7 +305,7 @@ function startTrial(el){
       id:'WATER_01',
       element:'WATER',
       title:'Trial of Tides',
-      icon:'💧',
+      icon:'water',
       objective:'Apply Soaked, then use River Serpent to break the Driftstone.',
       fail:'Soak the target before you strike.',
       mastered:'SOAK → STRIKE',
@@ -349,8 +355,8 @@ function renderTrialUI(){
      false);
 
   box.innerHTML=failed
-    ? `<b>${t.icon} ${t.title} · Sequence missed</b><span class="small">${t.fail}</span><button class="ghost" style="margin-top:8px" onclick="resetTrial()">↻ TRY AGAIN</button>`
-    : `<b>${t.icon} ${t.title}</b><span class="small">${t.objective}</span>${G.winner?'<button class="ghost" style="margin-top:8px" onclick="resetTrial()">↻ TRY AGAIN</button>':''}`;
+    ? `<b>${ebIconMarkup(t.icon)} ${t.title} · Sequence missed</b><span class="small">${t.fail}</span><button class="ghost trial-retry" onclick="resetTrial()">TRY AGAIN</button>`
+    : `<b>${ebIconMarkup(t.icon)} ${t.title}</b><span class="small">${t.objective}</span>${G.winner?'<button class="ghost trial-retry" onclick="resetTrial()">TRY AGAIN</button>':''}`;
 }
 
 
@@ -435,7 +441,7 @@ function resolveStoneTrial(){
   return t.progress.survived;
 }
 
-function registerAffinity(p,c){let h=HYBRIDS[p.el];if(!h||c.el===p.el)return;let r=p.turnState.resonance;if(c.el===h.parents[0])r.a=true;if(c.el===h.parents[1])r.b=true;let was=r.active;r.active=r.a&&r.b;p.turnState.resolved.push(c.id);if(r.active&&!was)add(`${E[p.el]} ${INFO[p.el][0]} RESONANCE ACTIVE`)}
+function registerAffinity(p,c){let h=HYBRIDS[p.el];if(!h||c.el===p.el)return;let r=p.turnState.resonance;if(c.el===h.parents[0])r.a=true;if(c.el===h.parents[1])r.b=true;let was=r.active;r.active=r.a&&r.b;p.turnState.resolved.push(c.id);if(r.active&&!was)add(`${ebElementName(p.el)} ${INFO[p.el][0]} RESONANCE ACTIVE`)}
 function resonant(p){return !!(p.turnState&&p.turnState.resonance.active)}
 function add(s){G.logs.push(`T${G.turn} ${s}`)}function bump(s){G.rev++;if(s)add(s);winCheck();validateState();render()}
 function me(){return G.p[0]}function foe(){return G.p[1]}function current(){return G.p[G.active]}function other(){return G.p[1-G.active]}
@@ -578,7 +584,7 @@ if(c.type==='TECHNIQUE'){sendToWake(p,c,'technique');
     // Crosswind creates a tactical opening for Gale Scout this turn.
     // Store it in turnState so it expires naturally when the next turn starts.
     p.turnState.airOpening=true;
-    add(`${c.n}: swaps ${m.n} M${from+1} ↔ ${other.n} M${to+1} · ${weakened} Weakened · Air Opening ready`);
+    add(`${c.n}: swaps ${m.n} M${from+1} and ${other.n} M${to+1} · ${weakened} Weakened · Air Opening ready`);
     if(G.trial&&G.trial.element==='AIR'&&c.n==='Crosswind'&&(m.id===G.trial.progress.targetId||other.id===G.trial.progress.targetId)){
       G.trial.progress.swapped=true;G.trial.progress.step=1;
       add('WINDS · SWAP complete → attack Stone Initiate with Gale Scout.');
@@ -897,7 +903,7 @@ for(let step=0;step<budget;step++){let legal=p.hand.filter(c=>c.c<=p.e&&(c.type=
    else if(c.el==='NATURE'){let t=p.slots.find(m=>m&&(m.marks||[]).includes('Seeded')&&(m.growth||0)<3);if(t&&grow(t,p)){add(`Rival Verdant Mend: ${t.n} gains Growth ${t.growth}`)}else add('Rival Verdant Mend: no Seeded target · no effect')}
    else if(c.el==='WATER'){let t=e.slots.find(Boolean);if(t)addMark(t,'Soaked');add(`Rival Current Shift: Flow 1${t?' + Soaked':''}`);flow1(p,true)}
    else if(c.el==='LIGHTNING'){if(G.chain===2){addMark(e,'Charged');add(`Rival Static Step: second card → your Bender is Charged`)}else add(`Rival Static Step: Flow 1`)}
-   else if(c.el==='AIR'){let t=p.slots.find(m=>m&&m.n==='Sky Raptor'&&momentumStacks(m)<3)||p.slots.filter(Boolean).sort((a,b)=>momentumStacks(a)-momentumStacks(b))[0];if(t){gainMomentum(t);add(`Rival Crosswind: ${t.n} gains Momentum ${momentumStacks(t)}/3`)}else add('Rival Crosswind: no friendly target');let occupied=e.slots.map((m,i)=>m?i:-1).filter(i=>i>=0);if(occupied.length>=2){let [from,to]=occupied,a=e.slots[from],b=e.slots[to];[e.slots[from],e.slots[to]]=[b,a];let weakened=[applyCrosswindWeakness(a),applyCrosswindWeakness(b)].filter(Boolean).length;p.turnState.airOpening=true;add(`Rival Crosswind swaps M${from+1} ↔ M${to+1} · ${weakened} Weakened · Air Opening ready`)}}
+   else if(c.el==='AIR'){let t=p.slots.find(m=>m&&m.n==='Sky Raptor'&&momentumStacks(m)<3)||p.slots.filter(Boolean).sort((a,b)=>momentumStacks(a)-momentumStacks(b))[0];if(t){gainMomentum(t);add(`Rival Crosswind: ${t.n} gains Momentum ${momentumStacks(t)}/3`)}else add('Rival Crosswind: no friendly target');let occupied=e.slots.map((m,i)=>m?i:-1).filter(i=>i>=0);if(occupied.length>=2){let [from,to]=occupied,a=e.slots[from],b=e.slots[to];[e.slots[from],e.slots[to]]=[b,a];let weakened=[applyCrosswindWeakness(a),applyCrosswindWeakness(b)].filter(Boolean).length;p.turnState.airOpening=true;add(`Rival Crosswind swaps M${from+1} and M${to+1} · ${weakened} Weakened · Air Opening ready`)}}
  }else{let i=p.slots.findIndex(x=>!x);if(i<0)continue;c.zone='FIELD';c.sick=true;c.ready=true;c.marks=c.marks||[];p.slots[i]=c;if(c.el==='FIRE'&&c.n==='Cinder Adept'){addMark(e,'Burning');add(`Rival ${c.n}: applies Burning to your Bender`)}if(c.el==='WATER'&&c.n==='Mist Adept'){add(`Rival ${c.n}: Flow 1`);flow1(p,true)}if(c.el==='LIGHTNING'&&c.n==='Spark Runner'&&G.chain===2){G.chain++;add(`Rival ${c.n}: second card → +1 Chain (Chain ${G.chain})`);ebPulseChain()}resolvePrimeSummonGift(p,c,true);add(`Rival summons ${c.n}`)}
  registerAffinity(p,c);
  winCheck();
@@ -944,7 +950,7 @@ function showDuelEndPrompt(result){
  if(!G||G.trial||!G.winner||G.endPromptShown)return;
  G.endPromptShown=true;
  let playerWon=result.winnerIndex===0;
- let title=result.reason==='DRAW'?'⚖️ DUEL DRAW':playerWon?'🏆 YOU WIN':'🏆 RIVAL BENDER WINS';
+ let title=result.reason==='DRAW'?'DUEL DRAW':playerWon?'YOU WIN':'RIVAL BENDER WINS';
  let reason=result.reason==='DRAW'?'Both Benders reached 0 Vitality at the same settlement point.':result.reason==='CARD_DEPLETION'
    ? `${G.p[result.loserIndex].name} has no cards remaining in Hand or Deck.`
    : `${G.p[result.loserIndex].name} reached 0 Vitality.`;
@@ -1041,7 +1047,12 @@ function ebDrainFx(){
    }
  },ix*110)));
 }
-const EB_FX_COLOR={FIRE:'#ff704d',WATER:'#55c7ff',NATURE:'#67d77a',EARTH:'#d0a25c',LIGHTNING:'#ffe45d',AIR:'#bdeaff',MAGMA:'#ff633f',STORM:'#aa91ff',BLOOM:'#6be8ae'};
+const EB_FX_COLOR_FALLBACK={FIRE:'#ff704d',WATER:'#55c7ff',NATURE:'#67d77a',EARTH:'#d0a25c',LIGHTNING:'#ffe45d',AIR:'#bdeaff',MAGMA:'#ff633f',STORM:'#aa91ff',BLOOM:'#6be8ae'};
+const EB_FX_COLOR=Object.fromEntries(Object.entries(EB_FX_COLOR_FALLBACK).map(([element,fallback])=>{
+ const token=`--eb-el-${element.toLowerCase()}`;
+ const value=typeof getComputedStyle==='function'?getComputedStyle(document.documentElement).getPropertyValue(token).trim():'';
+ return[element,(value||fallback).toLowerCase()];
+}));
 function ebSnap(){
  if(!G)return null;
  return {p:G.p.map(p=>({vit:p.vit,marks:[...(p.marks||[])],slots:p.slots.map((c,i)=>c?{id:c.id,n:c.n,el:c.el,h:c.h,a:c.a,armor:c.armor||0,growth:c.growth||0,momentum:momentumStacks(c),ready:!!c.ready,sick:!!c.sick,marks:[...(c.marks||[])],quick:c.quick?c.quick.kind:null,slot:i}:null)}))};
@@ -1079,7 +1090,7 @@ function ebFocus(text,el='AIR'){
 function ebShortFocus(log){
  if(!log)return null;let s=log.replace(/^T\d+\s*/, '');
  if(/AIR · Gale Scout exploits/i.test(s))return['OPENING EXPLOITED · MOMENTUM','AIR'];
- if(/RESONANCE ACTIVE/i.test(s))return['RESONANCE ACTIVE',s.match(/🔥|💧|🌿|🪨|⚡|🌪️/)?'STORM':'AIR'];
+ if(/RESONANCE ACTIVE/i.test(s))return['RESONANCE ACTIVE',/Fire|Water|Nature|Earth|Lightning|Air/i.test(s)?'STORM':'AIR'];
  if(/destroyed/i.test(s))return['MANIFESTATION BROKEN','FIRE'];
  if(/Armor/i.test(s))return['ARMOR SHIFT','EARTH'];
  if(/Growth/i.test(s))return['GROWTH','NATURE'];
@@ -1161,7 +1172,7 @@ function benderEffects(p){
  return b.length?`<div class=bender-effects aria-label="Bender active effects">${b.join('')}</div>`:'';
 }
 function compactCardText(c){let t=(c.text||'').replace(/\s+/g,' ').trim();return t||'No additional effect.'}
-function card(c,can=false){let state=effectBadges(c),pending=EB_MP.enabled?EB_MP.input?.pending():null;if(pending?.cardId!==c.id)pending=null;let summary=`<div class="rules card-summary">${compactCardText(c)}</div>`;let typeLine=c.type==='RESPONSE'?'Response · Reaction':c.type==='TECHNIQUE'?`Technique${c.role?' · '+c.role:''}`:`${c.a} ATK · ${c.h}/${c.max} HP${c.guard?' · Guard':''}`;return `<div class="card ${c.el.toLowerCase()} ${can?'play':''} ${pending?'mp-pending':''}" data-id="${c.id}" data-inspect="1"><span class=cost>${c.c}</span><b>${E[c.el]} ${c.n}</b><div class=small>${typeLine}</div>${summary}${state}${pending?`<div class="small card-status">${pending.kind==='TECHNIQUE'?'Activating…':'Placing…'}</div>`:c.sick?'<div class="small card-status">Summoning sickness</div>':''}<div class="why card-inspect-hint">↗ Double-tap for details</div></div>`}
+function card(c,can=false){let state=effectBadges(c),pending=EB_MP.enabled?EB_MP.input?.pending():null;if(pending?.cardId!==c.id)pending=null;let summary=`<div class="rules card-summary">${compactCardText(c)}</div>`;let typeLine=c.type==='RESPONSE'?'Response · Reaction':c.type==='TECHNIQUE'?`Technique${c.role?' · '+c.role:''}`:`<span class="eb-stat-number">${c.a}</span> ATK · <span class="eb-stat-number">${c.h}/${c.max}</span> HP${c.guard?' · Guard':''}`;return `<div class="card ${c.el.toLowerCase()} ${can?'play':''} ${pending?'mp-pending':''}" data-id="${c.id}" data-inspect="1"><span class=cost>${c.c}</span><b>${ebElementIcon(c.el)} ${c.n}</b><div class=small>${typeLine}</div>${summary}${state}${pending?`<div class="small card-status">${pending.kind==='TECHNIQUE'?'Activating…':'Placing…'}</div>`:c.sick?'<div class="small card-status">Summoning sickness</div>':''}<div class="why card-inspect-hint">Double-tap for details</div></div>`}
 function slots(id,p){let own=p===me(),pending=own&&EB_MP.enabled?EB_MP.input?.pending():null;document.getElementById(id).innerHTML=p.slots.map((m,i)=>{let placing=!m&&pending?.kind==='MANIFESTATION'&&pending.slotIndex===i;return `<div class="slot ${placing?'mp-pending':''}" data-slot="${i}" data-own="${own?'1':'0'}">${m?card(m):placing?'':`<span class=small>M${i+1} · empty</span>`}</div>`}).join('')}
 let selectedCardId=null,dragState=null;
 function ebMpInputLocked(){return !!(EB_MP.enabled&&EB_MP.input?.isLocked())}
@@ -1284,18 +1295,18 @@ function beginCardDrag(ev,c,el){
  document.addEventListener('pointercancel',cancel,{capture:true,passive:false});
 }
 function validateState(){if(!G)return true;let ok=true,seen=new Set();for(const p of G.p){if(p.e<0||p.e>p.maxE||p.maxE>7||p.slots.length!==3||typeof p.initiationToken!=='boolean')ok=false;for(const c of [...p.deck,...p.hand,...p.wake,...p.slots.filter(Boolean)]){if(seen.has(c.id))ok=false;seen.add(c.id)}}if(!ok)console.error('ELEMENTBOUND invariant violation',G);return ok}
-function resUI(p){if(!HYBRIDS[p.el])return '';let r=p.turnState.resonance,h=HYBRIDS[p.el];return `<span class="pill">${r.active?E[p.el]+' RESONANCE ACTIVE':'Resonance '+E[h.parents[0]]+(r.a?'●':'○')+' '+E[h.parents[1]]+(r.b?'●':'○')}</span>`}
+function resUI(p){if(!HYBRIDS[p.el])return '';let r=p.turnState.resonance,h=HYBRIDS[p.el];return `<span class="pill">${r.active?ebElementIcon(p.el)+' RESONANCE ACTIVE':'Resonance '+ebElementIcon(h.parents[0])+(r.a?'●':'○')+' '+ebElementIcon(h.parents[1])+(r.b?'●':'○')}</span>`}
 function ebZoneCount(side,zone){let count=side?.[`${zone}Count`];return Number.isInteger(count)?count:(Array.isArray(side?.[zone])?side[zone].length:0)}
-function render(){if(!G)return;let p=me(),e=foe();document.getElementById('rev').textContent=`REV ${G.rev}`;document.getElementById('turn').textContent=`Turn ${G.turn} · ${G.active?'RIVAL':'YOU'}`;let chainEl=document.getElementById('chain');if(chainEl){let chainRelevant=G.chain>0&&(current().el==='LIGHTNING'||current().el==='STORM');chainEl.hidden=!chainRelevant;chainEl.textContent=`Chain ${G.chain}`;}document.getElementById('difficulty').textContent=diff;document.getElementById('pname').textContent=`${E[p.el]} ${p.name}`;document.getElementById('ename').textContent=`${E[e.el]} ${e.name}`;document.getElementById('pvit').textContent=`❤️ ${p.vit}`;document.getElementById('evit').textContent=`❤️ ${e.vit}`;document.getElementById('pstats').innerHTML=`<span class=pill>Essence ${p.e}/${p.maxE}</span><span class=pill>Hand ${ebZoneCount(p,'hand')}</span><span class=pill>Deck ${ebZoneCount(p,'deck')}</span><span class=pill>Wake ${ebZoneCount(p,'wake')}</span>${p.initiationToken?'<span class="pill">Initiation ●</span>':''}${resUI(p)}${benderEffects(p)}<div class=stathelp>Essence = spendable energy · Hand = playable cards · Deck = draw pile · Wake = used/destroyed cards</div>`;document.getElementById('estats').innerHTML=`<span class=pill>Essence ${e.e}/${e.maxE}</span><span class=pill>Hand ${ebZoneCount(e,'hand')}</span><span class=pill>Deck ${ebZoneCount(e,'deck')}</span><span class=pill>Wake ${ebZoneCount(e,'wake')}</span>${e.initiationToken?'<span class="pill">Initiation ●</span>':''}${resUI(e)}${benderEffects(e)}`;slots('pslots',p);slots('eslots',e);let h=document.getElementById('hand');h.innerHTML=p.hand.map(c=>card(c,playable(c))).join('');h.querySelectorAll('.card').forEach(x=>{let c=p.hand.find(c=>c.id==x.dataset.id);if(!c)return;if(c.type==='TECHNIQUE'){x.onclick=()=>{if(G.active!==0||G.winner)return;selectHandCard(c)}}else if(c.type==='RESPONSE'){x.onclick=null;x.draggable=false;x.ondragstart=ev=>ev.preventDefault();x.onpointerdown=null}else{x.onclick=null;x.draggable=false;x.ondragstart=ev=>ev.preventDefault();x.onpointerdown=ev=>beginCardDrag(ev,c,x)}});wireDropSlots();wireCardInspectGestures();document.getElementById('attack').disabled=!!G.pendingResponse||(!!G.trial&&!['WATER','NATURE','LIGHTNING','AIR'].includes(G.trial.element))||G.active||G.winner||!p.slots.some(x=>x&&x.ready&&!x.sick);document.getElementById('end').disabled=!!G.pendingResponse||!!G.trial||G.active||G.winner;document.getElementById('you').classList.toggle('active',G.active===0);document.getElementById('enemy').classList.toggle('active',G.active===1);document.getElementById('winner').innerHTML=G.winner?(G.trial?`<div class=win>${G.trial.icon} TRIAL COMPLETE · ${G.trial.title.replace('Trial of ','').toUpperCase()} MASTERED<div class=small>${G.trial.mastered}</div></div>`:`<div class=win>🏆 ${G.winner} wins<div class=small>${G.winReason==='CARD_DEPLETION'?'Opponent ran out of cards · Hand 0 / Deck 0':'Opponent reached 0 Vitality'}</div></div>`):'';renderTrialUI();let l=document.getElementById('log');l.innerHTML=G.logs.map(x=>`<div>${x}</div>`).join('');l.scrollTop=l.scrollHeight;requestAnimationFrame(()=>{ebVisualState();ebDrainFx();ebRenderFx()})}
+function render(){if(!G)return;let p=me(),e=foe();document.getElementById('rev').textContent=`REV ${G.rev}`;document.getElementById('turn').textContent=`Turn ${G.turn} · ${G.active?'RIVAL':'YOU'}`;let chainEl=document.getElementById('chain');if(chainEl){let chainRelevant=G.chain>0&&(current().el==='LIGHTNING'||current().el==='STORM');chainEl.hidden=!chainRelevant;chainEl.textContent=`Chain ${G.chain}`;}document.getElementById('difficulty').textContent=diff;ebSetIconText(document.getElementById('pname'),p.el.toLowerCase(),p.name,ebElementName(p.el));ebSetIconText(document.getElementById('ename'),e.el.toLowerCase(),e.name,ebElementName(e.el));ebSetIconText(document.getElementById('pvit'),'heart',p.vit,'Vitality');ebSetIconText(document.getElementById('evit'),'heart',e.vit,'Vitality');document.getElementById('pstats').innerHTML=`<span class=pill>Essence ${p.e}/${p.maxE}</span><span class=pill>Hand ${ebZoneCount(p,'hand')}</span><span class=pill>Deck ${ebZoneCount(p,'deck')}</span><span class=pill>Wake ${ebZoneCount(p,'wake')}</span>${p.initiationToken?'<span class="pill">Initiation ●</span>':''}${resUI(p)}${benderEffects(p)}<div class=stathelp>Essence = spendable energy · Hand = playable cards · Deck = draw pile · Wake = used/destroyed cards</div>`;document.getElementById('estats').innerHTML=`<span class=pill>Essence ${e.e}/${e.maxE}</span><span class=pill>Hand ${ebZoneCount(e,'hand')}</span><span class=pill>Deck ${ebZoneCount(e,'deck')}</span><span class=pill>Wake ${ebZoneCount(e,'wake')}</span>${e.initiationToken?'<span class="pill">Initiation ●</span>':''}${resUI(e)}${benderEffects(e)}`;slots('pslots',p);slots('eslots',e);let h=document.getElementById('hand');h.innerHTML=p.hand.map(c=>card(c,playable(c))).join('');h.querySelectorAll('.card').forEach(x=>{let c=p.hand.find(c=>c.id==x.dataset.id);if(!c)return;if(c.type==='TECHNIQUE'){x.onclick=()=>{if(G.active!==0||G.winner)return;selectHandCard(c)}}else if(c.type==='RESPONSE'){x.onclick=null;x.draggable=false;x.ondragstart=ev=>ev.preventDefault();x.onpointerdown=null}else{x.onclick=null;x.draggable=false;x.ondragstart=ev=>ev.preventDefault();x.onpointerdown=ev=>beginCardDrag(ev,c,x)}});wireDropSlots();wireCardInspectGestures();document.getElementById('attack').disabled=!!G.pendingResponse||(!!G.trial&&!['WATER','NATURE','LIGHTNING','AIR'].includes(G.trial.element))||G.active||G.winner||!p.slots.some(x=>x&&x.ready&&!x.sick);document.getElementById('end').disabled=!!G.pendingResponse||!!G.trial||G.active||G.winner;document.getElementById('you').classList.toggle('active',G.active===0);document.getElementById('enemy').classList.toggle('active',G.active===1);document.getElementById('winner').innerHTML=G.winner?(G.trial?`<div class=win>${ebIconMarkup(G.trial.icon)} TRIAL COMPLETE · ${G.trial.title.replace('Trial of ','').toUpperCase()} MASTERED<div class=small>${G.trial.mastered}</div></div>`:`<div class=win>${ebIconMarkup('trophy')} ${G.winner} wins<div class=small>${G.winReason==='CARD_DEPLETION'?'Opponent ran out of cards · Hand 0 / Deck 0':'Opponent reached 0 Vitality'}</div></div>`):'';renderTrialUI();let l=document.getElementById('log');l.innerHTML=G.logs.map(x=>`<div>${x}</div>`).join('');l.scrollTop=l.scrollHeight;requestAnimationFrame(()=>{ebVisualState();ebDrainFx();ebRenderFx()})}
 function findLiveCardById(id){if(!G)return null;for(const p of G.p){for(const c of [...p.hand,...p.deck,...p.wake,...p.slots.filter(Boolean)])if(c.id===id)return c}return null}
-function inspectCard(c){if(!c)return;let terms=Object.keys(GLOSSARY).filter(k=>((c.text||'')+' '+(c.type||'')).toLowerCase().includes(k.toLowerCase()));let body=document.getElementById('mb'),mw=document.getElementById('mw');document.getElementById('mt').textContent=`${E[c.el]} ${c.n}`;body.innerHTML=`<div class="inspectCardFull ${c.el.toLowerCase()}"><div class="inspectMeta"><b>${c.type}${c.role?' · '+c.role:''} · ${c.c} Essence</b>${c.type!=='TECHNIQUE'?`<br>${c.a} ATK · ${c.h}/${c.max} HP${c.guard?' · Guard':''}`:''}</div><div class="inspectRule">${c.text||'No additional effect.'}</div>${c.tip?`<div class="inspectStrategy"><b>Strategy</b><br>${c.tip}</div>`:''}${terms.length?`<div class="inspectTerms">${terms.map(k=>`<div><b>${k}:</b> ${GLOSSARY[k]}</div>`).join('')}</div>`:''}<div class="small">Detail view is informational only. It does not play, target, move, activate, or re-cycle the card.</div></div><button onclick="closeCardInspect()">CLOSE</button>`;let d=document.getElementById('modalDismiss');if(d)d.style.display='none';mw.classList.remove('hide','inspect-leave');mw.classList.add('cardInspectMode','inspect-enter');requestAnimationFrame(()=>requestAnimationFrame(()=>mw.classList.remove('inspect-enter')))}
+function inspectCard(c){if(!c)return;let terms=Object.keys(GLOSSARY).filter(k=>((c.text||'')+' '+(c.type||'')).toLowerCase().includes(k.toLowerCase()));let body=document.getElementById('mb'),mw=document.getElementById('mw');document.getElementById('mt').textContent=`${ebElementName(c.el)} ${c.n}`;body.innerHTML=`<div class="inspectCardFull ${c.el.toLowerCase()}"><div class="inspectMeta"><b>${c.type}${c.role?' · '+c.role:''} · ${c.c} Essence</b>${c.type!=='TECHNIQUE'?`<br>${c.a} ATK · ${c.h}/${c.max} HP${c.guard?' · Guard':''}`:''}</div><div class="inspectRule">${c.text||'No additional effect.'}</div>${c.tip?`<div class="inspectStrategy"><b>Strategy</b><br>${c.tip}</div>`:''}${terms.length?`<div class="inspectTerms">${terms.map(k=>`<div><b>${k}:</b> ${GLOSSARY[k]}</div>`).join('')}</div>`:''}<div class="small">Detail view is informational only. It does not play, target, move, activate, or re-cycle the card.</div></div><button onclick="closeCardInspect()">CLOSE</button>`;let d=document.getElementById('modalDismiss');if(d)d.style.display='none';mw.classList.remove('hide','inspect-leave');mw.classList.add('cardInspectMode','inspect-enter');requestAnimationFrame(()=>requestAnimationFrame(()=>mw.classList.remove('inspect-enter')))}
 function closeCardInspect(){let mw=document.getElementById('mw');if(!mw.classList.contains('cardInspectMode'))return hideModal();mw.classList.remove('inspect-enter');mw.classList.add('inspect-leave');clearTimeout(closeCardInspect._t);closeCardInspect._t=setTimeout(()=>{mw.classList.add('hide');mw.classList.remove('cardInspectMode','inspect-leave');let d=document.getElementById('modalDismiss');if(d)d.style.display=''},170)}
 function wireCardInspectGestures(){document.querySelectorAll('#battle .card[data-inspect="1"]').forEach(el=>{if(el.dataset.doubleTapWired==='1')return;el.dataset.doubleTapWired='1';let lastTap=0,startX=0,startY=0,moved=false;el.addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse')return;startX=ev.clientX;startY=ev.clientY;moved=false},{passive:true});el.addEventListener('pointermove',ev=>{if(Math.hypot(ev.clientX-startX,ev.clientY-startY)>7)moved=true},{passive:true});el.addEventListener('pointerup',ev=>{if(ev.pointerType==='mouse'||moved)return;let now=performance.now();if(lastTap&&now-lastTap<=360){lastTap=0;ev.preventDefault();ev.stopPropagation();let c=findLiveCardById(+el.dataset.id);inspectCard(c)}else lastTap=now},{passive:false});el.addEventListener('dblclick',ev=>{ev.preventDefault();ev.stopPropagation();let c=findLiveCardById(+el.dataset.id);inspectCard(c)})})}
 function allCodexCards(){let out=[];Object.keys(BASE).forEach(el=>{BASE[el].forEach(z=>out.push({el,n:z[0],c:z[1],type:'MANIFESTATION',a:z[2],h:z[3],text:z[4],tip:z[5]}));let t=TECH[el];out.push({el,n:t[0],c:t[3],type:'TECHNIQUE',text:t[1],tip:t[2]});let r=RESPONSES[el];out.push({el,n:r.n,c:r.c,type:'RESPONSE',text:r.text,tip:r.tip})});Object.keys(HYBRID_CARDS).forEach(el=>HYBRID_CARDS[el].forEach(z=>out.push({el,...z})));return out}
 let codexFilter='ALL';
 function goCodex(){codexFilter='ALL';renderCodex();go('codex')}
-function renderCodex(){let f=document.getElementById('codexFilters');f.innerHTML=['ALL',...Object.keys(INFO)].map(k=>`<button class="diff ${codexFilter===k?'sel':''}" style="padding:7px 9px" onclick="codexFilter='${k}';renderCodex()">${k==='ALL'?'All':E[k]+' '+INFO[k][0]}</button>`).join('');let cards=allCodexCards().filter(c=>codexFilter==='ALL'||c.el===codexFilter);document.getElementById('codexList').innerHTML=cards.map((c,i)=>`<button class="deck codexCard ${c.el.toLowerCase()}" onclick="codexDetail('${c.el}','${c.n.replace(/'/g,"\\'")}')"><b>${E[c.el]} ${c.n}</b><div class=small>${c.type} · ${c.c} Essence${c.a!=null?` · ${c.a} ATK / ${c.h} HP`:''}</div><div class=rules>${c.text}</div></button>`).join('')}
-function codexDetail(el,name){let c=allCodexCards().find(x=>x.el===el&&x.n===name);if(!c)return;let terms=Object.keys(GLOSSARY).filter(k=>(c.text+' '+c.type).toLowerCase().includes(k.toLowerCase()));let body=document.getElementById('mb');document.getElementById('mt').textContent=`${E[el]} ${c.n}`;body.innerHTML=`<div class=rules><b>${c.type} · ${c.c} Essence</b>${c.a!=null?`<br>${c.a} ATK · ${c.h} HP`:''}<p>${c.text}</p><p><b>How to use it:</b> ${c.tip}</p>${terms.map(k=>`<p><b>${k}:</b> ${GLOSSARY[k]}</p>`).join('')}</div><button onclick="hideModal()">CLOSE</button>`;document.getElementById('mw').classList.remove('hide')}
+function renderCodex(){let f=document.getElementById('codexFilters');f.innerHTML=['ALL',...Object.keys(INFO)].map(k=>`<button class="diff codex-filter ${codexFilter===k?'sel':''}" onclick="codexFilter='${k}';renderCodex()">${k==='ALL'?'All':ebElementIcon(k)+' '+INFO[k][0]}</button>`).join('');let cards=allCodexCards().filter(c=>codexFilter==='ALL'||c.el===codexFilter);document.getElementById('codexList').innerHTML=cards.map((c,i)=>`<button class="deck codexCard ${c.el.toLowerCase()}" onclick="codexDetail('${c.el}','${c.n.replace(/'/g,"\\'")}')"><b>${ebElementIcon(c.el)} ${c.n}</b><div class=small>${c.type} · ${c.c} Essence${c.a!=null?` · ${c.a} ATK / ${c.h} HP`:''}</div><div class=rules>${c.text}</div></button>`).join('')}
+function codexDetail(el,name){let c=allCodexCards().find(x=>x.el===el&&x.n===name);if(!c)return;let terms=Object.keys(GLOSSARY).filter(k=>(c.text+' '+c.type).toLowerCase().includes(k.toLowerCase()));let body=document.getElementById('mb');document.getElementById('mt').textContent=`${ebElementName(el)} ${c.n}`;body.innerHTML=`<div class=rules><b>${c.type} · ${c.c} Essence</b>${c.a!=null?`<br>${c.a} ATK · ${c.h} HP`:''}<p>${c.text}</p><p><b>How to use it:</b> ${c.tip}</p>${terms.map(k=>`<p><b>${k}:</b> ${GLOSSARY[k]}</p>`).join('')}</div><button onclick="hideModal()">CLOSE</button>`;document.getElementById('mw').classList.remove('hide')}
 const HELP_SECTIONS={
 'START HERE':{intro:'New to Element Bound? You only need this much to begin. Play cards with Essence, build a field, attack the rival, and protect your own Bender.',terms:['Bender','Vitality','Essence','Manifestation','Technique','ATK','HP']},
 'YOUR TURN':{intro:'A turn is about choosing when to build, when to attack, and when to save resources. Strong turns usually come from sequencing cards instead of spending Essence blindly.',terms:['Turn','Hand','Field Slot','Summoning sickness','Ready','Target','Chain']},
@@ -1305,7 +1316,7 @@ const HELP_SECTIONS={
 'HYBRIDS':{intro:'Hybrid decks combine two Prime elements. Their special reward is Resonance: sequence both parent elements in one turn, then cash in with Hybrid cards.',terms:['Prime','Hybrid','Resonance','Quick']},
 'WHEN THE CARDS RUN OUT':{intro:'An empty Deck alone does not end the duel: failed draws still cause Exhaustion while cards remain in Hand. But when both your Hand and Deck are empty, Card Depletion ends the standard duel immediately.',terms:['Hand','Deck','Exhaustion','Card Depletion','Wake']}
 };
-function showHelpSection(key){let sec=HELP_SECTIONS[key];document.getElementById('mt').textContent=key;let b=document.getElementById('mb');b.innerHTML=`<div class="helpIntro">${sec.intro}</div>${sec.terms.map(k=>`<div class="helpTerm"><b>${k}</b><div class="rules">${GLOSSARY[k]}</div></div>`).join('')}<button class="helpBack" onclick="showRules()">← HELP MENU</button><button onclick="hideModal()">CLOSE</button>`;document.getElementById('mw').classList.remove('hide')}
+function showHelpSection(key){let sec=HELP_SECTIONS[key];document.getElementById('mt').textContent=key;let b=document.getElementById('mb');b.innerHTML=`<div class="helpIntro">${sec.intro}</div>${sec.terms.map(k=>`<div class="helpTerm"><b>${k}</b><div class="rules">${GLOSSARY[k]}</div></div>`).join('')}<button class="helpBack" onclick="showRules()">BACK TO HELP</button><button onclick="hideModal()">CLOSE</button>`;document.getElementById('mw').classList.remove('hide')}
 function showRules(){document.getElementById('mt').textContent='How to Play';let b=document.getElementById('mb');b.innerHTML=`<div class="helpIntro"><b>Welcome, Bender.</b><br>You do not need to memorize a rulebook. Learn the basics, then open a section whenever a word or mechanic is unclear.</div><div class="helpWhy">Your goal: win by reducing the rival Bender’s Vitality to 0, or by leaving them with no cards in both their Hand and Deck. If either happens, the duel ends immediately.</div><div class="helpGrid">${Object.keys(HELP_SECTIONS).map(k=>`<button class="helpCard" onclick="showHelpSection('${k}')"><b>${k}</b><span>${HELP_SECTIONS[k].intro}</span></button>`).join('')}</div><button onclick="hideModal()">CLOSE</button>`;document.getElementById('mw').classList.remove('hide')}
 
 
@@ -1466,7 +1477,7 @@ async function ebEnsureMatchmakingAuth(){
 }
 function ebSetupMatchmaking(){
  console.debug('[ElementBound] ebSetupMatchmaking ran');
- let select=document.getElementById('mpDeck');if(select&&!select.options.length)select.innerHTML=Object.keys(INFO).map(element=>`<option value="${element}">${E[element]} ${INFO[element][0]}</option>`).join('');
+ let select=document.getElementById('mpDeck');if(select&&!select.options.length)select.innerHTML=Object.keys(INFO).map(element=>`<option value="${element}">${ebElementName(element)} ${INFO[element][0]}</option>`).join('');
  let invited=new URLSearchParams(location.search).get('join'),input=document.getElementById('mpRoomCode');if(invited&&input)input.value=invited.toUpperCase();ebSetMatchmakingEnabled(false);
  let panel=document.getElementById('mpMatchmaking'),connect=document.getElementById('mpConnectOnline'),begin=()=>ebEnsureMatchmakingAuth().catch(()=>{});
  if(panel&&connect&&window.ElementBoundFirebaseBootstrap)window.ElementBoundFirebaseBootstrap.bindConnectButton(connect,begin);if(invited)begin();
@@ -1829,7 +1840,7 @@ async function ebBalanceCalibrationRun(){
   </div>
   <div class="small">Calibration games: ${total.toLocaleString()} · stalls ${stalls} · ${(EB_BL_CAL_LAST.elapsedMs/1000).toFixed(1)}s</div>
   <div class="blUtil"><b>Mirror controls:</b><br>${mirror.map(r=>`${r.a}: A ${ebBLPct(r.sideA,r.games-r.stalls)}% / B ${ebBLPct(r.sideB,r.games-r.stalls)}% · symmetric ${r.mirrorSymmetric}/${r.mirrorSymmetric+r.mirrorAsymmetric}`).join('<br>')}</div>
-  <div class="${harnessDetected?'blWarn':'blGood'}" style="margin-top:8px;font-weight:900">${harnessDetected?'BALANCE CONCLUSIONS: HOLD — physical-seat symmetry failed.':roleBias?'HARNESS CALIBRATED — turn/token advantage detected and reported separately.':'CALIBRATION PASSED — crossed matchup analysis is suitable for the next balance pass.'}</div>`;
+  <div class="bl-verdict ${harnessDetected?'blWarn':'blGood'}">${harnessDetected?'BALANCE CONCLUSIONS: HOLD — physical-seat symmetry failed.':roleBias?'HARNESS CALIBRATED — turn/token advantage detected and reported separately.':'CALIBRATION PASSED — crossed matchup analysis is suitable for the next balance pass.'}</div>`;
   copy.disabled=false;
  }catch(e){box.innerHTML=`<b class="devFail">CALIBRATION ERROR</b><div class="small">${esc(e&&e.message?e.message:String(e))}</div>`}
  finally{EB_BL_CAL_RUNNING=false;btn.disabled=false}
@@ -1856,7 +1867,7 @@ async function ebInitiativeAuditRun(){
   let summary={};for(const [mode] of modes){let rr=rows.filter(x=>x.mode===mode),valid=rr.reduce((n,x)=>n+x.games-x.stalls,0),fw=rr.reduce((n,x)=>n+x.firstWins,0);summary[mode]={games:rr.reduce((n,x)=>n+x.games,0),valid,firstPct:valid?+(fw/valid*100).toFixed(1):0,stalls:rr.reduce((n,x)=>n+x.stalls,0)}}
   let before=summary.CURRENT.firstPct,after=summary['SECOND_PLAYER_+1'].firstPct,delta=+(after-before).toFixed(1),diagnosis=after>=58?'ADVANTAGE REMAINS':after<=42?'COMPENSATION OVERSHOOTS':'INITIATIVE WITHIN 42–58% BAND';
   EB_INIT_LAST={build:EB_RELEASE.version,ruleset:ebBalanceRuleset(),depth,total:rows.reduce((n,r)=>n+r.games,0),rows,summary,delta,diagnosis,elapsedMs:Math.round(performance.now()-started)};
-  box.innerHTML=`<b class="${diagnosis==='INITIATIVE WITHIN 42–58% BAND'?'blGood':'blWarn'}">${diagnosis}</b><div class="blStatGrid"><div class="blStat"><small>Current first-player</small><b>${before}%</b></div><div class="blStat"><small>With +1 card</small><b>${after}%</b></div><div class="blStat"><small>Change</small><b>${delta>0?'+':''}${delta} pts</b></div><div class="blStat"><small>Paired seeds / mirror</small><b>${depth}</b></div></div><div class="small">${EB_INIT_LAST.total.toLocaleString()} mirror games · ${(EB_INIT_LAST.elapsedMs/1000).toFixed(1)}s</div><div class="blUtil" style="margin-top:8px"><b>SECOND PLAYER +1:</b><br>${rows.filter(r=>r.mode==='SECOND_PLAYER_+1').map(r=>`${r.deck}: first ${ebBLPct(r.firstWins,r.games-r.stalls)}% / second ${ebBLPct(r.secondWins,r.games-r.stalls)}% · T5 dmg ${r.t5Damage[0]}–${r.t5Damage[1]} · board ${r.t5Board[0]}–${r.t5Board[1]}`).join('<br>')}</div>`;copy.disabled=false;
+  box.innerHTML=`<b class="${diagnosis==='INITIATIVE WITHIN 42–58% BAND'?'blGood':'blWarn'}">${diagnosis}</b><div class="blStatGrid"><div class="blStat"><small>Current first-player</small><b>${before}%</b></div><div class="blStat"><small>With +1 card</small><b>${after}%</b></div><div class="blStat"><small>Change</small><b>${delta>0?'+':''}${delta} pts</b></div><div class="blStat"><small>Paired seeds / mirror</small><b>${depth}</b></div></div><div class="small">${EB_INIT_LAST.total.toLocaleString()} mirror games · ${(EB_INIT_LAST.elapsedMs/1000).toFixed(1)}s</div><div class="blUtil bl-result-spaced"><b>SECOND PLAYER +1:</b><br>${rows.filter(r=>r.mode==='SECOND_PLAYER_+1').map(r=>`${r.deck}: first ${ebBLPct(r.firstWins,r.games-r.stalls)}% / second ${ebBLPct(r.secondWins,r.games-r.stalls)}% · T5 dmg ${r.t5Damage[0]}–${r.t5Damage[1]} · board ${r.t5Board[0]}–${r.t5Board[1]}`).join('<br>')}</div>`;copy.disabled=false;
  }catch(e){box.innerHTML=`<b class="devFail">INITIATIVE AUDIT ERROR</b><div class="small">${esc(e&&e.message?e.message:String(e))}</div>`}finally{EB_BL_RUNNING=false;btn.disabled=false;}
 }
 function ebInitiativeAuditText(){if(!EB_INIT_LAST)return'';let r=EB_INIT_LAST,a=r.summary.CURRENT,b=r.summary['SECOND_PLAYER_+1'],lines=[`ELEMENT BOUND Alpha ${EB_RELEASE.version} INITIATIVE COMPENSATION AUDIT`,`Ruleset: ${r.ruleset}`,`Depth: ${r.depth} paired seeds per mirror`,`Games: ${r.total}`,`Current first-player win rate: ${a.firstPct}%`,`Second-player +1 first-player win rate: ${b.firstPct}%`,`Change: ${r.delta>0?'+':''}${r.delta} percentage points`,`Diagnosis: ${r.diagnosis}`,`Elapsed: ${(r.elapsedMs/1000).toFixed(1)}s`,''];for(const x of r.rows)lines.push(`${x.mode} | ${x.deck} mirror | games ${x.games} | first-player wins ${ebBLPct(x.firstWins,x.games-x.stalls)}% | second-player wins ${ebBLPct(x.secondWins,x.games-x.stalls)}% | T5 damage ${x.t5Damage[0]}-${x.t5Damage[1]} | T5 board ${x.t5Board[0]}-${x.t5Board[1]} | stalls ${x.stalls}`);return lines.join('\n')}
@@ -1898,6 +1909,7 @@ async function ebTempoLabCopy(){let t=ebTempoLabText();if(!t)return;try{await na
 function ebBalanceClear(){if(EB_BL_RUNNING)return;EB_BL_LAST=null;document.getElementById('blSummary').innerHTML='<b>NO REPORT YET</b><div class="small">Run the lab to generate matchup, turn-length, utilization and stall telemetry.</div>';document.getElementById('blProgress').innerHTML='<b>READY</b><div class="small">No simulation is running.</div><progress class="devBar" max="100" value="0" aria-label="Simulation progress" id="blBar"></progress>';document.getElementById('blMatrixWrap').classList.add('blHidden');document.getElementById('blDetail').classList.add('blHidden');document.getElementById('blCopy').disabled=true}
 
 
+ebHydrateStaticIcons();
 setup();
 ebDevInstall();
 ebSetupMatchmaking();
