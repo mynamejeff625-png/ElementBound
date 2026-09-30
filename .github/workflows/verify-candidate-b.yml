@@ -42,6 +42,7 @@ jobs:
       - run: node tests/mp-technique-target-and-response-polish.cjs
       - run: node tests/mp-visual-parity-1.1.1.cjs
       - run: node --check lib/cardCatalog.js
+      - run: node tests/card-short-lines.cjs
       - run: node --check lib/matchFactory.js
       - run: node --check lib/playerView.js
       - run: node --check js/matchmakingClient.js
