@@ -82,6 +82,16 @@ async function run() {
         checks++;
         return label;
       };
+      // go() ignores calls while a screen transition holds EB_NAV_LOCK, so wait
+      // for the lock to clear before and after every navigation.
+      const navUnlocked = () => page.waitForFunction(
+        () => typeof EB_NAV_LOCK === 'undefined' || !EB_NAV_LOCK, null, { timeout: 5000 });
+      const navigate = async (fn, selector) => {
+        await navUnlocked();
+        await page.evaluate(fn);
+        await visible(selector);
+        await navUnlocked();
+      };
 
       await page.goto(base, { waitUntil: 'load' });
       await visible('#home.on', 'home screen');
@@ -89,30 +99,40 @@ async function run() {
       assert.match(stamp, /Alpha \d+\.\d+\.\d+/, 'main menu shows the release version'); checks++;
       await shot('01-home');
 
-      await page.evaluate(() => goTrials());
-      await visible('#trials.on', 'trials screen');
+      await navigate(() => goTrials(), '#trials.on');
       await shot('02-trials');
 
-      await page.evaluate(() => goCodex());
-      await visible('#codex.on', 'codex screen');
+      await navigate(() => goCodex(), '#codex.on');
       await visible('#codexList button', 'codex cards');
       await shot('03-codex');
 
-      await page.evaluate(() => { go('home'); showRules(); });
+      await navigate(() => go('home'), '#home.on');
+      await page.evaluate(() => showRules());
       await visible('#mw:not(.hide)', 'how to play sheet');
       await shot('04-how-to-play');
       await page.evaluate(() => hideModal());
+      await page.locator('#mw').waitFor({ state: 'hidden', timeout: 5000 });
 
-      await page.evaluate(() => go('setup'));
-      await visible('#setup.on', 'deck setup');
+      await navigate(() => go('setup'), '#setup.on');
       await page.locator('#decks button').first().click();
       await page.locator('#diffs button').first().click();
       await shot('05-setup');
       await page.locator('#start').click();
       await visible('#battle.on', 'duel screen');
-      // Skip the initiative coin flip if it is showing.
-      const overlay = page.locator('#initiativeOverlay:not(.hide)');
-      if (await overlay.count()) await overlay.click();
+      await navUnlocked();
+      // The initiative coin flip starts shortly after the duel opens. Wait for it,
+      // skip it all the way to the end (the first skip only reveals the result),
+      // then wait until the overlay is hidden so the screenshot shows the board.
+      // Wait for the overlay to actually appear first: ebInitiativeShow() runs
+      // ~140 ms after the duel opens and un-hides the overlay even if the flip
+      // was already finished, so skipping earlier would leave it stuck on screen.
+      await page.locator('#initiativeOverlay').waitFor({ state: 'visible', timeout: 5000 });
+      await page.waitForFunction(() => {
+        if (!G.initiative.finished) ebInitiativeSkip();
+        return G.initiative.finished;
+      }, null, { timeout: 5000, polling: 100 });
+      await page.locator('#initiativeOverlay').waitFor({ state: 'hidden', timeout: 5000 });
+      checks++;
       await visible('#hand .card, #hand button, #hand > *', 'cards in hand');
       await shot('06-duel');
 
