@@ -62,3 +62,26 @@ jobs:
       - run: node tests/lightning-air-revert-0.8.61.cjs
       - run: node tests/bloom-resonance-gate-0.8.61.cjs
       - run: node tests/crosswind-attack-debuff-0.8.62.cjs
+
+  browser-smoke:
+    # Opens the real game in headless Chromium at two phone sizes and fails on
+    # page errors. Playwright is pinned here and installed outside the project,
+    # so it never touches the game's own dependencies.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/pw" playwright@1.56.1
+      - run: '"$RUNNER_TEMP/pw/node_modules/.bin/playwright" install --with-deps chromium'
+      - run: node --check tests/e2e/smoke.cjs
+      - run: node tests/e2e/smoke.cjs
+        env:
+          NODE_PATH: ${{ runner.temp }}/pw/node_modules
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phone-screenshots
+          path: test-results/screenshots/
+          if-no-files-found: ignore
