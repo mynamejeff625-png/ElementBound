@@ -195,21 +195,56 @@ sits next to them (then `alt=""`).
 | `trophy.webp` | Victory, Trial mastered | 🏆 |
 | `draw.webp` | Duel draw | ⚖️ |
 
-**Card frame:** `assets/frames/card-frame-gold.webp` (357×466). One file serves
-every card size through CSS 9-slice, so no per-size frames are needed:
+**Card frames** (both 356×466, same shape, so the same 9-slice values apply).
+One file serves every card size through CSS 9-slice; no per-size frames are needed.
+
+| File | Use |
+|---|---|
+| `assets/frames/card-frame-bronze.webp` | **Default** for every card |
+| `assets/frames/card-frame-gold.webp` | Special states only: the selected card, and later rare/legendary cards |
 
 ```css
 .eb-card{border-style:solid;border-color:transparent;
-  border-image:url("../assets/frames/card-frame-gold.webp") 40 fill / var(--eb-card-frame) stretch}
+  border-image:url("../assets/frames/card-frame-bronze.webp") 40 fill / var(--eb-card-frame) stretch}
+.eb-card.is-selected{border-image-source:url("../assets/frames/card-frame-gold.webp")}
 /* --eb-card-frame: S 12px · M 18px · L 30px */
 ```
 
 The card body under the frame is `--eb-plate`. Cards stay **glyph and color**
 (no painted card art): the L card's art window shows the card's element
 medallion. Pending from the Owner: the frame at ≈ 1024 px tall (the current
-466 px source is slightly soft on the L card on high-density phones).
+466 px sources are slightly soft on the L card on high-density phones).
 
-## 6. Motion *(Phase 4)*
+## 6. Motion
+
+**Rule: nothing on screen changes abruptly.** Every change of screen, sheet,
+card, deck or icon state is animated, and each screen phase ships its own
+transitions (motion is not deferred to Phase 4; Phase 4 only adds polish and
+effects).
+
+| Change | Motion | Duration |
+|---|---|---|
+| Screen to screen | New screen slides in from the side it belongs to (deeper = from the right; back = to the right) with a cross-fade | `--eb-dur-attack` 300 ms |
+| Sheet open / close | Rises from the bottom / sinks back; backdrop fades | 300 ms / 250 ms |
+| Card zoom (Codex, Inspect) | Shared element: the card grows from its exact grid position into the L card | 300 ms |
+| Deck dial | Medallions glide along the dial and resize smoothly; the card list slides with it | 300 ms |
+| Icon or state swap (e.g. selected, disabled, tab) | Cross-fade and/or scale | `--eb-dur-lift` 150 ms |
+| Tap feedback | Pressed state | `--eb-dur-tap` 80 ms |
+
+**Swipe physics** (dial, card list, zoomed card carousel, and later the hand):
+- The content follows the finger 1:1 while dragging (no animation during the drag).
+- On release it snaps to the nearest item with `--eb-ease`, 300 ms. A quick
+  flick (> 0.3 px/ms) or a drag past 25% of an item's width moves to the next item.
+- Motion is interruptible: grabbing mid-animation takes over from the current position.
+- Horizontal swipes use `touch-action: pan-y` so vertical scrolling still works;
+  a drag longer than 8 px never also counts as a tap.
+- Animate only `transform` and `opacity` (smooth on phones); never animate
+  `width`, `height`, `top` or `left` in shipped code.
+
+Under reduced motion, slides and zooms become 150 ms cross-fades and swipes snap
+without easing.
+
+**Duel timings *(Phase 3–4)*:**
 
 | Event | Token | Duration |
 |---|---|---|
@@ -279,7 +314,8 @@ license that allows use in the game (e.g. CC0), recorded in an
 | Date | Decision |
 |---|---|
 | 2026-09-27 | Match length 3–5 min (fast decks) to 5–8 min (slow); audience casual friends first, inviting to ranked |
-| 2026-09-30 | Cards stay glyph and color with the gold card frame; the L card's art window shows the element medallion |
+| 2026-09-30 | Cards stay glyph and color with the Owner's card frame (bronze by default, gold for selected/special); the L card's art window shows the element medallion |
+| 2026-09-30 | Smooth, fluid transitions everywhere: no abrupt screen, card, or icon changes; swipes follow the finger (§6) |
 | 2026-09-30 | Owner-made medallions replace emoji at ≥ 32 px; SVG glyphs below 32 px |
 | 2026-09-30 | Codex uses a horizontal medallion deck dial with a zoom into the card |
 | 2026-09-30 | Sound: card launch, card effect, and UI tap sounds, with a mute toggle |

@@ -81,7 +81,7 @@ Facts:
 | `css/game.css` | All styling, including reduced-motion rules |
 | `assets/` | Logo, background, and other images |
 | `assets/fonts/` | Self-hosted Cinzel and Nunito Sans (SIL OFL; keep the `OFL-*.txt` files beside them) |
-| `assets/medallions/`, `assets/frames/` | Owner-made element/result medallions and the card frame (usage rules: `docs/DESIGN.md` §5a) |
+| `assets/medallions/`, `assets/frames/` | Owner-made element/result medallions and the card frames (bronze default, gold special) (usage rules: `docs/DESIGN.md` §5a) |
 | `js/version.js` | Player-facing release record (see §5) |
 | `js/game.js` | Browser game: live duel loop, rival AI, UI and FX, Balance Lab simulator, in-browser dev checks, multiplayer adapter (`EB_MP`) |
 | `js/firebaseBootstrap.js`, `js/multiplayerClient.js`, `js/matchmakingClient.js` | Online play client |
