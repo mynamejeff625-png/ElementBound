@@ -5,7 +5,7 @@ The binding UI/UX decisions for Element Bound. Agents implement from this file
 "UI/UX Foundation & Living GDD" document; this file holds only what code needs.
 Owner: Claude (design) · Owner approval required to change a decision.
 
-Status: **Phase 1 (foundation)**. Sections marked *Phase N* are decided but not
+Status: **Phase 1 (foundation) in progress** (issue #39). Sections marked *Phase N* are decided but not
 built yet; do not implement them early.
 
 ---
@@ -174,6 +174,41 @@ Air are close in hue). Hybrids combine their parents' shapes.
 the browser renders `EB_UI.icon(key)` in HTML and the element **name** in plain
 text (event log, `textContent`, titles).
 
+### 5a. Medallions (`assets/medallions/`) and card frame (`assets/frames/`)
+
+Two icon tiers:
+
+| Tier | What | Format | Used at |
+|---|---|---|---|
+| **Medallions** | Painted bronze-and-stone badges, art by the Owner | 256×256 WebP with transparent background (~26 KB each) | **32 px and larger**: Codex deck dial, deck picker, Bender plates, the L card's art window, result screen, Trial seals |
+| **Glyphs** | The SVG sprite above | `assets/icons.svg` | **Below 32 px**: HP counter, status coins, inline text, small cards |
+
+Never show a medallion below 32 px; its detail turns to noise. Medallions are
+`<img>` elements with meaningful `alt` text (e.g. "Fire") unless a visible label
+sits next to them (then `alt=""`).
+
+| File | Represents | Replaces |
+|---|---|---|
+| `fire.webp` `water.webp` `nature.webp` `earth.webp` `lightning.webp` `air.webp` | Prime elements | 🔥 💧 🌿 🪨 ⚡ 🌪️ |
+| `magma.webp` `storm.webp` `bloom.webp` | Hybrid elements | 🌋 🌩️ 🌱 |
+| `heart.webp` | Vitality (large contexts only) | ❤️ |
+| `trophy.webp` | Victory, Trial mastered | 🏆 |
+| `draw.webp` | Duel draw | ⚖️ |
+
+**Card frame:** `assets/frames/card-frame-gold.webp` (357×466). One file serves
+every card size through CSS 9-slice, so no per-size frames are needed:
+
+```css
+.eb-card{border-style:solid;border-color:transparent;
+  border-image:url("../assets/frames/card-frame-gold.webp") 40 fill / var(--eb-card-frame) stretch}
+/* --eb-card-frame: S 12px · M 18px · L 30px */
+```
+
+The card body under the frame is `--eb-plate`. Cards stay **glyph and color**
+(no painted card art): the L card's art window shows the card's element
+medallion. Pending from the Owner: the frame at ≈ 1024 px tall (the current
+466 px source is slightly soft on the L card on high-density phones).
+
 ## 6. Motion *(Phase 4)*
 
 | Event | Token | Duration |
@@ -187,18 +222,65 @@ text (event log, `textContent`, titles).
 
 Never rely on vibration for information (iPhone browsers don't support it).
 
-## 7. Roadmap
+## 7. Screens
+
+### Codex *(Phase 2)*
+
+1. **Deck dial (top):** a horizontal, snap-scrolling row of the 9 medallions
+   (6 Prime, then 3 Hybrid). The centered medallion is enlarged (64 px, others
+   40 px) with the deck name and style below it (e.g. "Blazing Fist · Pressure").
+   Swipe or tap a medallion to center it; arrow keys work too. It replaces the
+   wrapping filter chips.
+2. **Card list (below):** that deck's cards as S cards in 3 columns, grouped
+   Manifestations → Techniques → Response. One scroll area for the screen.
+3. **Zoom:** tapping a card animates it from its grid position into the L card
+   in an Inspect sheet (shared-element transition, `--eb-dur-attack` 300 ms,
+   `--eb-ease`; reduced motion → cross-fade). Inside: full rules text, "How to
+   use it", and chips for only the keywords this card uses. Swipe left/right for
+   the previous/next card; swipe down, tap outside, or X to close. One close
+   control only (no duplicate Close + Cancel).
+
+### Cards: fewer words
+
+| Size | Shows |
+|---|---|
+| S (hand, slate, Codex list) | Cost gem, name, element glyph, ATK/HP icons with numbers, one `short` effect line (≤ 28 chars) |
+| M | Adds the type line |
+| L (Inspect) | Adds the element medallion art window, full rules text, "How to use it", keyword chips |
+
+The glossary never repeats inside a card; basic terms live in Help.
+
+## 8. Sound *(Phase 4)*
+
+| Event | Sound |
+|---|---|
+| Card played from hand to field | Card-launch sound |
+| A card effect triggers (Technique, Response, on-summon, Resonance) | Effect sound |
+| Any button or navigation tap | Soft UI tap |
+
+Rules: a **mute toggle** in Settings, remembered on the device; nothing plays
+before the player's first tap (iPhone browsers block audio until then); sound
+never carries information that isn't also shown on screen; only sounds with a
+license that allows use in the game (e.g. CC0), recorded in an
+`assets/sounds/README.md`.
+
+## 9. Roadmap
 
 | Phase | Scope | Gate to the next phase |
 |---|---|---|
 | 1 · Foundation | Tokens, components CSS, `EB_UI`, SVG icons replace emoji, fonts applied, inline styles removed | Every screen still works; only icons, fonts and spacing look different |
-| 2 · Menus and sheets | Home, Trials, Codex, Help rebuilt from components; sheets and dialogs replace `modal()` | All High-severity menu audit items closed |
-| 3 · New duel screen (behind a toggle) | Slate, fanned hand, Bender plates, tap-to-target, Inspect sheet, card `short` effect line | Zero scroll at 375×667; playtest on both layouts |
-| 4 · Feel | Motion, sound, coin flip, result screen; old duel screen removed | First summon within 60 s for new players |
+| 2 · Menus and sheets | Home, Trials, Codex (deck dial + zoom, §7), Help rebuilt from components; medallions replace the element glyphs at ≥ 32 px; sheets and dialogs replace `modal()` | All High-severity menu audit items closed |
+| 3 · New duel screen (behind a toggle) | Slate, fanned hand, Bender plates, tap-to-target, Inspect sheet, framed cards with the `short` effect line, 60 s turn timer online | Zero scroll at 375×667; playtest on both layouts |
+| 4 · Feel | Motion, sound (§8), coin flip, result screen; old duel screen removed | First summon within 60 s for new players |
 | 5 · Profiles and cosmetics | Accounts, gems, Bender cosmetics, App Check | — |
 
-## 8. Open decisions
+## 10. Decisions log
 
-- Card art: painted art or glyph-and-color? (The L card reserves an art window either way.)
-- Sound: at launch or later? (Changes Phase 4 scope.)
-- Turn timer: 60 s casual / 45 s ranked, to be playtested before locking.
+| Date | Decision |
+|---|---|
+| 2026-09-27 | Match length 3–5 min (fast decks) to 5–8 min (slow); audience casual friends first, inviting to ranked |
+| 2026-09-30 | Cards stay glyph and color with the gold card frame; the L card's art window shows the element medallion |
+| 2026-09-30 | Owner-made medallions replace emoji at ≥ 32 px; SVG glyphs below 32 px |
+| 2026-09-30 | Codex uses a horizontal medallion deck dial with a zoom into the card |
+| 2026-09-30 | Sound: card launch, card effect, and UI tap sounds, with a mute toggle |
+| 2026-09-30 | Online turn timer: 60 s (ranked value decided when ranked exists) |
