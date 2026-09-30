@@ -55,6 +55,12 @@ async function run() {
         isMobile: true, hasTouch: true, reducedMotion: 'reduce'
       });
       const page = await context.newPage();
+      const cdp = await context.newCDPSession(page);
+      const swipe = async (startX,startY,endX,endY) => {
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:startX,y:startY}]});
+        for(let step=1;step<=8;step++){const t=step/8;await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:startX+(endX-startX)*t,y:startY+(endY-startY)*t}]})}
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+      };
       const errors = [];
       const blockedStyles = new Set();
       page.on('pageerror', e => errors.push(`pageerror: ${e.message}`));
@@ -125,9 +131,29 @@ async function run() {
       await shot('02-trials');
 
       await navigate(() => goCodex(), '#codex.on');
-      await visible('#codexList button', 'codex cards');
+      await visible('.codex-card-grid .codex-card', 'codex cards');
       await foundation('codex');
       await shot('03-codex');
+      assert.equal(await page.locator('.codex-dial-option').count(),9,'Codex shows all nine deck medallions');checks++;
+      assert.equal(await page.locator('#codex').getAttribute('data-current-deck'),'FIRE','Codex starts on Fire');checks++;
+      const dialBox=await page.locator('.codex-dial').boundingBox();
+      await swipe(dialBox.x+dialBox.width/2+40,dialBox.y+dialBox.height/2,dialBox.x+dialBox.width/2-40,dialBox.y+dialBox.height/2);
+      await page.waitForTimeout(500);assert.equal(await page.locator('#codex').getAttribute('data-current-deck'),'WATER','dial swipe selects Water');checks++;
+      const waterGrid=page.locator('.codex-grid-wrap[data-deck="WATER"]');
+      assert.equal(await waterGrid.locator('.codex-card').count(),5,'Water grid has five cards');checks++;
+      assert.equal(await waterGrid.getAttribute('aria-hidden'),'false','Water grid is active');checks++;
+      assert.ok(await waterGrid.getByText('Mist Adept',{exact:true}).count(),'Water grid contains Mist Adept');checks++;
+      await shot('07-codex-dial');
+      await waterGrid.locator('.codex-card').first().click();
+      await visible('.codex-zoom.is-open','Codex zoom');
+      assert.equal(await page.locator('.codex-zoom-slide[aria-hidden="false"] .codex-card-name').textContent(),'Mist Adept','tapped card opens active in zoom');checks++;
+      const zoomBox=await page.locator('.codex-zoom-stage').boundingBox();
+      await swipe(zoomBox.x+zoomBox.width*.8,zoomBox.y+180,zoomBox.x+zoomBox.width*.2,zoomBox.y+180);
+      await page.waitForFunction(()=>document.querySelector('.codex-zoom-slide[aria-hidden="false"] .codex-card-name')?.textContent==='Tide Warden');checks++;
+      await shot('08-codex-zoom');
+      await page.locator('.codex-zoom-close').click();await page.locator('.codex-zoom').waitFor({state:'detached',timeout:5000});checks++;
+      const noHorizontalScroll=await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth);
+      assert.equal(noHorizontalScroll,true,'Codex causes no horizontal page scroll');checks++;
 
       await navigate(() => go('home'), '#home.on');
       await page.evaluate(() => showRules());

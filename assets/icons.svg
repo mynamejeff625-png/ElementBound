@@ -28,4 +28,5 @@
   <symbol id="recycle" viewBox="0 0 24 24"><path d="m9 4 3-2 3 2M12 2v7m7 2 2 3-2 3m2-3h-7M8 20l-3-1v-4m0 4 5-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="trophy" viewBox="0 0 24 24"><path d="M8 4h8v5c0 4-2 6-4 6s-4-2-4-6V4Zm0 2H4v2c0 3 2 5 5 5m7-7h4v2c0 3-2 5-5 5m-3 2v4m-4 2h8" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="heart" viewBox="0 0 24 24"><path d="M12 20S4 15 4 9a4 4 0 0 1 7-3l1 1 1-1a4 4 0 0 1 7 3c0 6-8 11-8 11Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="sword" viewBox="0 0 24 24"><path d="m5 19 5-5m-3 7-4-4m7-3L20 4l-1-2-10 10m1 2 3 3m-5-1-2 2" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </svg>
