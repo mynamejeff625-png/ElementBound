@@ -80,6 +80,7 @@ Facts:
 | `index.html` | All screens, Content-Security-Policy, and script load order |
 | `css/game.css` | All styling, including reduced-motion rules |
 | `assets/` | Logo, background, and other images |
+| `assets/fonts/` | Self-hosted Cinzel and Nunito Sans (SIL OFL; keep the `OFL-*.txt` files beside them) |
 | `js/version.js` | Player-facing release record (see §5) |
 | `js/game.js` | Browser game: live duel loop, rival AI, UI and FX, Balance Lab simulator, in-browser dev checks, multiplayer adapter (`EB_MP`) |
 | `js/firebaseBootstrap.js`, `js/multiplayerClient.js`, `js/matchmakingClient.js` | Online play client |
@@ -91,6 +92,7 @@ Facts:
 | `api/submit-move.js`, `api/create-room.js`, `api/join-room.js`, `api/firebase-config.js` | The four Vercel endpoints |
 | `firestore.rules`, `firebase.json` | Firestore security rules and emulator config |
 | `tests/*.cjs` | Regression tests. Only tests listed in the workflow run in CI |
+| `tests/e2e/smoke.cjs` | Browser smoke test (CI job `browser-smoke`): real Chromium at 375×667 and 390×844, fails on page errors; phone screenshots are attached to each CI run |
 | `.github/workflows/verify-candidate-b.yml` | Main CI; runs on every PR to `main` |
 | `.github/pull_request_template.md` | Required PR description format |
 | `.gitignore` | Untracked and generated files Git should ignore (dependencies, secrets, logs) |
@@ -187,7 +189,7 @@ By change type:
 - **Gameplay rules:** parity tests (§4), plus the Balance Lab parity tests if the simulator changed.
 - **Multiplayer or server:** endpoint tests; both seats' views; `npm run test:firestore-rules`.
 - **Security rules or auth:** everything above, plus Owner approval.
-- **UI:** a screenshot or preview on a phone-sized viewport when a browser is available.
+- **UI:** the `browser-smoke` CI job must pass. Link its `phone-screenshots` artifact in the PR's Screenshots section (the Owner reviews UI changes from those). Extend `tests/e2e/smoke.cjs` when a change adds a screen or flow.
 
 New behavior needs focused automated coverage. Extend a relevant existing test
 file when one fits; otherwise add a new file **and** add it to the workflow
