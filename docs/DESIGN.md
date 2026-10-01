@@ -295,6 +295,25 @@ Never rely on vibration for information (iPhone browsers don't support it).
    the previous/next card; swipe down, tap outside, or X to close. One close
    control only (no duplicate Close + Cancel).
 
+The Codex grows into the game's library after the menu phases: search and
+keyword filters across all cards, glossary entries with “Try it” links, a “How
+this deck wins” guide for each deck, and eventually collection and cosmetic
+views. Those library features are not part of the deck-select work.
+
+### Deck select *(Phase 2)*
+
+Deck select reuses the Codex card browser: the same nine-medallion dial, sliding
+deck grids, framed S cards, and shared L-card zoom. It shows every card in the
+centered deck and fits without horizontal or vertical page scrolling at both
+375×667 and 390×844. The primary Select control stays anchored in one thumb
+position at the bottom of the screen.
+
+Selecting a deck locks and emphasizes its centered medallion, fades the card
+grid down, and slides the Easy / Medium / Hard opponent choice into the same
+space. The bottom control changes in place to Start Duel. “Change deck” reverses
+the transition. Hard remains the display label for the existing internal
+`'Difficult'` key, and the last difficulty choice is remembered locally.
+
 ### Cards: fewer words
 
 | Size | Shows |
@@ -347,3 +366,6 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-01 | Developer tools (System Check and Balance Lab) move off the main menu and open by long-pressing the version text |
 | 2026-10-01 | Element Trials start with a short required basics lesson, then allow free element choice; hybrids unlock after both parents; guidance starts locked to the highlighted card and loosens into hints |
 | 2026-10-01 | Guided tutorial tips come after the Phase 3 duel screen; the journey map may be built earlier on the current Trials |
+| 2026-10-01 | Deck select shows every card in the centered deck and supports the shared card zoom |
+| 2026-10-01 | Select swaps the card grid for difficulty choices in place while the main button stays under the player's thumb |
+| 2026-10-01 | The Codex becomes the library with search, glossary links, and per-deck guides |

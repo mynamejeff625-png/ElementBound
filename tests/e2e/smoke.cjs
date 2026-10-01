@@ -190,12 +190,38 @@ async function run() {
       await page.evaluate(() => hideModal());
       await page.locator('#mw').waitFor({ state: 'hidden', timeout: 5000 });
 
-      await navigate(() => go('setup'), '#setup.on');
-      await page.locator('#decks button').first().click();
-      await page.locator('#diffs button').first().click();
+      await navigate(() => goDeckSelect(), '#setup.on');
+      await visible('#setup .deckselect-shell .codex-card','deck select cards');
+      const deckSelectFits=await page.evaluate(()=>({vertical:document.documentElement.scrollHeight<=document.documentElement.clientHeight,horizontal:document.documentElement.scrollWidth<=document.documentElement.clientWidth}));
+      assert.deepEqual(deckSelectFits,{vertical:true,horizontal:true},'deck select fits without page scrolling');checks++;
+      const selectDialBox=await page.locator('#setup .codex-dial').boundingBox();
+      await swipe(selectDialBox.x+selectDialBox.width/2+40,selectDialBox.y+selectDialBox.height/2,selectDialBox.x+selectDialBox.width/2-40,selectDialBox.y+selectDialBox.height/2);
+      await page.waitForFunction(()=>document.querySelector('#setup')?.dataset.currentDeck==='WATER');checks++;
+      const selectWaterGrid=page.locator('#setup .codex-grid-wrap[data-deck="WATER"]');
+      assert.equal(await selectWaterGrid.locator('.codex-card').count(),5,'deck select Water grid shows five cards');checks++;
+      const selectTabbable=await page.evaluate(()=>[...document.querySelectorAll('#setup .codex-grid-wrap')].filter(grid=>!grid.inert).flatMap(grid=>[...grid.querySelectorAll('.codex-card')]).length);
+      assert.equal(selectTabbable,5,'only the active deck-select grid exposes cards');checks++;
       await foundation('setup');
       await shot('05-setup');
-      await page.locator('#start').click();
+      await shot('10-deck-select');
+      await selectWaterGrid.locator('.codex-card').first().click();
+      await visible('.codex-zoom.is-open','deck-select card zoom');
+      const beforeArrow=await page.locator('.codex-zoom-slide[aria-hidden="false"] .codex-card-name').textContent();
+      await page.locator('.codex-zoom-controls .is-next').click();
+      await page.waitForFunction(name=>document.querySelector('.codex-zoom-slide[aria-hidden="false"] .codex-card-name')?.textContent!==name,beforeArrow);checks++;
+      const trackDuration=await page.locator('.codex-zoom-track').evaluate(track=>parseFloat(getComputedStyle(track).transitionDuration)*1000);
+      assert.equal(trackDuration,150,'reduced-motion deck zoom keeps a 150 ms linear slide');checks++;
+      await shot('11-deck-zoom');
+      await page.locator('.codex-zoom-close').click();await page.locator('.codex-zoom').waitFor({state:'detached',timeout:5000});checks++;
+      await page.locator('.deckselect-main').click();
+      await visible('.deckselect-difficulty','difficulty panel');
+      assert.equal(await page.locator('.deckselect-difficulty').getAttribute('aria-hidden'),'false','difficulty choices are exposed to assistive technology');checks++;
+      await page.waitForTimeout(250);
+      assert.ok(await page.locator('#setup .codex-grid-wrap').evaluateAll(grids=>grids.every(grid=>grid.inert)),'card grids are inert while choosing difficulty');checks++;
+      assert.equal((await page.locator('.deckselect-button-label[aria-hidden="false"]').textContent()).trim(),'START DUEL','main button changes to Start Duel');checks++;
+      await shot('12-deck-difficulty');
+      await page.locator('.deckselect-option[data-difficulty="Hard"]').click();
+      await page.locator('.deckselect-main').click();
       await visible('#battle.on', 'duel screen');
       await navUnlocked();
       // The initiative coin flip starts shortly after the duel opens. Wait for it,
@@ -205,6 +231,10 @@ async function run() {
       // ~140 ms after the duel opens and un-hides the overlay even if the flip
       // was already finished, so skipping earlier would leave it stuck on screen.
       await page.locator('#initiativeOverlay').waitFor({ state: 'visible', timeout: 5000 });
+      const selectedSetup=await page.evaluate(()=>({choice,diff,rival:document.getElementById('initiativeRival')?.textContent||''}));
+      assert.equal(selectedSetup.choice,'WATER','deck select starts the chosen Water deck');checks++;
+      assert.equal(selectedSetup.diff,'Difficult','Hard maps to the Difficult AI key');checks++;
+      assert.match(selectedSetup.rival,/^vs .+/,'coin flip names the rival deck');checks++;
       await page.waitForFunction(() => {
         if (!G.initiative.finished) ebInitiativeSkip();
         return G.initiative.finished;

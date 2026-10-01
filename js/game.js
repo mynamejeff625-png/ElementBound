@@ -68,8 +68,15 @@ function go(id){
  return true;
 }
 function ebPulseChain(){let el=document.getElementById('chain');if(!el)return;el.hidden=false;el.classList.remove('chainPulse');void el.offsetWidth;el.classList.add('chainPulse');setTimeout(()=>el.classList.remove('chainPulse'),420)}
-function setup(){EB_VIS=null;let d=document.getElementById('decks');d.innerHTML='';Object.keys(INFO).forEach(k=>{let x=document.createElement('button');x.className='deck';let kind=HYBRIDS[k]?'HYBRID':'PRIME';x.innerHTML=`<b>${ebElementIcon(k)} ${INFO[k][0]}</b><div class=small>${kind} · ${INFO[k][1]}</div><div class=small>${INFO[k][2]}</div>`;x.onclick=()=>{choice=k;EB_HYBRID_RESPONSE_CHOICE=null;document.querySelectorAll('.deck').forEach(y=>y.classList.remove('sel'));x.classList.add('sel');ready()};d.appendChild(x)});let q=document.getElementById('diffs');q.innerHTML='';['Easy','Medium','Difficult'].forEach(k=>{let x=document.createElement('button');x.className='diff';x.textContent=k;x.onclick=()=>{diff=k;document.querySelectorAll('.diff').forEach(y=>y.classList.remove('sel'));x.classList.add('sel');ready()};q.appendChild(x)})}
-function ready(){document.getElementById('start').disabled=!(choice&&diff)}
+function ebDeckPush(back=false){
+ const home=document.getElementById('home'),setupScreen=document.getElementById('setup'),from=back?setupScreen:home,to=back?home:setupScreen;if(!from||!to||EB_NAV_LOCK)return false;
+ const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,duration=reduce?150:420;clearTimeout(EB_NAV_T);EB_NAV_LOCK=true;to.classList.add('on',back?'eb-home-from-deck':'eb-deck-from-home');from.classList.add(back?'eb-deck-to-home':'eb-home-to-deck');
+ EB_NAV_T=setTimeout(()=>{from.classList.remove('on','eb-deck-to-home','eb-home-to-deck');to.classList.remove('eb-home-from-deck','eb-deck-from-home');window.scrollTo(0,0);EB_NAV_LOCK=false},duration);return true;
+}
+function goDeckSelect(){EB_VIS=null;window.EB_DeckSelect.open();return ebDeckPush(false)}
+function goDeckSelectBack(){window.EB_DeckSelect.changeDeck();return ebDeckPush(true)}
+function startSelectedMatch(deckKey,difficultyKey){choice=deckKey;diff=difficultyKey;EB_HYBRID_RESPONSE_CHOICE=null;startMatch()}
+function setup(){}
 function mk(el,n,c,a,h,guard=false,text='',tip=''){return window.ElementBoundMatchFactory.manifestation(()=>++uid,el,n,c,a,h,guard,text,tip)}
 function deck(el,responseEl=null){return window.ElementBoundMatchFactory.createDeck(el,{responseElement:responseEl,nextId:()=>++uid})}
 function shuffle(a){return window.ElementBoundMatchFactory.shuffle(a,Math.random)}
@@ -90,7 +97,7 @@ function startMatch(){
  }
  selectedCardId=null;clearTimeout(EB_INIT_T);let keys=Object.keys(INFO),pool=keys.filter(x=>x!==choice&&x!==window.lastOpp);if(!pool.length)pool=keys.filter(x=>x!==choice);let opp=pool[Math.floor(Math.random()*pool.length)];window.lastOpp=opp;
  let oppResp=HYBRIDS[opp]?HYBRIDS[opp].parents[Math.floor(Math.random()*HYBRIDS[opp].parents.length)]:opp;
- G=window.ElementBoundMatchFactory.createInitialState({players:[{name:'Your Bender',element:choice,responseElement:EB_HYBRID_RESPONSE_CHOICE},{name:`${diff} ${INFO[opp][0]} Rival`,element:opp,responseElement:oppResp}],random:Math.random});let starter=G.active;G.initiative.revealed=false;G.initiative.finished=false;uid=Math.max(uid,...G.p.flatMap(p=>[...p.deck,...p.hand].map(c=>Number(c.id)||0)));
+ G=window.ElementBoundMatchFactory.createInitialState({players:[{name:'Your Bender',element:choice,responseElement:EB_HYBRID_RESPONSE_CHOICE},{name:`${diff} ${INFO[opp][0]} Rival`,element:opp,responseElement:oppResp}],random:Math.random});let starter=G.active;G.initiative.revealed=false;G.initiative.finished=false;uid=Math.max(uid,...G.p.flatMap(p=>[...p.deck,...p.hand].map(c=>Number(c.id)||0)));let rival=document.getElementById('initiativeRival');if(rival){rival.className=`initRival eb-element--${opp.toLowerCase()}`;rival.replaceChildren(window.EB_UI.icon(opp.toLowerCase(),{label:INFO[opp][0]}),document.createTextNode(`vs ${INFO[opp][0]}`))}
  EB_INIT_LOCK=true;go('battle');render();setTimeout(ebInitiativeShow,140)
 }
 
@@ -333,7 +340,7 @@ function exitBattle(){
   hideModal();
   if(EB_MP.enabled){ebStopMultiplayer();G=null;go('home');return}
   if(G&&G.trial){G=null;goTrials()}
-  else go('setup');
+  else goDeckSelect();
 }
 
 function renderTrialUI(){
@@ -1905,8 +1912,8 @@ async function ebTempoLabCopy(){let t=ebTempoLabText();if(!t)return;try{await na
 function ebBalanceClear(){if(EB_BL_RUNNING)return;EB_BL_LAST=null;document.getElementById('blSummary').innerHTML='<b>NO REPORT YET</b><div class="small">Run the lab to generate matchup, turn-length, utilization and stall telemetry.</div>';document.getElementById('blProgress').innerHTML='<b>READY</b><div class="small">No simulation is running.</div><progress class="devBar" max="100" value="0" aria-label="Simulation progress" id="blBar"></progress>';document.getElementById('blMatrixWrap').classList.add('blHidden');document.getElementById('blDetail').classList.add('blHidden');document.getElementById('blCopy').disabled=true}
 
 
-ebHydrateStaticIcons();
 setup();
+ebHydrateStaticIcons();
 ebDevInstall();
 ebSetupMatchmaking();
 ebMpInitializeFromUrl();
