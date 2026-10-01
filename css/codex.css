@@ -30,7 +30,7 @@
 .codex-card-type{font-size:9px;font-weight:800;letter-spacing:.08em}
 .codex-card-type--manifestation{color:var(--eb-bronze-hi)}
 .codex-card-type--technique{color:var(--eb-type-technique)}
-.codex-card-type--response{color:var(--eb-type-response)}
+.codex-card-type--response{color:var(--eb-drop)}
 .codex-card-medallion--s{width:34px;height:34px;margin-top:2px}
 .codex-card-name{display:-webkit-box;width:100%;margin-top:2px;overflow:hidden;font:700 var(--eb-text-xs)/1.05 var(--eb-font-display);text-align:center;-webkit-box-orient:vertical;-webkit-line-clamp:2}
 .codex-card-short{display:-webkit-box;width:100%;margin-top:3px;overflow:hidden;color:var(--eb-ink-quiet);font-size:10px;font-weight:800;line-height:1.05;text-align:center;-webkit-box-orient:vertical;-webkit-line-clamp:2}
