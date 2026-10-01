@@ -17,6 +17,11 @@
  --eb-essence-hi:#E6FBFF;
  --eb-essence-lo:#1F4FAE;
  --eb-type-technique:#C9A8FF;
+ --eb-shadow-rest:0 2px 3px rgba(0,0,0,.45),0 6px 14px rgba(0,0,0,.30);
+ --eb-shadow-lift:0 6px 10px rgba(0,0,0,.45),0 16px 30px rgba(0,0,0,.40);
+ --eb-text-shadow:0 1px 2px rgba(0,0,0,.80);
+ --eb-card-plate:radial-gradient(ellipse 80% 65% at 50% 38%,#1B2233 0%,#121826 55%,#0A0E17 100%);
+ --eb-glow-select:0 0 0 2px var(--eb-select),0 0 14px color-mix(in srgb,var(--eb-select) 55%,transparent);
  --eb-el-fire:#FF704D;
  --eb-el-water:#55C7FF;
  --eb-el-nature:#67D77A;

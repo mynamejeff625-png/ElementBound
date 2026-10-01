@@ -86,6 +86,27 @@ async function run() {
         checks++;
         return label;
       };
+      const assertCardChrome = async (selector,frameWidth,label) => {
+        const result=await page.evaluate(({selector,inset})=>{
+          const cards=[...document.querySelectorAll(selector)].filter(card=>{
+            const style=getComputedStyle(card),rect=card.getBoundingClientRect();
+            return style.visibility!=='hidden'&&style.display!=='none'&&rect.width>0&&rect.height>0;
+          });
+          const outside=[];
+          cards.forEach(card=>{
+            const cardRect=card.getBoundingClientRect();
+            card.querySelectorAll('.codex-cost,.codex-card-stat').forEach(part=>{
+              const rect=part.getBoundingClientRect();
+              if(rect.left<cardRect.left+inset-.5||rect.top<cardRect.top+inset-.5||rect.right>cardRect.right-inset+.5||rect.bottom>cardRect.bottom-inset+.5)outside.push(`${card.dataset.cardName||card.querySelector('.codex-card-name')?.textContent}: ${part.className}`);
+            });
+          });
+          return{count:cards.length,outside,radii:cards.map(card=>getComputedStyle(card).borderTopLeftRadius),liftInsets:cards.map(card=>{const style=getComputedStyle(card,'::after');return[style.top,style.right,style.bottom,style.left].map(Number.parseFloat)})};
+        },{selector,inset:frameWidth*.9});
+        assert.ok(result.count>0,`${label}: found visible cards`);checks++;
+        assert.deepEqual(result.outside,[],`${label}: cost and stat plates stay inside the frame opening`);checks++;
+        assert.ok(result.radii.every(radius=>radius!=='0px'),`${label}: cards have rounded corners`);checks++;
+        assert.ok(result.liftInsets.every(insets=>insets.every(inset=>Math.abs(inset+frameWidth)<.01)),`${label}: lift shadow reaches the outer card edge`);checks++;
+      };
       // go() ignores calls while a screen transition holds EB_NAV_LOCK, so wait
       // for the lock to clear before and after every navigation.
       const navUnlocked = () => page.waitForFunction(
@@ -145,13 +166,17 @@ async function run() {
       const tabbableCodexCards=await page.evaluate(()=>[...document.querySelectorAll('.codex-grid-wrap')].filter(grid=>!grid.inert).flatMap(grid=>[...grid.querySelectorAll('.codex-card')]).length);
       assert.equal(tabbableCodexCards,5,'only the active Codex grid exposes tabbable cards');checks++;
       assert.ok(await waterGrid.getByText('Mist Adept',{exact:true}).count(),'Water grid contains Mist Adept');checks++;
+      await assertCardChrome('.codex-grid-wrap[data-deck="WATER"] .codex-card--s',12,'Codex S cards');
       await shot('07-codex-dial');
+      const closeupBox=await waterGrid.locator('.codex-card--s').first().boundingBox();
+      await page.screenshot({path:path.join(OUT,`${vp.name}-09-codex-card-closeup.png`),clip:closeupBox});
       await waterGrid.locator('.codex-card').first().click();
       await visible('.codex-zoom.is-open','Codex zoom');
       assert.equal(await page.locator('.codex-zoom-slide[aria-hidden="false"] .codex-card-name').textContent(),'Mist Adept','tapped card opens active in zoom');checks++;
       const zoomBox=await page.locator('.codex-zoom-stage').boundingBox();
       await swipe(zoomBox.x+zoomBox.width*.8,zoomBox.y+180,zoomBox.x+zoomBox.width*.2,zoomBox.y+180);
       await page.waitForFunction(()=>document.querySelector('.codex-zoom-slide[aria-hidden="false"] .codex-card-name')?.textContent==='Tide Warden');checks++;
+      await assertCardChrome('.codex-zoom-slide[aria-hidden="false"] .codex-card--l',30,'Codex L card');
       await shot('08-codex-zoom');
       await page.locator('.codex-zoom-close').click();await page.locator('.codex-zoom').waitFor({state:'detached',timeout:5000});checks++;
       const noHorizontalScroll=await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth);

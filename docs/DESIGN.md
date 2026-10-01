@@ -107,8 +107,24 @@ box-shadow:
 | Quiet | single 1 px line in `--eb-ink-quiet` at 40% | no gap line |
 | Danger | `--eb-danger` | — |
 
-Fills are `--eb-plate` only. No solid color blocks; no orange UI chrome. Element
+Framed component fills use `--eb-plate`; cards use the depth-specific
+`--eb-card-plate` in §3a. No solid color blocks or orange UI chrome. Element
 color appears only where it carries meaning (medallions, card badges, effects).
+
+### 3a. Depth and light
+
+Light comes from above throughout Element Bound, so shadows fall downward. The
+visual hierarchy has three levels: the background; resting cards and plates
+using `--eb-shadow-rest`; and lifted or selected cards using
+`--eb-shadow-lift`. Card interiors use `--eb-card-plate` to darken toward the
+edges and keep attention on their center. Card names, short effect lines, and
+stats use `--eb-text-shadow` for legibility.
+
+Glow is semantic, not decorative. Use `--eb-glow-select` only for something
+selected, playable, or indicating the player's turn. Cost diamonds and the
+small dark stat plates always remain inside the card frame's inner opening so
+the bronze trim never competes with their values. Lift transitions animate the
+opacity of a shadow layer rather than animating `box-shadow` itself.
 
 ## 4. Components (`css/components.css`, `js/ui.js`)
 
@@ -324,3 +340,10 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-09-30 | Codex uses a horizontal medallion deck dial with a zoom into the card |
 | 2026-09-30 | Sound: card launch, card effect, and UI tap sounds, with a mute toggle |
 | 2026-09-30 | Online turn timer: 60 s (ranked value decided when ranked exists) |
+| 2026-10-01 | Soft depth makes cards float under light from above; glow only marks selected, playable, or your-turn states |
+| 2026-10-01 | Card stats sit on small dark plates |
+| 2026-10-01 | AI difficulty display labels are Easy / Medium / Hard; the internal key `'Difficult'` stays unchanged until an explicit rename task |
+| 2026-10-01 | The rival deck in single player is random and revealed on the coin-flip screen |
+| 2026-10-01 | Developer tools (System Check and Balance Lab) move off the main menu and open by long-pressing the version text |
+| 2026-10-01 | Element Trials start with a short required basics lesson, then allow free element choice; hybrids unlock after both parents; guidance starts locked to the highlighted card and loosens into hints |
+| 2026-10-01 | Guided tutorial tips come after the Phase 3 duel screen; the journey map may be built earlier on the current Trials |
