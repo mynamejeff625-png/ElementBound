@@ -21,14 +21,14 @@
 
   const document=root.document,UI=root.EB_UI,catalog=root.ElementBoundCards;
   let browser=null,state={locked:false,difficulty:loadDifficulty(root.localStorage)};
-  let panel,mainButton,live,heading,selectLabel,startLabel;
+  let panel,mainButton,live,heading,selectLabel,startLabel,hint;
   function node(tag,className,text){const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el}
   function setDifficulty(label){state.difficulty=LABEL_TO_KEY[label]?label:'Medium';saveDifficulty(state.difficulty,root.localStorage);if(!panel)return;panel.querySelectorAll('[role="radio"]').forEach(button=>{const selected=button.dataset.difficulty===state.difficulty;button.setAttribute('aria-checked',String(selected));button.classList.toggle('is-selected',selected);button.querySelector('.deckselect-check').hidden=!selected})}
   function selectDeck(){
-    state=transitionState(state,'SELECT');browser.setLocked(true);browser.root.classList.add('is-choosing-difficulty');panel.setAttribute('aria-hidden','false');browser.grids.forEach(grid=>grid.inert=true);selectLabel.setAttribute('aria-hidden','true');startLabel.setAttribute('aria-hidden','false');mainButton.dataset.mode='start';live.textContent=`${catalog.INFO[browser.key][0]} selected`;setDifficulty(state.difficulty);heading.tabIndex=-1;heading.focus();
+    state=transitionState(state,'SELECT');browser.setLocked(true);browser.root.classList.add('is-choosing-difficulty');panel.setAttribute('aria-hidden','false');browser.grids.forEach(grid=>grid.inert=true);selectLabel.setAttribute('aria-hidden','true');startLabel.setAttribute('aria-hidden','false');mainButton.dataset.mode='start';hint.textContent=`${catalog.INFO[browser.key][0]} selected`;live.textContent=hint.textContent;setDifficulty(state.difficulty);heading.tabIndex=-1;heading.focus();
   }
   function changeDeck(){
-    state=transitionState(state,'CHANGE_DECK');browser.setLocked(false);browser.root.classList.remove('is-choosing-difficulty');panel.setAttribute('aria-hidden','true');browser.grids.forEach((grid,index)=>grid.inert=index!==browser.current);selectLabel.setAttribute('aria-hidden','false');startLabel.setAttribute('aria-hidden','true');mainButton.dataset.mode='select';mainButton.focus();
+    state=transitionState(state,'CHANGE_DECK');browser.setLocked(false);browser.root.classList.remove('is-choosing-difficulty');panel.setAttribute('aria-hidden','true');browser.grids.forEach((grid,index)=>grid.inert=index!==browser.current);selectLabel.setAttribute('aria-hidden','false');startLabel.setAttribute('aria-hidden','true');mainButton.dataset.mode='select';hint.textContent='Swipe for all nine decks · tap a card for details';mainButton.focus();
   }
   function mainAction(){if(!state.locked)return selectDeck();root.startSelectedMatch(browser.key,difficultyKey(state.difficulty))}
   function buildPanel(){
@@ -38,7 +38,7 @@
   function decorate(){
     if(browser.root.querySelector('.deckselect-actions'))return;
     browser.root.querySelector('.codex-grids').after(buildPanel());
-    const actions=node('div','deckselect-actions');mainButton=node('button','primary deckselect-main');mainButton.type='button';mainButton.dataset.mode='select';selectLabel=node('span','deckselect-button-label','SELECT');startLabel=node('span','deckselect-button-label','START DUEL');selectLabel.setAttribute('aria-hidden','false');startLabel.setAttribute('aria-hidden','true');mainButton.append(selectLabel,startLabel);mainButton.addEventListener('click',mainAction);actions.append(mainButton,node('p','deckselect-hint','Swipe for all nine decks · tap a card for details'));browser.root.append(actions);live=node('div','deckselect-live');live.setAttribute('aria-live','polite');browser.root.append(live);setDifficulty(state.difficulty);
+    const actions=node('div','deckselect-actions');mainButton=node('button','primary deckselect-main');mainButton.type='button';mainButton.dataset.mode='select';selectLabel=node('span','deckselect-button-label','SELECT');startLabel=node('span','deckselect-button-label','START DUEL');selectLabel.setAttribute('aria-hidden','false');startLabel.setAttribute('aria-hidden','true');mainButton.append(selectLabel,startLabel);mainButton.addEventListener('click',mainAction);hint=node('p','deckselect-hint','Swipe for all nine decks · tap a card for details');actions.append(mainButton,hint);browser.root.append(actions);live=node('div','deckselect-live');live.setAttribute('aria-live','polite');browser.root.append(live);setDifficulty(state.difficulty);
   }
   function open(){
     if(!browser)browser=shared.create({hostId:'setup',rootClass:'deckselect-shell',title:'Choose Your Deck',showCount:false,smallCardClass:'deckselect-card',hint:false,onBack:()=>root.goDeckSelectBack()});

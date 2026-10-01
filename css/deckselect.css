@@ -2,6 +2,7 @@
 #setup::before{content:"";position:fixed;inset:0;z-index:-1;background:var(--eb-overlay-deck);pointer-events:none}
 .deckselect-shell{position:relative;height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 34px);min-height:0;overflow:hidden;padding-bottom:92px}
 .deckselect-shell .codex-header{min-height:44px}
+.deckselect-shell .codex-title{font-size:22px;white-space:nowrap}
 .deckselect-shell .codex-header-spacer{width:44px}
 .deckselect-shell .codex-dial{height:88px;margin-top:0}
 .deckselect-shell .codex-labels{height:42px}
@@ -36,5 +37,5 @@
 .screen.eb-deck-from-home,.screen.eb-deck-to-home,.screen.eb-home-from-deck,.screen.eb-home-to-deck{display:block!important;position:fixed;inset:0;z-index:30;padding:calc(env(safe-area-inset-top) + 14px) 12px calc(env(safe-area-inset-bottom) + 20px);background:var(--bg);overflow:hidden}
 .screen.eb-deck-from-home{animation:ebDeckIn 420ms var(--eb-ease) both}.screen.eb-home-to-deck{animation:ebHomeOut 420ms var(--eb-ease) both}.screen.eb-home-from-deck{animation:ebHomeIn 420ms var(--eb-ease) both}.screen.eb-deck-to-home{animation:ebDeckOut 420ms var(--eb-ease) both}
 @keyframes ebDeckIn{from{transform:translateX(100%);opacity:.7}to{transform:none;opacity:1}}@keyframes ebHomeOut{to{transform:translateX(-35%);opacity:.35}}@keyframes ebHomeIn{from{transform:translateX(-35%);opacity:.35}to{transform:none;opacity:1}}@keyframes ebDeckOut{to{transform:translateX(100%);opacity:.5}}
-@media(max-height:700px){.deckselect-shell .codex-dial{height:80px}.deckselect-shell .codex-labels{height:38px}.deckselect-shell .codex-grids{height:270px}.deckselect-shell .codex-card-grid{grid-auto-rows:132px}.deckselect-shell .deckselect-card{height:132px;padding:10px 12px}.deckselect-difficulty{top:184px}.deckselect-card .codex-card-medallion--s{width:30px;height:30px}.deckselect-card .codex-card-short{margin-top:1px}}
+@media(max-height:700px){.deckselect-shell .codex-dial{height:80px}.deckselect-shell .codex-labels{height:38px}.deckselect-shell .codex-grids{height:286px}.deckselect-shell .codex-card-grid{grid-auto-rows:140px}.deckselect-shell .deckselect-card{height:140px}.deckselect-difficulty{top:184px}}
 @media(prefers-reduced-motion:reduce){.deckselect-shell .codex-grids,.deckselect-difficulty,.deckselect-button-label{transition-duration:150ms;transition-timing-function:linear}.screen.eb-deck-from-home,.screen.eb-deck-to-home,.screen.eb-home-from-deck,.screen.eb-home-to-deck{animation-duration:150ms;animation-name:ebDeckFade}.codex-zoom-track{transition-duration:150ms;transition-timing-function:linear}@keyframes ebDeckFade{from{opacity:0}to{opacity:1}}}

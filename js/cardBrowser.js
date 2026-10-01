@@ -132,7 +132,7 @@
   }
   function infoPanel(card){const panel=node('section','codex-info');panel.append(node('p','',card.text||'No additional effect.'));const tip=node('p');tip.append(node('strong','','How to use it: '));tip.append(document.createTextNode(card.tip||'No additional guidance.'));panel.append(tip);const words=extractKeywords(card);if(words.length){const chips=node('div','codex-keywords');words.forEach(word=>chips.append(node('span','eb-chip',word)));panel.append(chips)}return panel}
   function renderZoom(position,animate=false){
-    const zoom=state.zoom;if(!zoom)return;zoom.position=position;zoom.root.classList.toggle('is-sliding',animate&&!state.reduce);
+    const zoom=state.zoom;if(!zoom)return;zoom.position=position;zoom.root.classList.toggle('is-sliding',animate);
     zoom.slides.forEach((slide,index)=>{const distance=index-position,abs=Math.abs(distance),scale=interpolate(1,.9,Math.min(1,abs)),opacity=interpolate(1,.45,Math.min(1,abs));slide.style.transform=`translateX(${distance*300}px) scale(${scale})`;slide.style.opacity=String(opacity);slide.style.pointerEvents=abs<.5?'':'none';slide.setAttribute('aria-hidden',String(abs>=.5))});
     [...zoom.dots.children].forEach((dot,index)=>dot.classList.toggle('is-current',index===Math.round(position)));
   }

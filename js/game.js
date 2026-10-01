@@ -69,7 +69,7 @@ function go(id){
 }
 function ebPulseChain(){let el=document.getElementById('chain');if(!el)return;el.hidden=false;el.classList.remove('chainPulse');void el.offsetWidth;el.classList.add('chainPulse');setTimeout(()=>el.classList.remove('chainPulse'),420)}
 function ebDeckPush(back=false){
- const home=document.getElementById('home'),setupScreen=document.getElementById('setup'),from=back?setupScreen:home,to=back?home:setupScreen;if(!from||!to||EB_NAV_LOCK)return false;
+ const home=document.getElementById('home'),setupScreen=document.getElementById('setup'),from=back?setupScreen:(document.querySelector('.screen.on')||home),to=back?home:setupScreen;if(!from||!to||from===to||EB_NAV_LOCK)return false;
  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,duration=reduce?150:420;clearTimeout(EB_NAV_T);EB_NAV_LOCK=true;to.classList.add('on',back?'eb-home-from-deck':'eb-deck-from-home');from.classList.add(back?'eb-deck-to-home':'eb-home-to-deck');
  EB_NAV_T=setTimeout(()=>{from.classList.remove('on','eb-deck-to-home','eb-home-to-deck');to.classList.remove('eb-home-from-deck','eb-deck-from-home');window.scrollTo(0,0);EB_NAV_LOCK=false},duration);return true;
 }

@@ -199,6 +199,10 @@ async function run() {
       await page.waitForFunction(()=>document.querySelector('#setup')?.dataset.currentDeck==='WATER');checks++;
       const selectWaterGrid=page.locator('#setup .codex-grid-wrap[data-deck="WATER"]');
       assert.equal(await selectWaterGrid.locator('.codex-card').count(),5,'deck select Water grid shows five cards');checks++;
+      const deckCardSize=await selectWaterGrid.locator('.codex-card').first().evaluate(card=>({width:card.getBoundingClientRect().width,height:card.getBoundingClientRect().height}));
+      assert.deepEqual(deckCardSize,{width:100,height:140},'deck-select cards stay 100 by 140 pixels at phone sizes');checks++;
+      const titleLines=await page.locator('#setup .codex-title').evaluate(title=>Math.round(title.getBoundingClientRect().height/parseFloat(getComputedStyle(title).lineHeight)));
+      assert.equal(titleLines,1,'deck-select title stays on one line');checks++;
       const selectTabbable=await page.evaluate(()=>[...document.querySelectorAll('#setup .codex-grid-wrap')].filter(grid=>!grid.inert).flatMap(grid=>[...grid.querySelectorAll('.codex-card')]).length);
       assert.equal(selectTabbable,5,'only the active deck-select grid exposes cards');checks++;
       await foundation('setup');
@@ -208,6 +212,7 @@ async function run() {
       await visible('.codex-zoom.is-open','deck-select card zoom');
       const beforeArrow=await page.locator('.codex-zoom-slide[aria-hidden="false"] .codex-card-name').textContent();
       await page.locator('.codex-zoom-controls .is-next').click();
+      assert.ok(await page.locator('.codex-zoom').evaluate(zoom=>zoom.classList.contains('is-sliding')),'reduced-motion arrow navigation uses the slide transition');checks++;
       await page.waitForFunction(name=>document.querySelector('.codex-zoom-slide[aria-hidden="false"] .codex-card-name')?.textContent!==name,beforeArrow);checks++;
       const trackDuration=await page.locator('.codex-zoom-track').evaluate(track=>parseFloat(getComputedStyle(track).transitionDuration)*1000);
       assert.equal(trackDuration,150,'reduced-motion deck zoom keeps a 150 ms linear slide');checks++;
@@ -244,6 +249,14 @@ async function run() {
       await visible('#hand .card, #hand button, #hand > *', 'cards in hand');
       await foundation('duel');
       await shot('06-duel');
+
+      await page.evaluate(()=>exitBattle());
+      await visible('#setup.on','deck select after leaving duel');
+      await navUnlocked();
+      const activeScreens=await page.locator('.screen.on').evaluateAll(screens=>screens.map(screen=>screen.id));
+      assert.deepEqual(activeScreens,['setup'],'leaving a duel shows only the deck-select screen');checks++;
+      assert.equal((await page.locator('.deckselect-hint').textContent()).trim(),'Shifting Tide selected','quick rematch keeps the selected-deck hint');checks++;
+      assert.equal((await page.locator('.deckselect-button-label[aria-hidden="false"]').textContent()).trim(),'START DUEL','returning from a duel preserves quick-rematch difficulty mode');checks++;
 
       assert.deepEqual(errors, [], `${vp.name}: page errors:\n${errors.join('\n')}`); checks++;
       console.log(`${vp.name}: ${blockedStyles.size} distinct inline styles blocked by CSP (ceiling ${MAX_BLOCKED_INLINE_STYLES})`);
