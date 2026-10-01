@@ -142,6 +142,8 @@ async function run() {
       const waterGrid=page.locator('.codex-grid-wrap[data-deck="WATER"]');
       assert.equal(await waterGrid.locator('.codex-card').count(),5,'Water grid has five cards');checks++;
       assert.equal(await waterGrid.getAttribute('aria-hidden'),'false','Water grid is active');checks++;
+      const tabbableCodexCards=await page.evaluate(()=>[...document.querySelectorAll('.codex-grid-wrap')].filter(grid=>!grid.inert).flatMap(grid=>[...grid.querySelectorAll('.codex-card')]).length);
+      assert.equal(tabbableCodexCards,5,'only the active Codex grid exposes tabbable cards');checks++;
       assert.ok(await waterGrid.getByText('Mist Adept',{exact:true}).count(),'Water grid contains Mist Adept');checks++;
       await shot('07-codex-dial');
       await waterGrid.locator('.codex-card').first().click();

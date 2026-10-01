@@ -94,7 +94,7 @@
       button.setAttribute('aria-selected',String(centered));button.tabIndex=centered?0:-1;
     });
     state.labels.forEach((label,index)=>{const offset=circularOffset(index,position);label.style.transform=`translateX(${offset*70}px)`;label.style.opacity=String(Math.max(0,1-Math.abs(offset)*1.6))});
-    state.grids.forEach((grid,index)=>{const offset=circularOffset(index,position);grid.style.transform=`translateX(${offset*390}px)`;grid.style.opacity=String(Math.max(0,1-Math.abs(offset)*.9));const active=Math.abs(offset)<.5;grid.style.pointerEvents=active?'':'none';grid.setAttribute('aria-hidden',String(!active))});
+    state.grids.forEach((grid,index)=>{const offset=circularOffset(index,position);grid.style.transform=`translateX(${offset*390}px)`;grid.style.opacity=String(Math.max(0,1-Math.abs(offset)*.9));const active=Math.abs(offset)<.5;grid.style.pointerEvents=active?'':'none';grid.inert=!active;grid.setAttribute('aria-hidden',String(!active))});
   }
   function settle(target,animate=true){
     state.current=((Math.round(target)%DECKS.length)+DECKS.length)%DECKS.length;renderPosition(state.current,{animate});
