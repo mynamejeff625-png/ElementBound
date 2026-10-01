@@ -16,6 +16,7 @@
  --eb-hp-lo:#B8231C;
  --eb-essence-hi:#E6FBFF;
  --eb-essence-lo:#1F4FAE;
+ --eb-type-technique:#C9A8FF;
  --eb-el-fire:#FF704D;
  --eb-el-water:#55C7FF;
  --eb-el-nature:#67D77A;
@@ -49,6 +50,7 @@
  --eb-dur-float:600ms;
  --eb-dur-banner:900ms;
  --eb-ease:cubic-bezier(0.2, 0.8, 0.2, 1);
+ --eb-z-sheet:100;
 }
 
 @media (prefers-reduced-motion:reduce){

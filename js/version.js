@@ -1,11 +1,11 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.2.0',
-  label:'Foundation',
+  version:'1.3.0',
+  label:'Codex',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Design tokens · SVG icons · New fonts',
+  focus:'Medallion deck dial · Framed cards · Card zoom',
   audience:'Prime & Hybrid Benders'
 });
 
