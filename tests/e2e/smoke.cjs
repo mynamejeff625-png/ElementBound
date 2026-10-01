@@ -100,11 +100,12 @@ async function run() {
               if(rect.left<cardRect.left+inset-.5||rect.top<cardRect.top+inset-.5||rect.right>cardRect.right-inset+.5||rect.bottom>cardRect.bottom-inset+.5)outside.push(`${card.dataset.cardName||card.querySelector('.codex-card-name')?.textContent}: ${part.className}`);
             });
           });
-          return{count:cards.length,outside,radii:cards.map(card=>getComputedStyle(card).borderTopLeftRadius)};
+          return{count:cards.length,outside,radii:cards.map(card=>getComputedStyle(card).borderTopLeftRadius),liftInsets:cards.map(card=>{const style=getComputedStyle(card,'::after');return[style.top,style.right,style.bottom,style.left].map(Number.parseFloat)})};
         },{selector,inset:frameWidth*.9});
         assert.ok(result.count>0,`${label}: found visible cards`);checks++;
         assert.deepEqual(result.outside,[],`${label}: cost and stat plates stay inside the frame opening`);checks++;
         assert.ok(result.radii.every(radius=>radius!=='0px'),`${label}: cards have rounded corners`);checks++;
+        assert.ok(result.liftInsets.every(insets=>insets.every(inset=>Math.abs(inset+frameWidth)<.01)),`${label}: lift shadow reaches the outer card edge`);checks++;
       };
       // go() ignores calls while a screen transition holds EB_NAV_LOCK, so wait
       // for the lock to clear before and after every navigation.
