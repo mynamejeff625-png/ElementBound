@@ -22,7 +22,8 @@
  --eb-text-shadow:0 1px 2px rgba(0,0,0,.80);
  --eb-card-plate:radial-gradient(ellipse 80% 65% at 50% 38%,#1B2233 0%,#121826 55%,#0A0E17 100%);
  --eb-glow-select:0 0 0 2px var(--eb-select),0 0 14px color-mix(in srgb,var(--eb-select) 55%,transparent);
- --eb-overlay-deck:rgba(4,6,12,.35);
+ --eb-bg-blur:3px;
+ --eb-bg-brightness:.45;
  --eb-el-fire:#FF704D;
  --eb-el-water:#55C7FF;
  --eb-el-nature:#67D77A;

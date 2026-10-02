@@ -37,7 +37,7 @@
   }
   function decorate(){
     if(browser.root.querySelector('.deckselect-actions'))return;
-    browser.root.querySelector('.codex-grids').after(buildPanel());
+    const grids=browser.root.querySelector('.codex-grids'),stage=node('div','deckselect-stage'),gridStage=node('div','deckselect-grid-stage');grids.before(stage);gridStage.append(grids);stage.append(gridStage,buildPanel());
     const actions=node('div','deckselect-actions');mainButton=node('button','primary deckselect-main');mainButton.type='button';mainButton.dataset.mode='select';selectLabel=node('span','deckselect-button-label','SELECT');startLabel=node('span','deckselect-button-label','START DUEL');selectLabel.setAttribute('aria-hidden','false');startLabel.setAttribute('aria-hidden','true');mainButton.append(selectLabel,startLabel);mainButton.addEventListener('click',mainAction);hint=node('p','deckselect-hint','Swipe for all nine decks · tap a card for details');actions.append(mainButton,hint);browser.root.append(actions);live=node('div','deckselect-live');live.setAttribute('aria-live','polite');browser.root.append(live);setDifficulty(state.difficulty);
   }
   function open(){

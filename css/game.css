@@ -192,9 +192,13 @@
 
 /* Cosmetic-only background refresh. No gameplay, layout, input, or FX logic changes. */
 html,body{min-height:100%;background:#07101f;}
-body{
+body{position:relative;isolation:isolate;background-image:none;}
+body::before{
+ content:"";position:fixed;inset:-16px;z-index:-1;pointer-events:none;
  background-image:url("../assets/images/image-1-de14f0ce02bf.png");
- background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;
+ background-size:cover;background-position:center top;background-repeat:no-repeat;
+ filter:blur(var(--eb-bg-blur)) saturate(.8) brightness(var(--eb-bg-brightness));
+ transform:translateZ(0);will-change:transform;
 }
 #home{position:relative;isolation:isolate;}
 #home::before{

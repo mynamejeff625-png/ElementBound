@@ -126,6 +126,12 @@ small dark stat plates always remain inside the card frame's inner opening so
 the bronze trim never competes with their values. Lift transitions animate the
 opacity of a shadow layer rather than animating `box-shadow` itself.
 
+Every screen except the main menu uses one calm, static background layer on
+`body::before`: the environment art is blurred by `--eb-bg-blur` (`3px`) and
+darkened with `--eb-bg-brightness` (`.45`, about 55% darker). The layer is
+promoted once and never animated. The main menu's own artwork covers it
+completely. Never use `backdrop-filter` for this page-wide treatment.
+
 ## 4. Components (`css/components.css`, `js/ui.js`)
 
 BEM classes; every state is a modifier class or attribute, never a hand-written
@@ -308,6 +314,11 @@ centered deck and fits without horizontal or vertical page scrolling at both
 375×667 and 390×844. The primary Select control stays anchored in one thumb
 position at the bottom of the screen.
 
+Its dial, labels, dots, grid container, and grid wrappers share the Codex CSS
+exactly. Only the S-card size and the grid rows and gaps needed by that size may
+differ. Deck-specific transitions belong to dedicated wrappers, never the
+shared carousel elements.
+
 Selecting a deck locks and emphasizes its centered medallion, fades the card
 grid down, and slides the Easy / Medium / Hard opponent choice into the same
 space. The bottom control changes in place to Start Duel. “Change deck” reverses
@@ -369,3 +380,4 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-01 | Deck select shows every card in the centered deck and supports the shared card zoom |
 | 2026-10-01 | Select swaps the card grid for difficulty choices in place while the main button stays under the player's thumb |
 | 2026-10-01 | The Codex becomes the library with search, glossary links, and per-deck guides |
+| 2026-10-01 | Calm background (about 55% darker plus a soft blur) on every screen except the main menu, including the duel |
