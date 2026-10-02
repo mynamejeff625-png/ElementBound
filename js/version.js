@@ -1,11 +1,11 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.4.1',
-  label:'Deck polish',
+  version:'1.4.2',
+  label:'Deck motion',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Smoother deck carousel · Clearer cards · Calmer background',
+  focus:'Smooth deck settle · Gentle difficulty reveal',
   audience:'Prime & Hybrid Benders'
 });
 

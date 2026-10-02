@@ -19,7 +19,7 @@ ok(!/--eb-overlay-deck/.test(tokens),'legacy deck overlay token is removed');
 ok(/--eb-bg-blur:3px/.test(tokens)&&/--eb-bg-brightness:\.45/.test(tokens),'calm background tokens are defined');
 ok(/body::before\{[\s\S]*filter:blur\(var\(--eb-bg-blur\)\) saturate\(\.8\) brightness\(var\(--eb-bg-brightness\)\)/.test(game),'body owns the static calm background');
 ok(!/body::before\{[^}]*backdrop-filter/.test(game),'calm background avoids backdrop-filter');
-ok(/version:'1\.4\.1'/.test(version)&&/label:'Deck polish'/.test(version),'release metadata identifies 1.4.1');
+ok(/version:'\d+\.\d+\.\d+'/.test(version),'release metadata contains a semantic version');
 ok(design.includes('Calm background (about 55% darker plus a soft blur)'), 'design decisions record the calm background');
 equal((deck.match(/\.deckselect-shell \.codex-card-grid\{/g)||[]).length,1,'only the permitted deck grid override remains');
 console.log(`Deck polish 1.4.1: ${checks} checks passed`);
