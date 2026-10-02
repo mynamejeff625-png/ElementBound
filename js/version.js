@@ -1,11 +1,11 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.3.1',
-  label:'Codex polish',
+  version:'1.4.0',
+  label:'Deck Select',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Rounded card corners · Stat plates · Card depth',
+  focus:'Choose your deck · Card preview · Difficulty',
   audience:'Prime & Hybrid Benders'
 });
 
