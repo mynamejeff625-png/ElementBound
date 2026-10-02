@@ -139,9 +139,37 @@ async function run() {
         assert.equal(result.hasUI,true,`${label}: EB_UI exists`);checks++;
         assert.equal(result.iconsStatus,200,`${label}: icon sprite loads`);checks++;
       };
+      const carouselStyles = selector => page.locator(selector).evaluate(element=>{
+        const style=getComputedStyle(element),properties=['height','transitionProperty','transitionDuration','overflow','touchAction','willChange'];
+        return Object.fromEntries(properties.map(property=>[property,style[property]]));
+      });
+      const assertSmallCardLayout = async (root,label) => {
+        const problems=await page.locator(`${root} .codex-card--s`).evaluateAll(cards=>cards.flatMap(card=>{
+          const name=card.querySelector('.codex-card-name'),short=card.querySelector('.codex-card-short'),stats=card.querySelector('.codex-card-stats');
+          const nameBox=name.getBoundingClientRect(),shortBox=short.getBoundingClientRect(),statsBox=stats&&stats.getBoundingClientRect(),issues=[];
+          if(nameBox.bottom+2>shortBox.top)issues.push(`${card.dataset.cardName}: name/short overlap`);
+          if(statsBox&&shortBox.bottom+2>statsBox.top)issues.push(`${card.dataset.cardName}: short/stats overlap`);
+          if(short.scrollHeight>short.clientHeight+1)issues.push(`${card.dataset.cardName}: short text clipped`);
+          return issues;
+        }));
+        assert.deepEqual(problems,[],`${label}: all S-card text clears stats without clipping`);checks++;
+      };
+      const assertInfoOnTop = async label => {
+        const result=await page.locator('.codex-zoom-slide[aria-hidden="false"] .codex-info').evaluate(info=>{
+          const rect=info.getBoundingClientRect(),hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+6);
+          return hit===info||info.contains(hit);
+        });
+        assert.equal(result,true,`${label}: description paints above the lift shadow`);checks++;
+      };
+      const calmBackground = async label => {
+        const filter=await page.evaluate(()=>getComputedStyle(document.body,'::before').filter);
+        assert.match(filter,/blur\(/,`${label}: calm background uses blur`);checks++;
+      };
 
       await page.goto(base, { waitUntil: 'load' });
       await visible('#home.on', 'home screen');
+      const homeArt=await page.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').backgroundImage);
+      assert.match(homeArt,/image-2-0c2280786476\.png/, 'main menu artwork is unchanged');checks++;
       const stamp = await page.locator('#buildStamp').textContent();
       assert.match(stamp, /Alpha \d+\.\d+\.\d+/, 'main menu shows the release version'); checks++;
       await foundation('home');
@@ -153,6 +181,7 @@ async function run() {
 
       await navigate(() => goCodex(), '#codex.on');
       await visible('.codex-card-grid .codex-card', 'codex cards');
+      await calmBackground('Codex');
       await foundation('codex');
       await shot('03-codex');
       assert.equal(await page.locator('.codex-dial-option').count(),9,'Codex shows all nine deck medallions');checks++;
@@ -167,11 +196,15 @@ async function run() {
       assert.equal(tabbableCodexCards,5,'only the active Codex grid exposes tabbable cards');checks++;
       assert.ok(await waterGrid.getByText('Mist Adept',{exact:true}).count(),'Water grid contains Mist Adept');checks++;
       await assertCardChrome('.codex-grid-wrap[data-deck="WATER"] .codex-card--s',12,'Codex S cards');
+      await assertSmallCardLayout('#codex','Codex');
+      const codexCarousel={};
+      for(const part of ['.codex-dial','.codex-labels','.codex-dots','.codex-grids','.codex-grid-wrap[data-deck="WATER"]'])codexCarousel[part]=await carouselStyles(`#codex ${part}`);
       await shot('07-codex-dial');
       const closeupBox=await waterGrid.locator('.codex-card--s').first().boundingBox();
       await page.screenshot({path:path.join(OUT,`${vp.name}-09-codex-card-closeup.png`),clip:closeupBox});
       await waterGrid.locator('.codex-card').first().click();
       await visible('.codex-zoom.is-open','Codex zoom');
+      await assertInfoOnTop('Codex zoom');
       assert.equal(await page.locator('.codex-zoom-slide[aria-hidden="false"] .codex-card-name').textContent(),'Mist Adept','tapped card opens active in zoom');checks++;
       const zoomBox=await page.locator('.codex-zoom-stage').boundingBox();
       await swipe(zoomBox.x+zoomBox.width*.8,zoomBox.y+180,zoomBox.x+zoomBox.width*.2,zoomBox.y+180);
@@ -192,6 +225,7 @@ async function run() {
 
       await navigate(() => goDeckSelect(), '#setup.on');
       await visible('#setup .deckselect-shell .codex-card','deck select cards');
+      await calmBackground('Deck select');
       const deckSelectFits=await page.evaluate(()=>({vertical:document.documentElement.scrollHeight<=document.documentElement.clientHeight,horizontal:document.documentElement.scrollWidth<=document.documentElement.clientWidth}));
       assert.deepEqual(deckSelectFits,{vertical:true,horizontal:true},'deck select fits without page scrolling');checks++;
       const selectDialBox=await page.locator('#setup .codex-dial').boundingBox();
@@ -203,6 +237,10 @@ async function run() {
       assert.deepEqual(deckCardSize,{width:100,height:140},'deck-select cards stay 100 by 140 pixels at phone sizes');checks++;
       const titleLines=await page.locator('#setup .codex-title').evaluate(title=>Math.round(title.getBoundingClientRect().height/parseFloat(getComputedStyle(title).lineHeight)));
       assert.equal(titleLines,1,'deck-select title stays on one line');checks++;
+      await assertSmallCardLayout('#setup','Deck select');
+      for(const part of ['.codex-dial','.codex-labels','.codex-dots','.codex-grids','.codex-grid-wrap[data-deck="WATER"]']){
+        assert.deepEqual(await carouselStyles(`#setup ${part}`),codexCarousel[part],`deck select matches Codex computed carousel styles for ${part}`);checks++;
+      }
       const selectTabbable=await page.evaluate(()=>[...document.querySelectorAll('#setup .codex-grid-wrap')].filter(grid=>!grid.inert).flatMap(grid=>[...grid.querySelectorAll('.codex-card')]).length);
       assert.equal(selectTabbable,5,'only the active deck-select grid exposes cards');checks++;
       await foundation('setup');
@@ -210,6 +248,7 @@ async function run() {
       await shot('10-deck-select');
       await selectWaterGrid.locator('.codex-card').first().click();
       await visible('.codex-zoom.is-open','deck-select card zoom');
+      await assertInfoOnTop('Deck-select zoom');
       const beforeArrow=await page.locator('.codex-zoom-slide[aria-hidden="false"] .codex-card-name').textContent();
       await page.locator('.codex-zoom-controls .is-next').click();
       assert.ok(await page.locator('.codex-zoom').evaluate(zoom=>zoom.classList.contains('is-sliding')),'reduced-motion arrow navigation uses the slide transition');checks++;
@@ -224,10 +263,12 @@ async function run() {
       await page.waitForTimeout(250);
       assert.ok(await page.locator('#setup .codex-grid-wrap').evaluateAll(grids=>grids.every(grid=>grid.inert)),'card grids are inert while choosing difficulty');checks++;
       assert.equal((await page.locator('.deckselect-button-label[aria-hidden="false"]').textContent()).trim(),'START DUEL','main button changes to Start Duel');checks++;
+      assert.ok(await page.evaluate(()=>document.scrollingElement.scrollHeight<=innerHeight),'deck select does not scroll after Select');checks++;
       await shot('12-deck-difficulty');
       await page.locator('.deckselect-option[data-difficulty="Hard"]').click();
       await page.locator('.deckselect-main').click();
       await visible('#battle.on', 'duel screen');
+      await calmBackground('Duel');
       await navUnlocked();
       // The initiative coin flip starts shortly after the duel opens. Wait for it,
       // skip it all the way to the end (the first skip only reveals the result),
