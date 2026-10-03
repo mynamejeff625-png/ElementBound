@@ -25,6 +25,9 @@ jobs:
       - run: node --check js/hostRedirect.js
       - run: node tests/host-redirect-1.1.2.cjs
       - run: node --check js/ui.js
+      - run: node --check js/mainMenu.js
+      - run: node --check tests/main-menu-1.5.0.cjs
+      - run: node tests/main-menu-1.5.0.cjs
       - run: node --check js/codex.js
       - run: node --check js/cardBrowser.js
       - run: node --check js/deckSelect.js

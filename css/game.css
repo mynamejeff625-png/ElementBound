@@ -203,11 +203,9 @@ body::before{
 #home{position:relative;isolation:isolate;}
 #home::before{
  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
- background-image:url("../assets/images/image-2-0c2280786476.png");
+ background-image:url("../assets/images/image-1-de14f0ce02bf.png");
  background-size:cover;background-position:center top;background-repeat:no-repeat;
 }
-/* Keep the original logo's exact layout footprint, but let the logo baked into the new art show through. */
-#home .main-logo{visibility:hidden!important;}
 /* Keep controls readable while revealing a little more of the environment during matches. */
 #battle .top{background:rgba(9,14,27,.84);}
 #battle .side{background:rgba(21,29,49,.84);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);}
