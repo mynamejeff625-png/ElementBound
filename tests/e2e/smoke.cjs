@@ -172,12 +172,43 @@ async function run() {
 
       await page.goto(base, { waitUntil: 'load' });
       await visible('#home.on', 'home screen');
+      const homeLayout=await page.evaluate(()=>({vertical:document.scrollingElement.scrollHeight<=innerHeight,horizontal:document.scrollingElement.scrollWidth<=innerWidth,logo:document.querySelector('.main-logo')?.naturalWidth||0}));
+      assert.deepEqual(homeLayout,{vertical:true,horizontal:true,logo:720},'main menu fits and the cropped logo loads');checks++;
+      const whatsNewBox=await page.locator('#whatsNewButton').boundingBox();
+      assert.ok(whatsNewBox&&whatsNewBox.x>=0&&whatsNewBox.y>=0&&whatsNewBox.x+whatsNewBox.width<=vp.width&&whatsNewBox.y+whatsNewBox.height<=vp.height,'What\'s New stays inside the top-right viewport');checks++;
+      await page.waitForTimeout(500);
+      assert.equal(await page.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').opacity),'1','full menu art holds through 0.5 seconds');checks++;
       const homeArt=await page.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').backgroundImage);
-      assert.match(homeArt,/image-2-0c2280786476\.png/, 'main menu artwork is unchanged');checks++;
+      assert.match(homeArt,/image-1-de14f0ce02bf\.png/, 'main menu uses the plain environment artwork');checks++;
       const stamp = await page.locator('#buildStamp').textContent();
       assert.match(stamp, /Alpha \d+\.\d+\.\d+/, 'main menu shows the release version'); checks++;
       await foundation('home');
       await shot('01-home');
+      assert.equal(await page.locator('#whatsNewButton').getAttribute('aria-label'),"What's New, 1 unread update",'What\'s New announces its unread update');checks++;
+      assert.equal(await page.locator('#whatsNewButton').evaluate(button=>button.classList.contains('has-badge')),true,'What\'s New dot is visible');checks++;
+      await page.locator('#whatsNewButton').click();
+      await visible('.whats-new-sheet','What\'s New sheet');
+      assert.equal(await page.locator('.whats-new-list li').count(),3,'What\'s New renders release notes');checks++;
+      assert.equal(await page.evaluate(()=>document.querySelector('.whats-new-sheet').contains(document.activeElement)),true,'focus moves into What\'s New');checks++;
+      assert.equal(await page.locator('#whatsNewButton').evaluate(button=>button.classList.contains('has-badge')),false,'opening What\'s New clears the dot');checks++;
+      await shot('13-whats-new');
+      await page.locator('.whats-new-got-it').click();
+      assert.equal(await page.evaluate(()=>document.activeElement===document.getElementById('whatsNewButton')),true,'closing What\'s New restores focus');checks++;
+      await page.locator('#whatsNewButton').click();await visible('.whats-new-sheet','What\'s New reopened');await page.keyboard.press('Escape');await page.locator('.whats-new-sheet').waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement===document.getElementById('whatsNewButton')),true,'Escape closes What\'s New and restores focus');checks++;
+      await page.locator('#whatsNewButton').click();await visible('.whats-new-sheet','What\'s New for backdrop close');await page.locator('.whats-new-backdrop').click({position:{x:5,y:5}});await page.locator('.whats-new-sheet').waitFor({state:'detached'});checks++;
+      await page.reload({waitUntil:'load'});await visible('#home.on','home after reload');
+      assert.equal(await page.locator('#whatsNewButton').evaluate(button=>button.classList.contains('has-badge')),false,'seen state survives reload');checks++;
+      await page.waitForTimeout(3000);
+      assert.equal(await page.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').opacity),'0','full menu art fades to calm by three seconds');checks++;
+      const reducedPage=await context.newPage();await reducedPage.emulateMedia({reducedMotion:'reduce'});await reducedPage.goto(base,{waitUntil:'load'});
+      assert.equal(await reducedPage.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').opacity),'0','reduced motion starts with the calm menu');checks++;await reducedPage.close();
+
+      await page.locator('#buildStamp').dispatchEvent('pointerdown',{pointerId:1,pointerType:'touch'});await page.waitForTimeout(650);await page.locator('#buildStamp').dispatchEvent('pointerup',{pointerId:1,pointerType:'touch'});
+      await visible('#devcheck.on','System Check after version long-press');await navigate(()=>go('home'),'#home.on');
+      for(let tap=0;tap<5;tap++)await page.locator('#buildStamp').click();await visible('#devcheck.on','System Check after five version taps');await navigate(()=>go('home'),'#home.on');
+      await page.locator('.home-secondary .ghost').first().click();await visible('#friends.on','Play with Friends');await navUnlocked();
+      await visible('#friends #mpConnectOnline','Friends connect control');assert.ok(await page.locator('#friends #mpRoomCode').count(),'Friends room-code control is present');checks++;
+      await shot('14-friends');await page.locator('#friends .friends-header button').click();await visible('#home.on','home after Friends');await navUnlocked();
 
       await navigate(() => goTrials(), '#trials.on');
       await foundation('trials');
@@ -233,7 +264,7 @@ async function run() {
       await page.evaluate(() => hideModal());
       await page.locator('#mw').waitFor({ state: 'hidden', timeout: 5000 });
 
-      await navigate(() => goDeckSelect(), '#setup.on');
+      await navUnlocked();await page.locator('.home-play').click();await visible('#setup.on','deck select from Play');await navUnlocked();
       await visible('#setup .deckselect-shell .codex-card','deck select cards');
       await calmBackground('Deck select');
       const deckSelectFits=await page.evaluate(()=>({vertical:document.documentElement.scrollHeight<=document.documentElement.clientHeight,horizontal:document.documentElement.scrollWidth<=document.documentElement.clientWidth}));
