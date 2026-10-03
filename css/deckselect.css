@@ -12,7 +12,8 @@
 .deckselect-shell.is-deck-locked .codex-dial-option[aria-selected="true"] .codex-medallion{transform:scale(1.08)}
 .deckselect-difficulty{position:absolute;inset:0;z-index:2;opacity:0;transform:translateY(24px);pointer-events:none;transition:transform 200ms var(--eb-ease-in),opacity 200ms var(--eb-ease-in)}
 .deckselect-shell.is-choosing-difficulty .deckselect-grid-stage{opacity:0;transform:translateY(16px);pointer-events:none;transition-duration:200ms;transition-delay:0ms;transition-timing-function:var(--eb-ease-in)}
-.deckselect-shell.is-choosing-difficulty .deckselect-difficulty{opacity:1;transform:none;pointer-events:auto;transition-duration:400ms;transition-delay:160ms;transition-timing-function:var(--eb-ease-soft)}
+.deckselect-shell.is-choosing-difficulty .deckselect-difficulty{opacity:1;transform:none;transition-duration:400ms;transition-delay:160ms;transition-timing-function:var(--eb-ease-soft)}
+.deckselect-shell.is-difficulty-interactive .deckselect-difficulty{pointer-events:auto}
 .deckselect-difficulty-head{display:flex;align-items:center;justify-content:space-between;gap:8px;height:44px}
 .deckselect-difficulty h2{margin:0;font:700 var(--eb-text-lg)/1.1 var(--eb-font-display)}
 .deckselect-change{min-height:44px;padding:0 8px;border:0;background:transparent;color:var(--eb-ink-quiet);text-decoration:underline;text-underline-offset:3px}

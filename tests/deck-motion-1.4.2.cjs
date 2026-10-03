@@ -11,6 +11,7 @@ ok(tokens.includes('--eb-ease-in:cubic-bezier(.4,0,1,1)'),'leaving easing token 
 ok(tokens.includes('--eb-ease-soft:cubic-bezier(.22,.61,.36,1)'),'arriving easing token is defined');
 ok(/\.is-choosing-difficulty \.deckselect-grid-stage[^}]*transition-duration:200ms[^}]*transition-delay:0ms[^}]*var\(--eb-ease-in\)/.test(deck),'card grid leaves first over 200 ms');
 ok(/\.is-choosing-difficulty \.deckselect-difficulty[^}]*transition-duration:400ms[^}]*transition-delay:160ms[^}]*var\(--eb-ease-soft\)/.test(deck),'difficulty panel arrives softly after 160 ms');
+ok(/\.is-difficulty-interactive \.deckselect-difficulty\{pointer-events:auto\}/.test(deck)&&script.includes("interactionTimer=setTimeout(()=>browser.root.classList.add('is-difficulty-interactive'),160)"),'difficulty hit testing waits for the reveal');
 ok(/nth-child\(1\)[^}]*220ms[\s\S]*nth-child\(2\)[^}]*280ms[\s\S]*nth-child\(3\)[^}]*340ms/.test(deck),'difficulty options are staggered by 60 ms');
 ok(/prefers-reduced-motion:reduce[^}]*transition-duration:150ms;transition-delay:0ms;transition-timing-function:linear/.test(deck),'reduced motion removes delays and uses 150 ms linear fades');
 ok(script.includes("heading.focus({preventScroll:true})"),'difficulty heading focus prevents scrolling');

@@ -280,8 +280,10 @@ async function run() {
       assert.equal(await page.locator('.deckselect-difficulty').getAttribute('aria-hidden'),'false','difficulty choices are exposed to assistive technology');checks++;
       await page.waitForTimeout(50);
       assert.ok(Number(await page.locator('.deckselect-difficulty').evaluate(panel=>getComputedStyle(panel).opacity))<.1,'difficulty panel stays hidden while cards begin leaving');checks++;
+      assert.equal(await page.locator('.deckselect-difficulty').evaluate(panel=>getComputedStyle(panel).pointerEvents),'none','hidden difficulty controls cannot intercept taps during the reveal delay');checks++;
       await page.waitForTimeout(650);
       assert.equal(await page.locator('.deckselect-difficulty').evaluate(panel=>getComputedStyle(panel).opacity),'1','difficulty panel finishes its gentle reveal');checks++;
+      assert.equal(await page.locator('.deckselect-difficulty').evaluate(panel=>getComputedStyle(panel).pointerEvents),'auto','difficulty controls enable after the reveal begins');checks++;
       assert.equal(await page.locator('.deckselect-grid-stage').evaluate(stage=>getComputedStyle(stage).opacity),'0','card grid has stepped aside before difficulty settles');checks++;
       assert.equal(await page.evaluate(()=>document.activeElement===document.querySelector('.deckselect-difficulty h2')),true,'focus moves to the arrived difficulty heading');checks++;
       assert.equal(await page.evaluate(()=>scrollY),scrollBeforeSelect,'difficulty focus does not move the page');checks++;
