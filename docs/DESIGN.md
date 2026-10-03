@@ -257,6 +257,12 @@ effects).
 | Icon or state swap (e.g. selected, disabled, tab) | Cross-fade and/or scale | `--eb-dur-lift` 150 ms |
 | Tap feedback | Pressed state | `--eb-dur-tap` 80 ms |
 
+Use `--eb-ease-in` (`cubic-bezier(.4,0,1,1)`) for elements leaving and
+`--eb-ease-soft` (`cubic-bezier(.22,.61,.36,1)`) for panels arriving. When one
+panel replaces another in the same space, the outgoing panel leaves first and
+the incoming panel starts about 160 ms later; never use a simultaneous
+cross-fade for that replacement.
+
 **Swipe physics** (dial, card list, zoomed card carousel, and later the hand):
 - The content follows the finger 1:1 while dragging (no animation during the drag).
 - On release it snaps to the nearest item with `--eb-ease`, 300 ms. A quick
@@ -381,3 +387,4 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-01 | Select swaps the card grid for difficulty choices in place while the main button stays under the player's thumb |
 | 2026-10-01 | The Codex becomes the library with search, glossary links, and per-deck guides |
 | 2026-10-01 | Calm background (about 55% darker plus a soft blur) on every screen except the main menu, including the duel |
+| 2026-10-01 | When one panel replaces another in the same space, the outgoing panel leaves first and the incoming panel begins about 160 ms later |

@@ -4,27 +4,31 @@
 .deckselect-shell .codex-title{font-size:22px;white-space:nowrap}
 .deckselect-shell .codex-header-spacer{width:44px}
 .deckselect-stage{position:relative;height:304px}
-.deckselect-grid-stage{position:absolute;inset:0;transition:transform 380ms var(--eb-ease),opacity 380ms var(--eb-ease)}
+.deckselect-grid-stage{position:absolute;inset:0;transition:transform 400ms var(--eb-ease-soft) 120ms,opacity 400ms var(--eb-ease-soft) 120ms}
 .deckselect-shell .codex-card-grid{grid-template-columns:repeat(3,100px);grid-auto-rows:140px;gap:6px 8px}
 .deckselect-shell .deckselect-card{width:100px;height:140px;padding:11px 12px}
 .deckselect-shell .codex-dial-option .codex-medallion{transition:opacity 300ms var(--eb-ease),filter 300ms var(--eb-ease),transform 300ms var(--eb-ease)}
 .deckselect-shell.is-deck-locked .codex-dial-option:not([aria-selected="true"]) .codex-medallion{opacity:.35;filter:saturate(.55)}
 .deckselect-shell.is-deck-locked .codex-dial-option[aria-selected="true"] .codex-medallion{transform:scale(1.08)}
-.deckselect-difficulty{position:absolute;inset:0;z-index:2;opacity:0;transform:translateY(40px);pointer-events:none;transition:transform 380ms var(--eb-ease),opacity 380ms var(--eb-ease)}
-.deckselect-shell.is-choosing-difficulty .deckselect-grid-stage{opacity:0;transform:translateY(24px);pointer-events:none}
-.deckselect-shell.is-choosing-difficulty .deckselect-difficulty{opacity:1;transform:none;pointer-events:auto}
+.deckselect-difficulty{position:absolute;inset:0;z-index:2;opacity:0;transform:translateY(24px);pointer-events:none;transition:transform 200ms var(--eb-ease-in),opacity 200ms var(--eb-ease-in)}
+.deckselect-shell.is-choosing-difficulty .deckselect-grid-stage{opacity:0;transform:translateY(16px);pointer-events:none;transition-duration:200ms;transition-delay:0ms;transition-timing-function:var(--eb-ease-in)}
+.deckselect-shell.is-choosing-difficulty .deckselect-difficulty{opacity:1;transform:none;transition-duration:400ms;transition-delay:160ms;transition-timing-function:var(--eb-ease-soft)}
+.deckselect-shell.is-difficulty-interactive .deckselect-difficulty{pointer-events:auto}
 .deckselect-difficulty-head{display:flex;align-items:center;justify-content:space-between;gap:8px;height:44px}
 .deckselect-difficulty h2{margin:0;font:700 var(--eb-text-lg)/1.1 var(--eb-font-display)}
 .deckselect-change{min-height:44px;padding:0 8px;border:0;background:transparent;color:var(--eb-ink-quiet);text-decoration:underline;text-underline-offset:3px}
 .deckselect-options{display:grid;gap:6px;margin-top:6px}
-.deckselect-option{display:flex;align-items:center;justify-content:space-between;width:100%;height:62px;padding:8px 14px;color:var(--eb-ink);background:var(--eb-card-plate);border:1px solid var(--eb-bronze-lo);border-radius:var(--eb-radius-md);text-align:left}
+.deckselect-option{display:flex;align-items:center;justify-content:space-between;width:100%;height:62px;padding:8px 14px;color:var(--eb-ink);background:var(--eb-card-plate);border:1px solid var(--eb-bronze-lo);border-radius:var(--eb-radius-md);text-align:left;opacity:0;transform:translateY(8px);transition:transform 200ms var(--eb-ease-in),opacity 200ms var(--eb-ease-in)}
+.deckselect-shell.is-choosing-difficulty .deckselect-option{opacity:1;transform:none;transition-duration:300ms;transition-timing-function:var(--eb-ease-soft)}
+.deckselect-shell.is-choosing-difficulty .deckselect-option:nth-child(1){transition-delay:220ms}.deckselect-shell.is-choosing-difficulty .deckselect-option:nth-child(2){transition-delay:280ms}.deckselect-shell.is-choosing-difficulty .deckselect-option:nth-child(3){transition-delay:340ms}
 .deckselect-option-copy{display:flex;flex-direction:column}.deckselect-option-copy strong{font:700 var(--eb-text-md)/1.1 var(--eb-font-display)}.deckselect-option-copy span{margin-top:4px;color:var(--eb-ink-quiet);font-size:var(--eb-text-sm)}
 .deckselect-option.is-selected{box-shadow:var(--eb-glow-select)}
 .deckselect-check{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--eb-select);color:var(--eb-plate-edge)}.deckselect-check[hidden]{display:none}.deckselect-check .eb-icon{width:20px;height:20px}
 .deckselect-rival{margin:8px 0 0;color:var(--eb-ink-quiet);font-size:var(--eb-text-sm);text-align:center}
 .deckselect-actions{width:min(300px,calc(100% - 24px));margin:0 auto;text-align:center}
 .deckselect-main{position:relative;width:100%;height:64px;padding:0;overflow:hidden}
-.deckselect-button-label{position:absolute;inset:0;display:grid;place-items:center;transition:transform var(--eb-dur-attack) var(--eb-ease),opacity var(--eb-dur-attack) var(--eb-ease)}
+.deckselect-button-label{position:absolute;inset:0;display:grid;place-items:center;transition:transform 200ms var(--eb-ease-in),opacity 200ms var(--eb-ease-in)}
+.deckselect-shell.is-choosing-difficulty .deckselect-button-label{transition-duration:300ms;transition-delay:120ms;transition-timing-function:var(--eb-ease-soft)}
 .deckselect-button-label[aria-hidden="true"]{opacity:0;transform:translateY(14px);pointer-events:none}
 .deckselect-main[data-mode="start"] .deckselect-button-label:first-child{opacity:0;transform:translateY(-14px)}
 .deckselect-main[data-mode="start"] .deckselect-button-label:last-child{opacity:1;transform:none}
@@ -34,4 +38,4 @@
 .screen.eb-deck-from-home,.screen.eb-deck-to-home,.screen.eb-home-from-deck,.screen.eb-home-to-deck{display:block!important;position:fixed;inset:0;z-index:30;padding:calc(env(safe-area-inset-top) + 14px) 12px calc(env(safe-area-inset-bottom) + 20px);background:transparent;overflow:hidden}
 .screen.eb-deck-from-home{animation:ebDeckIn 420ms var(--eb-ease) both}.screen.eb-home-to-deck{animation:ebHomeOut 420ms var(--eb-ease) both}.screen.eb-home-from-deck{animation:ebHomeIn 420ms var(--eb-ease) both}.screen.eb-deck-to-home{animation:ebDeckOut 420ms var(--eb-ease) both}
 @keyframes ebDeckIn{from{transform:translateX(100%);opacity:.7}to{transform:none;opacity:1}}@keyframes ebHomeOut{to{transform:translateX(-35%);opacity:.35}}@keyframes ebHomeIn{from{transform:translateX(-35%);opacity:.35}to{transform:none;opacity:1}}@keyframes ebDeckOut{to{transform:translateX(100%);opacity:.5}}
-@media(prefers-reduced-motion:reduce){.deckselect-grid-stage,.deckselect-difficulty,.deckselect-button-label{transition-duration:150ms;transition-timing-function:linear}.screen.eb-deck-from-home,.screen.eb-deck-to-home,.screen.eb-home-from-deck,.screen.eb-home-to-deck{animation-duration:150ms;animation-name:ebDeckFade}.codex-zoom-track{transition-duration:150ms;transition-timing-function:linear}@keyframes ebDeckFade{from{opacity:0}to{opacity:1}}}
+@media(prefers-reduced-motion:reduce){.deckselect-grid-stage,.deckselect-difficulty,.deckselect-option,.deckselect-button-label,.deckselect-shell.is-choosing-difficulty .deckselect-grid-stage,.deckselect-shell.is-choosing-difficulty .deckselect-difficulty,.deckselect-shell.is-choosing-difficulty .deckselect-option,.deckselect-shell.is-choosing-difficulty .deckselect-button-label{transition-duration:150ms;transition-delay:0ms;transition-timing-function:linear}.screen.eb-deck-from-home,.screen.eb-deck-to-home,.screen.eb-home-from-deck,.screen.eb-home-to-deck{animation-duration:150ms;animation-name:ebDeckFade}.codex-zoom-track{transition-duration:150ms;transition-timing-function:linear}@keyframes ebDeckFade{from{opacity:0}to{opacity:1}}}

@@ -39,7 +39,7 @@
 .codex-card-stat{display:inline-flex;align-items:center;gap:2px;padding:2px 4px;background:color-mix(in srgb,var(--eb-plate-edge) 90%,transparent);border-radius:var(--eb-radius-sm);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--eb-bronze-lo) 60%,transparent);text-shadow:var(--eb-text-shadow)}
 .codex-card-stat .eb-icon{width:12px;height:12px}
 .codex-hint{margin:var(--eb-space-3) 0 0;text-align:center;color:var(--eb-ink-quiet);font-size:var(--eb-text-sm)}
-.codex-shell.is-animating .codex-dial-option,.codex-shell.is-animating .codex-deck-label,.codex-shell.is-animating .codex-grid-wrap{transition:transform var(--eb-dur-attack) var(--eb-ease),opacity var(--eb-dur-attack) var(--eb-ease)}
+.card-browser.is-animating .codex-dial-option,.card-browser.is-animating .codex-deck-label,.card-browser.is-animating .codex-grid-wrap{transition:transform var(--eb-dur-attack) var(--eb-ease),opacity var(--eb-dur-attack) var(--eb-ease)}
 .is-zoom-source{opacity:0!important}
 .codex-zoom{position:fixed;inset:0;z-index:var(--eb-z-sheet);overflow:hidden;opacity:0;transition:opacity var(--eb-dur-attack) var(--eb-ease)}
 .codex-zoom.is-open{opacity:1}
@@ -67,4 +67,4 @@
 .codex-zoom-controls{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + var(--eb-space-2));z-index:3;display:grid;grid-template-columns:44px minmax(112px,1fr) 44px;align-items:center;gap:var(--eb-space-2);width:280px;transform:translateX(-50%)}
 .codex-zoom-controls .eb-icon-btn{width:44px;height:44px}.codex-zoom-controls .is-next .eb-icon{transform:rotate(180deg)}
 @media(max-width:380px){.codex-card-grid{grid-template-columns:repeat(3,104px);gap:var(--eb-space-3) 6px}}
-@media(prefers-reduced-motion:reduce){.codex-shell.is-animating .codex-dial-option,.codex-shell.is-animating .codex-deck-label,.codex-shell.is-animating .codex-grid-wrap,.codex-zoom,.codex-zoom-stage,.codex-zoom.is-sliding .codex-zoom-slide{transition-duration:150ms;transition-timing-function:linear}.codex-dial-option,.codex-deck-label,.codex-grid-wrap,.codex-zoom-slide{transition-timing-function:linear!important}.codex-card::after{transition-duration:0s}}
+@media(prefers-reduced-motion:reduce){.card-browser.is-animating .codex-dial-option,.card-browser.is-animating .codex-deck-label,.card-browser.is-animating .codex-grid-wrap,.codex-zoom,.codex-zoom-stage,.codex-zoom.is-sliding .codex-zoom-slide{transition-duration:150ms;transition-timing-function:linear}.codex-dial-option,.codex-deck-label,.codex-grid-wrap,.codex-zoom-slide{transition-timing-function:linear!important}.codex-card::after{transition-duration:0s}}

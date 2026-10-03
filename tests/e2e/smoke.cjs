@@ -52,7 +52,7 @@ async function run() {
     for (const vp of VIEWPORTS) {
       const context = await browser.newContext({
         viewport: { width: vp.width, height: vp.height }, deviceScaleFactor: 2,
-        isMobile: true, hasTouch: true, reducedMotion: 'reduce'
+        isMobile: true, hasTouch: true, reducedMotion: 'no-preference'
       });
       const page = await context.newPage();
       const cdp = await context.newCDPSession(page);
@@ -143,6 +143,10 @@ async function run() {
         const style=getComputedStyle(element),properties=['height','transitionProperty','transitionDuration','overflow','touchAction','willChange'];
         return Object.fromEntries(properties.map(property=>[property,style[property]]));
       });
+      const settleStyles = root => page.evaluate(root=>{
+        const grid=document.querySelector(`${root} .codex-grid-wrap[aria-hidden="false"]`),dial=document.querySelector(`${root} .codex-dial-option[aria-selected="true"]`);
+        return{grid:getComputedStyle(grid).transitionDuration,dial:getComputedStyle(dial).transitionDuration};
+      },root);
       const assertSmallCardLayout = async (root,label) => {
         const problems=await page.locator(`${root} .codex-card--s`).evaluateAll(cards=>cards.flatMap(card=>{
           const name=card.querySelector('.codex-card-name'),short=card.querySelector('.codex-card-short'),stats=card.querySelector('.codex-card-stats');
@@ -188,7 +192,13 @@ async function run() {
       assert.equal(await page.locator('#codex').getAttribute('data-current-deck'),'FIRE','Codex starts on Fire');checks++;
       const dialBox=await page.locator('.codex-dial').boundingBox();
       await swipe(dialBox.x+dialBox.width/2+40,dialBox.y+dialBox.height/2,dialBox.x+dialBox.width/2-40,dialBox.y+dialBox.height/2);
+      const codexSwipeSettle=await settleStyles('#codex');
+      assert.deepEqual(codexSwipeSettle,{grid:'0.3s, 0.3s',dial:'0.3s, 0.3s'},'Codex swipe settles over 300 ms');checks++;
       await page.waitForTimeout(500);assert.equal(await page.locator('#codex').getAttribute('data-current-deck'),'WATER','dial swipe selects Water');checks++;
+      await page.locator('#codex .codex-dial-option').nth(2).evaluate(button=>button.click());
+      const codexTapSettle=await settleStyles('#codex');
+      assert.deepEqual(codexTapSettle,codexSwipeSettle,'Codex medallion tap matches swipe settling');checks++;
+      await page.waitForTimeout(350);await page.locator('#codex .codex-dial-option').nth(1).evaluate(button=>button.click());await page.waitForTimeout(350);
       const waterGrid=page.locator('.codex-grid-wrap[data-deck="WATER"]');
       assert.equal(await waterGrid.locator('.codex-card').count(),5,'Water grid has five cards');checks++;
       assert.equal(await waterGrid.getAttribute('aria-hidden'),'false','Water grid is active');checks++;
@@ -230,7 +240,13 @@ async function run() {
       assert.deepEqual(deckSelectFits,{vertical:true,horizontal:true},'deck select fits without page scrolling');checks++;
       const selectDialBox=await page.locator('#setup .codex-dial').boundingBox();
       await swipe(selectDialBox.x+selectDialBox.width/2+40,selectDialBox.y+selectDialBox.height/2,selectDialBox.x+selectDialBox.width/2-40,selectDialBox.y+selectDialBox.height/2);
+      const deckSwipeSettle=await settleStyles('#setup');
+      assert.deepEqual(deckSwipeSettle,codexSwipeSettle,'deck-select swipe settle matches Codex immediately after release');checks++;
       await page.waitForFunction(()=>document.querySelector('#setup')?.dataset.currentDeck==='WATER');checks++;
+      await page.locator('#setup .codex-dial-option').nth(2).evaluate(button=>button.click());
+      const deckTapSettle=await settleStyles('#setup');
+      assert.deepEqual(deckTapSettle,codexTapSettle,'deck-select medallion tap settle matches Codex');checks++;
+      await page.waitForTimeout(350);await page.locator('#setup .codex-dial-option').nth(1).evaluate(button=>button.click());await page.waitForTimeout(350);
       const selectWaterGrid=page.locator('#setup .codex-grid-wrap[data-deck="WATER"]');
       assert.equal(await selectWaterGrid.locator('.codex-card').count(),5,'deck select Water grid shows five cards');checks++;
       const deckCardSize=await selectWaterGrid.locator('.codex-card').first().evaluate(card=>({width:card.getBoundingClientRect().width,height:card.getBoundingClientRect().height}));
@@ -254,17 +270,34 @@ async function run() {
       assert.ok(await page.locator('.codex-zoom').evaluate(zoom=>zoom.classList.contains('is-sliding')),'reduced-motion arrow navigation uses the slide transition');checks++;
       await page.waitForFunction(name=>document.querySelector('.codex-zoom-slide[aria-hidden="false"] .codex-card-name')?.textContent!==name,beforeArrow);checks++;
       const trackDuration=await page.locator('.codex-zoom-track').evaluate(track=>parseFloat(getComputedStyle(track).transitionDuration)*1000);
-      assert.equal(trackDuration,150,'reduced-motion deck zoom keeps a 150 ms linear slide');checks++;
+      assert.equal(trackDuration,300,'deck zoom uses the shared 300 ms slide');checks++;
       await shot('11-deck-zoom');
       await page.locator('.codex-zoom-close').click();await page.locator('.codex-zoom').waitFor({state:'detached',timeout:5000});checks++;
+      await page.evaluate(()=>scrollTo(0,0));
+      const scrollBeforeSelect=await page.evaluate(()=>scrollY);
       await page.locator('.deckselect-main').click();
       await visible('.deckselect-difficulty','difficulty panel');
       assert.equal(await page.locator('.deckselect-difficulty').getAttribute('aria-hidden'),'false','difficulty choices are exposed to assistive technology');checks++;
-      await page.waitForTimeout(250);
+      await page.waitForTimeout(50);
+      assert.ok(Number(await page.locator('.deckselect-difficulty').evaluate(panel=>getComputedStyle(panel).opacity))<.1,'difficulty panel stays hidden while cards begin leaving');checks++;
+      assert.equal(await page.locator('.deckselect-difficulty').evaluate(panel=>getComputedStyle(panel).pointerEvents),'none','hidden difficulty controls cannot intercept taps during the reveal delay');checks++;
+      await page.waitForTimeout(650);
+      assert.equal(await page.locator('.deckselect-difficulty').evaluate(panel=>getComputedStyle(panel).opacity),'1','difficulty panel finishes its gentle reveal');checks++;
+      assert.equal(await page.locator('.deckselect-difficulty').evaluate(panel=>getComputedStyle(panel).pointerEvents),'auto','difficulty controls enable after the reveal begins');checks++;
+      assert.equal(await page.locator('.deckselect-grid-stage').evaluate(stage=>getComputedStyle(stage).opacity),'0','card grid has stepped aside before difficulty settles');checks++;
+      assert.equal(await page.evaluate(()=>document.activeElement===document.querySelector('.deckselect-difficulty h2')),true,'focus moves to the arrived difficulty heading');checks++;
+      assert.equal(await page.evaluate(()=>scrollY),scrollBeforeSelect,'difficulty focus does not move the page');checks++;
       assert.ok(await page.locator('#setup .codex-grid-wrap').evaluateAll(grids=>grids.every(grid=>grid.inert)),'card grids are inert while choosing difficulty');checks++;
       assert.equal((await page.locator('.deckselect-button-label[aria-hidden="false"]').textContent()).trim(),'START DUEL','main button changes to Start Duel');checks++;
       assert.ok(await page.evaluate(()=>document.scrollingElement.scrollHeight<=innerHeight),'deck select does not scroll after Select');checks++;
       await shot('12-deck-difficulty');
+      await page.locator('.deckselect-change').click();
+      await page.waitForTimeout(600);
+      assert.equal(await page.locator('.deckselect-grid-stage').evaluate(stage=>getComputedStyle(stage).opacity),'1','Change deck restores cards after the panel leaves');checks++;
+      await page.emulateMedia({reducedMotion:'reduce'});
+      await page.locator('.deckselect-main').click();
+      await page.waitForTimeout(200);
+      assert.ok(Number(await page.locator('.deckselect-difficulty').evaluate(panel=>getComputedStyle(panel).opacity))>.99,'reduced-motion difficulty reveal finishes within 200 ms');checks++;
       await page.locator('.deckselect-option[data-difficulty="Hard"]').click();
       await page.locator('.deckselect-main').click();
       await visible('#battle.on', 'duel screen');
