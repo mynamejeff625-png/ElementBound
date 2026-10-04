@@ -17,7 +17,7 @@ window.EB_RELEASE=Object.freeze({
 (function applyElementBoundVersion(){
   const r=window.EB_RELEASE;
   const text={
-    home:`Alpha ${r.version} · ${r.label} · ${r.focus} · ${r.audience}`,
+    home:`Alpha ${r.version}`,
     battle:`Alpha ${r.version} · ${r.engine}`,
     diagnostics:`Alpha ${r.version} · ${r.label} · Diagnostics`,
     balance:`Alpha ${r.version} · ${r.balanceLab} · ${r.label}`

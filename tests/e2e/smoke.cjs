@@ -172,8 +172,25 @@ async function run() {
 
       await page.goto(base, { waitUntil: 'load' });
       await visible('#home.on', 'home screen');
-      const homeLayout=await page.evaluate(()=>({vertical:document.scrollingElement.scrollHeight<=innerHeight,horizontal:document.scrollingElement.scrollWidth<=innerWidth,logo:document.querySelector('.main-logo')?.naturalWidth||0}));
-      assert.deepEqual(homeLayout,{vertical:true,horizontal:true,logo:720},'main menu fits and the cropped logo loads');checks++;
+      const homeLayout=await page.evaluate(()=>{
+        const logo=document.querySelector('.main-logo'),canvas=document.createElement('canvas');
+        canvas.width=logo.naturalWidth;canvas.height=logo.naturalHeight;
+        const context=canvas.getContext('2d');context.drawImage(logo,0,0);
+        const edgeHasArt=(x,y,width,height)=>{
+          const pixels=context.getImageData(x,y,width,height).data;
+          for(let index=3;index<pixels.length;index+=4)if(pixels[index]>0)return true;
+          return false;
+        };
+        const edgeWidth=Math.ceil(canvas.width*.03),edgeHeight=Math.ceil(canvas.height*.03);
+        return {
+          vertical:document.scrollingElement.scrollHeight<=innerHeight,
+          horizontal:document.scrollingElement.scrollWidth<=innerWidth,
+          logo:[logo.naturalWidth,logo.naturalHeight],
+          rightEdge:edgeHasArt(canvas.width-edgeWidth,0,edgeWidth,canvas.height),
+          bottomEdge:edgeHasArt(0,canvas.height-edgeHeight,canvas.width,edgeHeight)
+        };
+      });
+      assert.deepEqual(homeLayout,{vertical:true,horizontal:true,logo:[720,509],rightEdge:true,bottomEdge:true},'main menu fits and the corrected logo crop reaches both outer edge strips');checks++;
       const whatsNewBox=await page.locator('#whatsNewButton').boundingBox();
       assert.ok(whatsNewBox&&whatsNewBox.x>=0&&whatsNewBox.y>=0&&whatsNewBox.x+whatsNewBox.width<=vp.width&&whatsNewBox.y+whatsNewBox.height<=vp.height,'What\'s New stays inside the top-right viewport');checks++;
       await page.waitForTimeout(500);
@@ -181,7 +198,7 @@ async function run() {
       const homeArt=await page.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').backgroundImage);
       assert.match(homeArt,/image-1-de14f0ce02bf\.png/, 'main menu uses the plain environment artwork');checks++;
       const stamp = await page.locator('#buildStamp').textContent();
-      assert.match(stamp, /Alpha \d+\.\d+\.\d+/, 'main menu shows the release version'); checks++;
+      assert.equal(stamp, 'Alpha 1.5.0', 'main menu shows only the concise release version'); checks++;
       await foundation('home');
       await shot('01-home');
       assert.equal(await page.locator('#whatsNewButton').getAttribute('aria-label'),"What's New, 1 unread update",'What\'s New announces its unread update');checks++;
