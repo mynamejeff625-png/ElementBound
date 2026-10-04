@@ -11,6 +11,6 @@ values[SEEN_KEY]='1.4.2';equal(isUnseen(storage,'1.5.0'),true,'different seen ve
 equal(markSeen(storage,'1.5.0'),true,'marking a version succeeds');equal(values[SEEN_KEY],'1.5.0','seen version is stored');equal(isUnseen(storage,'1.5.0'),false,'stored current version is read');
 equal(isUnseen({getItem(){throw Error('blocked')}},'1.5.0'),true,'read errors safely fall back to unread');equal(markSeen({setItem(){throw Error('blocked')}},'1.5.0'),false,'write errors do not throw');
 const source=fs.readFileSync('js/version.js','utf8'),notes=source.match(/notes:Object\.freeze\(\[([\s\S]*?)\]\)/);
-ok(notes,'release notes array exists');const entries=[...notes[1].matchAll(/'([^']+)'/g)].map(match=>match[1]);ok(entries.length>=3&&entries.every(Boolean),'release notes contain non-empty strings');
+ok(notes,'release notes array exists');const entries=[...notes[1].matchAll(/'([^']+)'/g)].map(match=>match[1]);ok(entries.length>=2&&entries.every(Boolean),'release notes contain non-empty strings');
 const html=fs.readFileSync('index.html','utf8');ok(/id="friends"[\s\S]*id="mpMatchmaking"/.test(html),'multiplayer lobby lives on the Friends screen');ok(html.includes('assets/images/logo.webp'),'home uses the cropped WebP logo');
 console.log(`Main menu 1.5.0: ${checks} checks passed`);

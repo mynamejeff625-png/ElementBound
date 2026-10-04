@@ -68,20 +68,25 @@ function go(id){
  return true;
 }
 function ebPulseChain(){let el=document.getElementById('chain');if(!el)return;el.hidden=false;el.classList.remove('chainPulse');void el.offsetWidth;el.classList.add('chainPulse');setTimeout(()=>el.classList.remove('chainPulse'),420)}
-function ebDeckPush(back=false){
- const home=document.getElementById('home'),setupScreen=document.getElementById('setup'),from=back?setupScreen:(document.querySelector('.screen.on')||home),to=back?home:setupScreen;if(!from||!to||from===to||EB_NAV_LOCK)return false;
- const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,duration=reduce?150:420;clearTimeout(EB_NAV_T);EB_NAV_LOCK=true;to.classList.add('on',back?'eb-home-from-deck':'eb-deck-from-home');from.classList.add(back?'eb-deck-to-home':'eb-home-to-deck');
- EB_NAV_T=setTimeout(()=>{from.classList.remove('on','eb-deck-to-home','eb-home-to-deck');to.classList.remove('eb-home-from-deck','eb-deck-from-home');window.scrollTo(0,0);EB_NAV_LOCK=false},duration);return true;
+const EB_MENU_NAV_CLASSES=['eb-nav-forward-from','eb-nav-forward-to','eb-nav-back-from','eb-nav-back-to'];
+function ebNavigate(toId,{direction='forward'}={}){
+ const to=document.getElementById(toId),from=document.querySelector('.screen.on');
+ if(!to||!from||from===to||EB_NAV_LOCK)return from===to;
+ const back=direction==='back',reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,duration=reduce?150:380;
+ if(from.id==='home'){from.classList.add('is-home-leaving');void from.offsetWidth;from.classList.add('is-home-calm')}
+ clearTimeout(EB_NAV_T);EB_NAV_LOCK=true;window.scrollTo(0,0);
+ from.classList.add(back?'eb-nav-back-from':'eb-nav-forward-from');
+ to.classList.add('on',back?'eb-nav-back-to':'eb-nav-forward-to');
+ EB_NAV_T=setTimeout(()=>{
+  from.classList.remove('on',...EB_MENU_NAV_CLASSES);to.classList.remove(...EB_MENU_NAV_CLASSES);window.scrollTo(0,0);
+  const heading=to.querySelector('h1,h2,.codex-title,.title');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true})}else{to.tabIndex=-1;to.focus({preventScroll:true})}
+  EB_NAV_LOCK=false;
+ },duration);return true;
 }
-function goDeckSelect(){EB_VIS=null;window.EB_DeckSelect.open();return ebDeckPush(false)}
-function goDeckSelectBack(){window.EB_DeckSelect.changeDeck();return ebDeckPush(true)}
-function ebFriendsPush(back=false){
- const home=document.getElementById('home'),friends=document.getElementById('friends'),from=back?friends:home,to=back?home:friends;if(!from||!to||EB_NAV_LOCK)return false;
- const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,duration=reduce?150:420;clearTimeout(EB_NAV_T);EB_NAV_LOCK=true;to.classList.add('on',back?'eb-home-from-friends':'eb-friends-from-home');from.classList.add(back?'eb-friends-to-home':'eb-home-to-friends');
- EB_NAV_T=setTimeout(()=>{from.classList.remove('on','eb-friends-to-home','eb-home-to-friends');to.classList.remove('eb-home-from-friends','eb-friends-from-home');window.scrollTo(0,0);EB_NAV_LOCK=false},duration);return true;
-}
-function goFriends(){return ebFriendsPush(false)}
-function goFriendsBack(){return ebFriendsPush(true)}
+function goDeckSelect(){EB_VIS=null;window.EB_DeckSelect.open();return ebNavigate('setup')}
+function goDeckSelectBack(){window.EB_DeckSelect.changeDeck();return ebNavigate('home',{direction:'back'})}
+function goFriends(){return ebNavigate('friends')}
+function goFriendsBack(){return ebNavigate('home',{direction:'back'})}
 function startSelectedMatch(deckKey,difficultyKey){choice=deckKey;diff=difficultyKey;EB_HYBRID_RESPONSE_CHOICE=null;startMatch()}
 function setup(){}
 function mk(el,n,c,a,h,guard=false,text='',tip=''){return window.ElementBoundMatchFactory.manifestation(()=>++uid,el,n,c,a,h,guard,text,tip)}
@@ -112,7 +117,7 @@ let activeTrial=null;
 
 function goTrials(){
   activeTrial=null;
-  go('trials');
+  ebNavigate('trials');
 }
 
 function trialManifestation(el,name){
@@ -346,7 +351,7 @@ function exitBattle(){
   selectedCardId=null;
   hideModal();
   if(EB_MP.enabled){ebStopMultiplayer();G=null;go('home');return}
-  if(G&&G.trial){G=null;goTrials()}
+  if(G&&G.trial){G=null;activeTrial=null;go('trials')}
   else goDeckSelect();
 }
 
@@ -1316,7 +1321,7 @@ function findLiveCardById(id){if(!G)return null;for(const p of G.p){for(const c 
 function inspectCard(c){if(!c)return;let terms=Object.keys(GLOSSARY).filter(k=>((c.text||'')+' '+(c.type||'')).toLowerCase().includes(k.toLowerCase()));let body=document.getElementById('mb'),mw=document.getElementById('mw');document.getElementById('mt').textContent=`${ebElementName(c.el)} ${c.n}`;body.innerHTML=`<div class="inspectCardFull ${c.el.toLowerCase()}"><div class="inspectMeta"><b>${c.type}${c.role?' · '+c.role:''} · ${c.c} Essence</b>${c.type!=='TECHNIQUE'?`<br>${c.a} ATK · ${c.h}/${c.max} HP${c.guard?' · Guard':''}`:''}</div><div class="inspectRule">${c.text||'No additional effect.'}</div>${c.tip?`<div class="inspectStrategy"><b>Strategy</b><br>${c.tip}</div>`:''}${terms.length?`<div class="inspectTerms">${terms.map(k=>`<div><b>${k}:</b> ${GLOSSARY[k]}</div>`).join('')}</div>`:''}<div class="small">Detail view is informational only. It does not play, target, move, activate, or re-cycle the card.</div></div><button onclick="closeCardInspect()">CLOSE</button>`;let d=document.getElementById('modalDismiss');if(d)d.style.display='none';mw.classList.remove('hide','inspect-leave');mw.classList.add('cardInspectMode','inspect-enter');requestAnimationFrame(()=>requestAnimationFrame(()=>mw.classList.remove('inspect-enter')))}
 function closeCardInspect(){let mw=document.getElementById('mw');if(!mw.classList.contains('cardInspectMode'))return hideModal();mw.classList.remove('inspect-enter');mw.classList.add('inspect-leave');clearTimeout(closeCardInspect._t);closeCardInspect._t=setTimeout(()=>{mw.classList.add('hide');mw.classList.remove('cardInspectMode','inspect-leave');let d=document.getElementById('modalDismiss');if(d)d.style.display=''},170)}
 function wireCardInspectGestures(){document.querySelectorAll('#battle .card[data-inspect="1"]').forEach(el=>{if(el.dataset.doubleTapWired==='1')return;el.dataset.doubleTapWired='1';let lastTap=0,startX=0,startY=0,moved=false;el.addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse')return;startX=ev.clientX;startY=ev.clientY;moved=false},{passive:true});el.addEventListener('pointermove',ev=>{if(Math.hypot(ev.clientX-startX,ev.clientY-startY)>7)moved=true},{passive:true});el.addEventListener('pointerup',ev=>{if(ev.pointerType==='mouse'||moved)return;let now=performance.now();if(lastTap&&now-lastTap<=360){lastTap=0;ev.preventDefault();ev.stopPropagation();let c=findLiveCardById(+el.dataset.id);inspectCard(c)}else lastTap=now},{passive:false});el.addEventListener('dblclick',ev=>{ev.preventDefault();ev.stopPropagation();let c=findLiveCardById(+el.dataset.id);inspectCard(c)})})}
-function goCodex(){window.EB_Codex.open();go('codex')}
+function goCodex(){window.EB_Codex.open();ebNavigate('codex')}
 const HELP_SECTIONS={
 'START HERE':{intro:'New to Element Bound? You only need this much to begin. Play cards with Essence, build a field, attack the rival, and protect your own Bender.',terms:['Bender','Vitality','Essence','Manifestation','Technique','ATK','HP']},
 'YOUR TURN':{intro:'A turn is about choosing when to build, when to attack, and when to save resources. Strong turns usually come from sequencing cards instead of spending Essence blindly.',terms:['Turn','Hand','Field Slot','Summoning sickness','Ready','Target','Chain']},
@@ -1475,6 +1480,35 @@ function ebMatchmakingSession(){
 }
 function ebMatchmakingMessage(text,error=false){let el=document.getElementById('mpMatchmakingResult');if(el){el.textContent=text;el.style.color=error?'#ffb4b4':''}}
 function ebSetMatchmakingEnabled(enabled){for(const id of ['mpCreateMatch','mpJoinMatch']){let button=document.getElementById(id);if(button)button.disabled=!enabled}let connect=document.getElementById('mpConnectOnline');if(connect)connect.hidden=enabled}
+let EB_DECK_PICKER_CLOSE_T=null;
+function ebDeckMedallion(element){let image=document.createElement('img');image.src=`assets/medallions/${element.toLowerCase()}.webp`;image.alt='';image.width=40;image.height=40;return image}
+function ebDeckPickerCopy(element){let copy=document.createElement('span');copy.className='mp-deck-copy';let name=document.createElement('strong');name.className=`eb-element--${element.toLowerCase()}`;name.textContent=INFO[element][0];let style=document.createElement('small');style.textContent=INFO[element][1];copy.append(name,style);return copy}
+function ebUpdateDeckTrigger(animate=false){
+ let select=document.getElementById('mpDeck'),trigger=document.getElementById('mpDeckPicker'),element=select?.value;if(!trigger||!INFO[element])return;
+ const render=()=>{trigger.replaceChildren(ebDeckMedallion(element),ebDeckPickerCopy(element));let chevron=document.createElement('span');chevron.className='mp-deck-chevron';chevron.setAttribute('aria-hidden','true');chevron.textContent='⌄';trigger.append(chevron);trigger.setAttribute('aria-label',`Choose your deck. Selected: ${INFO[element][0]}`)};
+ if(!animate)return render();trigger.classList.add('is-changing');setTimeout(()=>{render();requestAnimationFrame(()=>trigger.classList.remove('is-changing'))},75);
+}
+function ebCloseDeckPicker({restoreFocus=true}={}){
+ let overlay=document.querySelector('.mp-deck-backdrop'),trigger=document.getElementById('mpDeckPicker');if(!overlay)return;
+ clearTimeout(EB_DECK_PICKER_CLOSE_T);overlay.querySelector('.mp-deck-sheet')?.classList.add('is-closing');trigger?.setAttribute('aria-expanded','false');document.removeEventListener('keydown',ebDeckPickerKeydown);
+ let reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ EB_DECK_PICKER_CLOSE_T=setTimeout(()=>{overlay.remove();if(restoreFocus)trigger?.focus({preventScroll:true})},reduce?150:300);
+}
+function ebChooseOnlineDeck(element){let select=document.getElementById('mpDeck'),trigger=document.getElementById('mpDeckPicker');if(!select||!INFO[element])return;trigger?.classList.add('is-changing');select.value=element;select.dispatchEvent(new Event('change',{bubbles:true}));ebUpdateDeckTrigger(true);ebCloseDeckPicker()}
+function ebDeckPickerKeydown(event){
+ let options=[...document.querySelectorAll('.mp-deck-option')],index=options.indexOf(document.activeElement);if(!options.length)return;
+ if(event.key==='Escape'){event.preventDefault();ebCloseDeckPicker();return}
+ if(event.key==='Tab'){event.preventDefault();index=(index+(event.shiftKey?-1:1)+options.length)%options.length;options[index].focus({preventScroll:true});return}
+ if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();index=(index+(event.key==='ArrowDown'?1:-1)+options.length)%options.length;options[index].focus({preventScroll:true});return}
+ if((event.key==='Enter'||event.key===' ')&&index>=0){event.preventDefault();ebChooseOnlineDeck(options[index].dataset.deck)}
+}
+function ebOpenDeckPicker(){
+ if(document.querySelector('.mp-deck-backdrop'))return;let select=document.getElementById('mpDeck'),trigger=document.getElementById('mpDeckPicker');if(!select||!trigger)return;
+ let overlay=document.createElement('div');overlay.className='mp-deck-backdrop';overlay.addEventListener('click',event=>{if(event.target===overlay)ebCloseDeckPicker()});
+ let title=document.createElement('h2');title.id='mpDeckPickerTitle';title.textContent='Choose your deck';let list=document.createElement('div');list.className='mp-deck-list';
+ Object.keys(INFO).forEach(element=>{let option=document.createElement('button');option.type='button';option.className='mp-deck-option';option.dataset.deck=element;option.setAttribute('role','option');option.setAttribute('aria-selected',String(select.value===element));option.append(ebDeckMedallion(element),ebDeckPickerCopy(element));let tag=document.createElement('span');tag.className='mp-deck-tag';tag.textContent=HYBRIDS[element]?'Hybrid':'Prime';let check=document.createElement('span');check.className='mp-deck-check';check.append(window.EB_UI.icon('check',{label:'Selected'}));option.append(tag,check);option.addEventListener('click',()=>ebChooseOnlineDeck(element));list.append(option)});
+ let sheet=window.EB_UI.sheet({variant:'choice',children:[title,list]});sheet.classList.add('mp-deck-sheet');sheet.setAttribute('role','listbox');sheet.setAttribute('aria-labelledby',title.id);overlay.append(sheet);document.body.append(overlay);trigger.setAttribute('aria-expanded','true');document.addEventListener('keydown',ebDeckPickerKeydown);(list.querySelector('[aria-selected="true"]')||list.firstElementChild)?.focus({preventScroll:true});
+}
 async function ebEnsureMatchmakingAuth(){
  try{
    let existing=ebMatchmakingSession();if(existing){EB_MP.authSession=existing;ebSetMatchmakingEnabled(true);ebMatchmakingMessage('Ready to create or join a match');return existing}
@@ -1491,6 +1525,7 @@ async function ebEnsureMatchmakingAuth(){
 function ebSetupMatchmaking(){
  console.debug('[ElementBound] ebSetupMatchmaking ran');
  let select=document.getElementById('mpDeck');if(select&&!select.options.length)select.innerHTML=Object.keys(INFO).map(element=>`<option value="${element}">${ebElementName(element)} ${INFO[element][0]}</option>`).join('');
+ let picker=document.getElementById('mpDeckPicker');if(select&&picker&&!picker.dataset.bound){picker.dataset.bound='true';picker.addEventListener('click',ebOpenDeckPicker);select.addEventListener('change',()=>{if(!picker.classList.contains('is-changing'))ebUpdateDeckTrigger()});ebUpdateDeckTrigger()}
  let invited=new URLSearchParams(location.search).get('join'),input=document.getElementById('mpRoomCode');if(invited&&input)input.value=invited.toUpperCase();ebSetMatchmakingEnabled(false);
  let panel=document.getElementById('mpMatchmaking'),connect=document.getElementById('mpConnectOnline'),begin=()=>ebEnsureMatchmakingAuth().catch(()=>{});
  if(panel&&connect&&window.ElementBoundFirebaseBootstrap)window.ElementBoundFirebaseBootstrap.bindConnectButton(connect,begin);if(invited)begin();

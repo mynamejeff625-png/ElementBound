@@ -1,16 +1,15 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.5.0',
-  label:'Main Menu',
+  version:'1.5.1',
+  label:'Menu polish',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:"New main menu · What's New · Play with Friends",
+  focus:'Symmetric screen transitions · Medallion deck picker',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'A new main menu with a calmer background',
-    'Play with Friends now has its own screen',
-    'Choose your deck with every card in view'
+    'Smoother movement between menus',
+    'Pick your online deck by its medallion'
   ])
 });
 

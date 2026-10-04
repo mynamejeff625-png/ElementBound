@@ -57,6 +57,7 @@
  --eb-dur-float:600ms;
  --eb-dur-banner:900ms;
  --eb-ease:cubic-bezier(0.2, 0.8, 0.2, 1);
+ --eb-ease-move:cubic-bezier(.65,0,.35,1);
  --eb-ease-in:cubic-bezier(.4,0,1,1);
  --eb-ease-soft:cubic-bezier(.22,.61,.36,1);
  --eb-z-sheet:100;

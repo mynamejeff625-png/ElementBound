@@ -117,6 +117,20 @@ async function run() {
         await visible(selector);
         await navUnlocked();
       };
+      const menuPush = async ({trigger,from,to,direction='forward',label}) => {
+        await navUnlocked();
+        await page.locator(trigger).click();
+        await page.waitForTimeout(195);
+        const middle=await page.evaluate(({from,to,direction})=>{
+          const fromRect=document.querySelector(from).getBoundingClientRect(),toRect=document.querySelector(to).getBoundingClientRect();
+          const toStart=direction==='forward'?innerWidth:-innerWidth;
+          return{separate:direction==='forward'?fromRect.right<=toRect.left+1:toRect.right<=fromRect.left+1,difference:Math.abs(Math.abs(fromRect.x)-Math.abs(toRect.x-toStart)),fromX:fromRect.x,toX:toRect.x,width:innerWidth};
+        },{from,to,direction});
+        assert.equal(middle.separate,true,`${label}: screens do not overlap halfway through`);checks++;
+        assert.ok(middle.difference<=2,`${label}: both screens move an equal distance (${JSON.stringify(middle)})`);checks++;
+        await navUnlocked();
+        assert.deepEqual(await page.evaluate(to=>({on:[...document.querySelectorAll('.screen.on')].map(screen=>screen.id),scrollY,focused:document.querySelector(to).contains(document.activeElement)}),to),{on:[to.slice(1)],scrollY:0,focused:true},`${label}: transition leaves one focused active screen at scroll zero`);checks++;
+      };
       const foundation = async label => {
         const result=await page.evaluate(async()=>{
           await Promise.all([
@@ -198,14 +212,14 @@ async function run() {
       const homeArt=await page.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').backgroundImage);
       assert.match(homeArt,/image-1-de14f0ce02bf\.png/, 'main menu uses the plain environment artwork');checks++;
       const stamp = await page.locator('#buildStamp').textContent();
-      assert.equal(stamp, 'Alpha 1.5.0', 'main menu shows only the concise release version'); checks++;
+      assert.equal(stamp, 'Alpha 1.5.1', 'main menu shows only the concise release version'); checks++;
       await foundation('home');
       await shot('01-home');
       assert.equal(await page.locator('#whatsNewButton').getAttribute('aria-label'),"What's New, 1 unread update",'What\'s New announces its unread update');checks++;
       assert.equal(await page.locator('#whatsNewButton').evaluate(button=>button.classList.contains('has-badge')),true,'What\'s New dot is visible');checks++;
       await page.locator('#whatsNewButton').click();
       await visible('.whats-new-sheet','What\'s New sheet');
-      assert.equal(await page.locator('.whats-new-list li').count(),3,'What\'s New renders release notes');checks++;
+      assert.equal(await page.locator('.whats-new-list li').count(),2,'What\'s New renders release notes');checks++;
       assert.equal(await page.evaluate(()=>document.querySelector('.whats-new-sheet').contains(document.activeElement)),true,'focus moves into What\'s New');checks++;
       assert.equal(await page.locator('#whatsNewButton').evaluate(button=>button.classList.contains('has-badge')),false,'opening What\'s New clears the dot');checks++;
       await shot('13-whats-new');
@@ -218,20 +232,38 @@ async function run() {
       await page.waitForTimeout(3000);
       assert.equal(await page.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').opacity),'0','full menu art fades to calm by three seconds');checks++;
       const reducedPage=await context.newPage();await reducedPage.emulateMedia({reducedMotion:'reduce'});await reducedPage.goto(base,{waitUntil:'load'});
-      assert.equal(await reducedPage.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').opacity),'0','reduced motion starts with the calm menu');checks++;await reducedPage.close();
+      assert.equal(await reducedPage.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').opacity),'0','reduced motion starts with the calm menu');checks++;
+      await reducedPage.locator('.home-play').click();await reducedPage.waitForTimeout(200);
+      assert.deepEqual(await reducedPage.evaluate(()=>[...document.querySelectorAll('.screen.on')].map(screen=>screen.id)),['setup'],'reduced-motion menu navigation finishes within 200 ms');checks++;await reducedPage.close();
 
       await page.locator('#buildStamp').dispatchEvent('pointerdown',{pointerId:1,pointerType:'touch'});await page.waitForTimeout(650);await page.locator('#buildStamp').dispatchEvent('pointerup',{pointerId:1,pointerType:'touch'});
       await visible('#devcheck.on','System Check after version long-press');await navigate(()=>go('home'),'#home.on');
       for(let tap=0;tap<5;tap++)await page.locator('#buildStamp').click();await visible('#devcheck.on','System Check after five version taps');await navigate(()=>go('home'),'#home.on');
-      await page.locator('.home-secondary .ghost').first().click();await visible('#friends.on','Play with Friends');await navUnlocked();
+      await menuPush({trigger:'.home-secondary .ghost:first-child',from:'#home',to:'#friends',label:'Home to Friends'});
       await visible('#friends #mpConnectOnline','Friends connect control');assert.ok(await page.locator('#friends #mpRoomCode').count(),'Friends room-code control is present');checks++;
-      await shot('14-friends');await page.locator('#friends .friends-header button').click();await visible('#home.on','home after Friends');await navUnlocked();
+      assert.equal(await page.locator('#mpDeckPicker img').count(),1,'Friends deck trigger shows a medallion');checks++;
+      assert.ok((await page.locator('#mpDeckPicker strong').textContent()).trim(),'Friends deck trigger shows a deck name');checks++;
+      await page.locator('#mpDeckPicker').click();await visible('.mp-deck-sheet','online deck picker');
+      assert.equal(await page.locator('.mp-deck-option').count(),9,'online deck picker shows nine choices');checks++;
+      assert.equal(await page.locator('.mp-deck-option img').count(),9,'every online deck choice has a medallion');checks++;
+      const firstDeckOption=await page.evaluate(()=>document.activeElement?.dataset.deck);await page.keyboard.press('ArrowDown');
+      assert.notEqual(await page.evaluate(()=>document.activeElement?.dataset.deck),firstDeckOption,'deck picker arrow keys move between options');checks++;
+      await shot('15-friends-deck-picker');
+      await page.locator('.mp-deck-option[data-deck="STORM"]').click();await page.locator('.mp-deck-sheet').waitFor({state:'detached'});
+      assert.equal((await page.locator('#mpDeckPicker strong').textContent()).trim(),'Storm','choosing Storm updates the trigger');checks++;
+      assert.equal(await page.locator('#mpDeck').inputValue(),'STORM','custom picker updates the authoritative select');checks++;
+      await page.locator('#mpDeckPicker').click();await visible('.mp-deck-sheet','reopened online deck picker');
+      assert.equal(await page.locator('.mp-deck-option[data-deck="STORM"]').getAttribute('aria-selected'),'true','reopened picker marks Storm selected');checks++;
+      await page.keyboard.press('Escape');await page.locator('.mp-deck-sheet').waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement===document.getElementById('mpDeckPicker')),true,'deck picker Escape restores trigger focus');checks++;
+      await page.locator('#mpDeckPicker').click();await visible('.mp-deck-sheet','deck picker for backdrop close');await page.locator('.mp-deck-backdrop').click({position:{x:4,y:4}});await page.locator('.mp-deck-sheet').waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement===document.getElementById('mpDeckPicker')),true,'deck picker backdrop restores trigger focus');checks++;
+      await shot('14-friends');await menuPush({trigger:'#friends .friends-header button',from:'#friends',to:'#home',direction:'back',label:'Friends to Home'});
 
-      await navigate(() => goTrials(), '#trials.on');
+      await menuPush({trigger:'.home-secondary .ghost:nth-child(2)',from:'#home',to:'#trials',label:'Home to Trials'});
       await foundation('trials');
       await shot('02-trials');
+      await menuPush({trigger:'#trials .compact-back',from:'#trials',to:'#home',direction:'back',label:'Trials to Home'});
 
-      await navigate(() => goCodex(), '#codex.on');
+      await menuPush({trigger:'.home-links button:first-child',from:'#home',to:'#codex',label:'Home to Codex'});
       await visible('.codex-card-grid .codex-card', 'codex cards');
       await calmBackground('Codex');
       await foundation('codex');
@@ -273,7 +305,7 @@ async function run() {
       const noHorizontalScroll=await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth);
       assert.equal(noHorizontalScroll,true,'Codex causes no horizontal page scroll');checks++;
 
-      await navigate(() => go('home'), '#home.on');
+      await menuPush({trigger:'#codex .codex-header button',from:'#codex',to:'#home',direction:'back',label:'Codex to Home'});
       await page.evaluate(() => showRules());
       await visible('#mw:not(.hide)', 'how to play sheet');
       await foundation('how to play');
@@ -281,9 +313,12 @@ async function run() {
       await page.evaluate(() => hideModal());
       await page.locator('#mw').waitFor({ state: 'hidden', timeout: 5000 });
 
-      await navUnlocked();await page.locator('.home-play').click();await visible('#setup.on','deck select from Play');await navUnlocked();
+      await menuPush({trigger:'.home-play',from:'#home',to:'#setup',label:'Home to deck select'});
       await visible('#setup .deckselect-shell .codex-card','deck select cards');
       await calmBackground('Deck select');
+      await menuPush({trigger:'#setup .codex-header button',from:'#setup',to:'#home',direction:'back',label:'Deck select to Home'});
+      await menuPush({trigger:'.home-play',from:'#home',to:'#setup',label:'Home to deck select again'});
+      await visible('#setup .deckselect-shell .codex-card','deck select cards after returning');
       const deckSelectFits=await page.evaluate(()=>({vertical:document.documentElement.scrollHeight<=document.documentElement.clientHeight,horizontal:document.documentElement.scrollWidth<=document.documentElement.clientWidth}));
       assert.deepEqual(deckSelectFits,{vertical:true,horizontal:true},'deck select fits without page scrolling');checks++;
       const selectDialBox=await page.locator('#setup .codex-dial').boundingBox();
