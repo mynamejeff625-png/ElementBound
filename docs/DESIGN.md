@@ -145,6 +145,7 @@ style. The engine and game code set states; CSS draws them.
 | Status coin | `.eb-coin` | `.is-fading` | 1 |
 | List tile | `.eb-tile` | `.is-done`, `.is-locked` | 1 |
 | Sheet | `.eb-sheet` | choice, inspect, info | 1 (CSS + helper only; `modal()` migrates in Phase 2) |
+| Online deck picker | `.mp-deck-trigger`, `.mp-deck-sheet` | Medallion trigger; Prime/Hybrid listbox options; selected glow plus check | 2 |
 | Dialog | `.eb-dialog` | confirm only | 1 (CSS + helper only) |
 | Toast / banner | `.eb-toast` | toast, banner | 1 (CSS + helper only) |
 | Text input | `.eb-input` | `.is-error`, `[disabled]` | 2 |
@@ -255,7 +256,7 @@ effects).
 
 | Change | Motion | Duration |
 |---|---|---|
-| Screen to screen | New screen slides in from the side it belongs to (deeper = from the right; back = to the right) with a cross-fade | `--eb-dur-attack` 300 ms |
+| Menu screen to menu screen | Symmetric side-by-side push: both screens move 100% with no opacity overlap; forward enters from the right and back mirrors it | 380 ms, `--eb-ease-move` |
 | Sheet open / close | Rises from the bottom / sinks back; backdrop fades | 300 ms / 250 ms |
 | Card zoom (Codex, Inspect) | Shared element: the card grows from its exact grid position into the L card | 300 ms |
 | Deck dial | Medallions glide along the dial and resize smoothly; the card list slides with it | 300 ms |
@@ -267,6 +268,13 @@ Use `--eb-ease-in` (`cubic-bezier(.4,0,1,1)`) for elements leaving and
 panel replaces another in the same space, the outgoing panel leaves first and
 the incoming panel starts about 160 ms later; never use a simultaneous
 cross-fade for that replacement.
+
+All menu-level navigation uses one symmetric push. The outgoing and incoming
+screens travel the same distance with `--eb-ease-move`
+(`cubic-bezier(.65,0,.35,1)`) over 380 ms, so they remain side by side and never
+overlap. The shared calm background stays fixed; leaving Home first fades its
+full-art layer over 250 ms. Reduced motion replaces movement with a 150 ms
+cross-fade.
 
 **Swipe physics** (dial, card list, zoomed card carousel, and later the hand):
 - The content follows the finger 1:1 while dragging (no animation during the drag).
@@ -411,3 +419,5 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-03 | The main-menu logo is a separate transparent layer cropped from `image-3`; the plain full art fades to the calm background after the first load |
 | 2026-10-03 | The online lobby lives on its own Play with Friends screen |
 | 2026-10-03 | Developer tools open from either a long-press or five taps on the version stamp |
+| 2026-10-04 | Every menu screen uses one symmetric 380 ms push; reduced motion uses a 150 ms cross-fade |
+| 2026-10-04 | The online deck picker uses medallions and a keyboard-accessible listbox while the hidden native select remains authoritative |
