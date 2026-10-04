@@ -162,6 +162,11 @@ Every interactive class guarantees a ≥ 44×44 px hit area (padding or a
 `createElement`/`textContent` (no `innerHTML` with interpolated text) and never
 set inline styles.
 
+Primary buttons (`.primary` and `.eb-btn--primary`) use a deep-blue vertical
+gradient, inset bronze double rim and top highlight, `--eb-shadow-lift`, and
+Cinzel text; pressing scales them to `.96`. Secondary `.ghost` buttons use a
+darker gradient, one bronze rim, and `--eb-shadow-rest`.
+
 ### Layout rules
 
 - One Primary button per screen: Home → Play; Duel → End Turn; Result → Rematch.
@@ -291,6 +296,21 @@ Never rely on vibration for information (iPhone browsers don't support it).
 
 ## 7. Screens
 
+### Main menu *(Phase 2)*
+
+The portrait menu keeps its top-left corner empty for a future profile control.
+What's New occupies the safe-area-aware top-right corner, followed vertically by
+the separate transparent logo, version stamp, one large Play button, paired
+Play with Friends / Element Trials buttons, and Codex / How to Play links. It
+must not scroll at 375×667 or 390×844. The online lobby lives on the separate
+Play with Friends screen and preserves its existing control IDs.
+
+On the first menu visit after load, the full-bright plain environment holds for
+1.2 seconds and fades over 1.5 seconds to the calm background. Later visits are
+already calm; reduced motion starts calm. What's New shows a dot until the
+current release is opened, stores `ebSeenVersion`, and uses a dismissible,
+focus-managed information sheet.
+
 ### Codex *(Phase 2)*
 
 1. **Deck dial (top):** a horizontal, snap-scrolling row of the 9 medallions
@@ -388,3 +408,6 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-01 | The Codex becomes the library with search, glossary links, and per-deck guides |
 | 2026-10-01 | Calm background (about 55% darker plus a soft blur) on every screen except the main menu, including the duel |
 | 2026-10-01 | When one panel replaces another in the same space, the outgoing panel leaves first and the incoming panel begins about 160 ms later |
+| 2026-10-03 | The main-menu logo is a separate transparent layer cropped from `image-3`; the plain full art fades to the calm background after the first load |
+| 2026-10-03 | The online lobby lives on its own Play with Friends screen |
+| 2026-10-03 | Developer tools open from either a long-press or five taps on the version stamp |
