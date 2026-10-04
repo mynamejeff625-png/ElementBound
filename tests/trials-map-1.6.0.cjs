@@ -1,0 +1,23 @@
+'use strict';
+const assert=require('node:assert/strict');
+const trials=require('../js/trials.js');
+let checks=0;
+const equal=(actual,expected,message)=>{assert.deepEqual(actual,expected,message);checks++};
+const ok=(value,message)=>{assert.ok(value,message);checks++};
+equal(trials.isUnlocked('MAGMA',{FIRE:1,EARTH:1}),true,'Magma unlocks with both parents starred');
+equal(trials.isUnlocked('MAGMA',{FIRE:1,EARTH:0}),false,'Magma stays locked with one parent missing');
+equal(trials.isUnlocked('BLOOM',{WATER:1,NATURE:1}),true,'Bloom uses its own parents');
+equal(trials.starsForRun({completed:true,rewound:false,hintLevel:0}),3,'clean completion earns three stars');
+equal(trials.starsForRun({completed:true,rewound:true,hintLevel:0}),2,'Rewind removes its star');
+equal(trials.starsForRun({completed:true,rewound:false,hintLevel:1}),2,'using a hint removes its star');
+equal(trials.starsForRun({completed:false}),0,'incomplete run earns no stars');
+equal(trials.mergeBest({FIRE:2},'FIRE',1),{FIRE:2},'best result never decreases');
+equal(trials.mergeBest({FIRE:1},'FIRE',3),{FIRE:3},'better result replaces the previous best');
+const values={},storage={getItem:key=>values[key]||null,setItem:(key,value)=>{values[key]=value}};
+ok(trials.saveProgress({FIRE:2},storage),'progress saves');equal(trials.loadProgress(storage),{FIRE:2},'progress loads');
+equal(trials.loadProgress({getItem(){throw Error('blocked')}}),{},'throwing storage loads safely');equal(trials.saveProgress({}, {setItem(){throw Error('blocked')}}),false,'throwing storage saves safely');
+const fire=trials.TRIAL_DATA.FIRE.strip,fixture={played:['Cinder Adept'],statuses:['Burning'],progress:{},hit:0};
+equal(trials.completedTokens(fire,fixture),2,'Fire fixture completes setup card and Burning tokens');
+fixture.played.push('Flame Burst');fixture.hit=3;equal(trials.completedTokens(fire,fixture),4,'Fire fixture completes the payoff and hit tokens');
+for(const element of trials.PRIME_ORDER){ok(trials.TRIAL_DATA[element].strip.length>0,`${element} has a strip`);ok(trials.TRIAL_DATA[element].goals.length>0,`${element} has goals`)}
+console.log(`Trials map 1.6.0: ${checks} checks passed`);

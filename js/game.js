@@ -114,9 +114,11 @@ function startMatch(){
 }
 
 let activeTrial=null;
+let EB_TRIAL_RUN={rewound:false,maxHint:0},EB_TRIAL_HINT_T=null;
 
 function goTrials(){
   activeTrial=null;
+  clearTimeout(EB_TRIAL_HINT_T);window.EB_Trials?.closeChapter({restore:false});window.EB_Trials?.renderMap();
   ebNavigate('trials');
 }
 
@@ -134,8 +136,9 @@ function trialTechnique(el,name,cost){
   return{id:++uid,el,n:t[0],c:cost,type:'TECHNIQUE',zone:'HAND',text:t[1],tip:t[2],role:null};
 }
 
-function startTrial(el){
+function startTrial(el,rewind=false){
   if(!['FIRE','WATER','NATURE','EARTH','LIGHTNING','AIR'].includes(el))return;
+  if(!rewind)EB_TRIAL_RUN={rewound:false,maxHint:0};
   activeTrial=el;
 
   let p,e,trial;
@@ -156,6 +159,7 @@ function startTrial(el){
     ];
 
     trial={
+      ...window.EB_Trials.TRIAL_DATA.FIRE,
       id:'FIRE_01',
       element:'FIRE',
       title:'Trial of Flame',
@@ -183,6 +187,7 @@ function startTrial(el){
     p.hand=[trialTechnique('LIGHTNING','Static Step',1)];
 
     trial={
+      ...window.EB_Trials.TRIAL_DATA.LIGHTNING,
       id:'LIGHTNING_01',
       element:'LIGHTNING',
       title:'Trial of Storms',
@@ -217,6 +222,7 @@ function startTrial(el){
     p.hand=[trialTechnique('AIR','Crosswind',1)];
 
     trial={
+      ...window.EB_Trials.TRIAL_DATA.AIR,
       id:'AIR_01',
       element:'AIR',
       title:'Trial of Winds',
@@ -252,6 +258,7 @@ function startTrial(el){
     p.hand=[trialTechnique('EARTH',TECH.EARTH[0],1)];
 
     trial={
+      ...window.EB_Trials.TRIAL_DATA.EARTH,
       id:'EARTH_01',
       element:'EARTH',
       title:'Trial of Stone',
@@ -287,6 +294,7 @@ function startTrial(el){
     p.hand=[trialTechnique('NATURE',TECH.NATURE[0],3)];
 
     trial={
+      ...window.EB_Trials.TRIAL_DATA.NATURE,
       id:'NATURE_01',
       element:'NATURE',
       title:'Trial of Roots',
@@ -321,6 +329,7 @@ function startTrial(el){
     p.hand=[trialTechnique('WATER','Current Shift',1)];
 
     trial={
+      ...window.EB_Trials.TRIAL_DATA.WATER,
       id:'WATER_01',
       element:'WATER',
       title:'Trial of Tides',
@@ -341,42 +350,35 @@ function startTrial(el){
 
   add(`TRIAL START · ${trial.title.replace('Trial of ','')} · ${trial.mastered}`);
   go('battle');
+  ebTrialScheduleHint();
   render();
 }
 function resetTrial(){
-  if(activeTrial)startTrial(activeTrial);
+  if(activeTrial){EB_TRIAL_RUN.rewound=true;EB_TRIAL_RUN.maxHint=0;startTrial(activeTrial,true)}
 }
 
 function exitBattle(){
   selectedCardId=null;
   hideModal();
   if(EB_MP.enabled){ebStopMultiplayer();G=null;go('home');return}
-  if(G&&G.trial){G=null;activeTrial=null;go('trials')}
+  if(G&&G.trial){G=null;activeTrial=null;clearTimeout(EB_TRIAL_HINT_T);window.EB_Trials?.renderMap();go('trials')}
   else goDeckSelect();
 }
 
-function renderTrialUI(){
-  let box=document.getElementById('trialObjective');
-  if(!box||!G)return;
-
-  if(!G.trial){
-    box.classList.remove('on');
-    box.innerHTML='';
-    return;
-  }
-
-  box.classList.add('on');
-  let p=me(),e=foe(),t=G.trial;
-  let failed=!G.winner && p.hand.length===0 && e.vit>0 &&
-    ((t.element==='FIRE') ||
-     (t.element==='WATER' && (!t.progress.soaked || !e.slots.some(Boolean))) ||
-     (t.element==='EARTH' && !t.progress.survived) ||
-     false);
-
-  box.innerHTML=failed
-    ? `<b>${ebIconMarkup(t.icon)} ${t.title} · Sequence missed</b><span class="small">${t.fail}</span><button class="ghost trial-retry" onclick="resetTrial()">TRY AGAIN</button>`
-    : `<b>${ebIconMarkup(t.icon)} ${t.title}</b><span class="small">${t.objective}</span>${G.winner?'<button class="ghost trial-retry" onclick="resetTrial()">TRY AGAIN</button>':''}`;
-}
+function ebTrialState(){if(!G?.trial)return{};let t=G.trial,statuses=[];if((foe().marks||[]).includes('Burning'))statuses.push('Burning');if(t.progress.soaked)statuses.push('Soaked');if(t.progress.armored)statuses.push('Armor');if(t.progress.grew)statuses.push('Growth');if(t.progress.charged)statuses.push('Charged');if(t.progress.swapped)statuses.push('Momentum','Weakened');return{played:t.progress.played||[],statuses,progress:t.progress,completed:!!G.winner,hit:G.winner?99:0}}
+function ebTrialCompletedCount(){return G?.trial?window.EB_Trials.completedTokens(G.trial.strip,ebTrialState()):0}
+function ebTrialScheduleHint(){clearTimeout(EB_TRIAL_HINT_T);if(!G?.trial||G.winner)return;EB_TRIAL_HINT_T=setTimeout(()=>{if(!G?.trial||G.winner)return;ebTrialRaiseHint();ebTrialScheduleHint()},Number(window.EB_TRIAL_HINT_MS)||20000)}
+function ebTrialRaiseHint(){if(!G?.trial)return;G.trial.hintLevel=Math.min(2,(G.trial.hintLevel||0)+1);EB_TRIAL_RUN.maxHint=Math.max(EB_TRIAL_RUN.maxHint,G.trial.hintLevel);render()}
+function ebTrialTrackCard(card){if(!G?.trial||!card)return;let t=G.trial,count=ebTrialCompletedCount(),next=t.strip[count],correct=next?.kind==='card'&&next.name===card.n;t.progress.played=t.progress.played||[];if(!t.progress.played.includes(card.n))t.progress.played.push(card.n);if(correct){t.hintLevel=0;t.missedIndex=null;ebTrialScheduleHint()}else{t.wrongMoves=(t.wrongMoves||0)+1;t.missedIndex=count;ebTrialRaiseHint()}}
+function ebTrialTokenMarkup(token,state,index){let icon='';if(token.kind==='card')icon=`<img src="assets/medallions/${G.trial.element.toLowerCase()}.webp" alt="">`;else if(token.kind==='status')icon=ebIconMarkup(token.name.toLowerCase());else icon=ebIconMarkup(token.kind==='hit'?'sword':'shield');let label=token.kind==='card'||token.kind==='status'?token.name:token.kind==='hit'?String(token.value):'Survive',status=state==='done'?'done':state==='next'?'next':state==='missed'?'missed':'later';return `<span class="trial-token is-${status}" aria-label="Step ${index+1}: ${label}, ${status}">${icon}<span>${label}</span></span>`}
+function ebTrialStripMarkup(t,recap=false){let completed=recap?t.strip.length:ebTrialCompletedCount();return `<div class="trial-strip${recap?' trial-recap-strip':''}">${t.strip.map((token,index)=>(index?'<span class="trial-arrow" aria-hidden="true">→</span>':'')+ebTrialTokenMarkup(token,index<completed?'done':index===t.missedIndex?'missed':index===completed?'next':'later',index)).join('')}</div>`}
+function ebTrialGoalsMarkup(t){const meta={turns:['hourglass','win within'],hit:['sword','deal'],shield:['shield','survive the rival turn'],essence:['essence','your Essence']};return `<div class="trial-goals">${t.goals.map(goal=>{let [icon,label]=meta[goal.kind],value=goal.value??'';return `<span class="trial-goal" aria-label="${label}${value?' '+value:''}">${ebIconMarkup(icon)}${value}</span>`}).join('')}</div>`}
+function ebTrialMasteredLine(t){return t.strip.filter(token=>token.kind==='card').map(token=>token.name).join(' · ')}
+function ebTrialRecap(t){if(!t.completionStored){t.earnedStars=window.EB_Trials.starsForRun({completed:true,rewound:EB_TRIAL_RUN.rewound,hintLevel:EB_TRIAL_RUN.maxHint});window.EB_Trials.record(t.element,t.earnedStars);t.completionStored=true;clearTimeout(EB_TRIAL_HINT_T)}return `<section class="trial-recap"><h2>Trial Complete</h2><div class="trial-recap-stars" aria-label="${t.earnedStars} stars">${[1,2,3].map(star=>{let icon=ebIconMarkup('star');return star<=t.earnedStars?icon.replace('class="eb-icon"','class="eb-icon is-earned"'):icon}).join('')}</div>${ebTrialStripMarkup(t,true)}<div class="trial-recap-mastered"><b>mastered</b><br>${ebTrialMasteredLine(t)}</div><button class="primary" onclick="ebTrialContinue()">CONTINUE</button></section>`}
+function ebTrialContinue(){if(!G?.trial)return;G=null;activeTrial=null;window.EB_Trials.renderMap();go('trials')}
+function ebTrialApplyHints(){document.querySelectorAll('.trial-hint-arrow,.trial-hint-badge').forEach(node=>node.remove());document.querySelectorAll('.trial-hint-card').forEach(node=>node.classList.remove('trial-hint-card'));if(!G?.trial||!G.trial.hintLevel)return;let next=G.trial.strip[ebTrialCompletedCount()],cardName=next?.kind==='card'?next.name:null,anchor=cardName&&document.querySelector(`[data-eb-anchor="hand-card"][data-eb-card="${CSS.escape(cardName)}"]`);if(!anchor)return;anchor.classList.add('trial-hint-card');let badge=document.createElement('span');badge.className='trial-hint-badge';badge.textContent=['①','②','③','④','⑤'][ebTrialCompletedCount()]||'•';anchor.append(badge);if(G.trial.hintLevel>1)ebTrialDrawHintArrow(anchor)}
+function ebTrialDrawHintArrow(source){let target=G.trial.element==='FIRE'?document.querySelector('[data-eb-anchor="bender"][data-eb-side="rival"]'):G.trial.element==='EARTH'||G.trial.element==='NATURE'?document.querySelector('[data-eb-anchor="slot"][data-eb-side="you"]'):document.querySelector('[data-eb-anchor="slot"][data-eb-side="rival"]');if(!source||!target)return;let a=source.getBoundingClientRect(),b=target.getBoundingClientRect(),x=a.left+a.width/2,y=a.top+a.height/2,tx=b.left+b.width/2,ty=b.top+b.height/2,length=Math.hypot(tx-x,ty-y),angle=Math.atan2(ty-y,tx-x)*180/Math.PI,id=`trial-arrow-${Date.now()}`,arrow=document.createElement('span');arrow.id=id;arrow.className='trial-hint-arrow';arrow.setAttribute('aria-hidden','true');document.body.append(arrow);let sheet=[...document.styleSheets].find(item=>{try{return!!item.cssRules}catch(_error){return false}});try{sheet.insertRule(`#${id}{left:${x}px;top:${y}px;width:${length}px;transform:rotate(${angle}deg)}`,sheet.cssRules.length)}catch(_error){arrow.remove()}}
+function renderTrialUI(){let guide=document.getElementById('trialGuide'),winner=document.getElementById('winner');if(!guide||!G)return;if(!G.trial){guide.classList.remove('on');guide.innerHTML='';return}let t=G.trial;guide.classList.add('on');guide.innerHTML=`<button class="eb-icon-btn eb-icon-btn--framed trial-rewind" onclick="resetTrial()" aria-label="Rewind trial">${ebIconMarkup('rewind')}</button>${ebTrialGoalsMarkup(t)}${ebTrialStripMarkup(t)}`;if(G.winner)winner.innerHTML=ebTrialRecap(t);requestAnimationFrame(ebTrialApplyHints)}
 
 
 function rootsTechniqueBridge(target){
@@ -582,7 +584,7 @@ function resolvePrimeSummonGift(p,c,isAI=false){
  return true;
 }
 
-function play(c,slotIndex=null,techTarget=undefined){if(!playable(c))return;if(c.type==='TECHNIQUE'&&techTarget===undefined){chooseTechniqueTarget(c);return}if(c.type!=='TECHNIQUE'&&(slotIndex===null||slotIndex<0||slotIndex>2||me().slots[slotIndex]))return;if(EB_MP.enabled){selectedCardId=null;ebMpPlay(c,slotIndex,techTarget);return}selectedCardId=null;let p=me();p.e-=c.c;p.hand=p.hand.filter(x=>x.id!==c.id);G.chain++;
+function play(c,slotIndex=null,techTarget=undefined){if(!playable(c))return;if(c.type==='TECHNIQUE'&&techTarget===undefined){chooseTechniqueTarget(c);return}if(c.type!=='TECHNIQUE'&&(slotIndex===null||slotIndex<0||slotIndex>2||me().slots[slotIndex]))return;if(EB_MP.enabled){selectedCardId=null;ebMpPlay(c,slotIndex,techTarget);return}if(G.trial)ebTrialTrackCard(c);selectedCardId=null;let p=me();p.e-=c.c;p.hand=p.hand.filter(x=>x.id!==c.id);G.chain++;
 if(c.type==='TECHNIQUE'){sendToWake(p,c,'technique');
  if(HYBRIDS[c.el]){resolveHybridTechnique(p,foe(),c,false,techTarget)}
  else if(c.el==='FIRE'){let t=techTarget&&techTarget.enemy;if(t){let burn=(t.marks||[]).includes('Burning');let d=hit(t,burn?3:2,c.el,c.n);add(`${c.n}: ${d} damage to ${t.n}${burn?' (Burning bonus)':''}`);death(foe())}else if(techTarget&&techTarget.bender&&activeGuards(foe()).length){add(`GUARD · ${activeGuards(foe())[0].n} blocks ${c.n} from targeting the rival Bender`)}else{let burn=(foe().marks||[]).includes('Burning'),d=burn?3:2;foe().vit-=d;ebQueueFx({kind:'benderHit',side:1,damage:d,el:c.el,label:c.n});add(`${c.n}: ${d} damage to rival Bender${burn?' (Burning bonus)':''}`)}}
@@ -842,7 +844,7 @@ function ebAttackCore(att,t){hideModal();let defending=foe(),owner=me();
  if(!t&&activeGuards(defending).length&&attackBypassesGuard(att,owner)){
    add(`BYPASS · ${att.n} ignores Guard and strikes the rival Bender`);
  }
- att.ready=false;if(t){applyObsidianRavagerTrigger(att,t,owner);applyQuickBeforeAttack(foe(),t);let q=t.quick&&t.quick.kind==='REDUCE'?t.quick.value:0;if(q)t.quick=null;let power=Math.max(0,att.a+elementalAttackBonus(att,t,me())-q);
+ if(G.trial){let next=G.trial.strip[ebTrialCompletedCount()];if(next?.kind==='card'&&next.name===att.n)ebTrialTrackCard(att)}att.ready=false;if(t){applyObsidianRavagerTrigger(att,t,owner);applyQuickBeforeAttack(foe(),t);let q=t.quick&&t.quick.kind==='REDUCE'?t.quick.value:0;if(q)t.quick=null;let power=Math.max(0,att.a+elementalAttackBonus(att,t,me())-q);
 if(G.trial&&G.trial.element==='AIR'&&att.n==='Gale Scout'&&t&&t.id===G.trial.progress.targetId){
   if(!G.trial.progress.swapped){
     power=0;
@@ -1192,7 +1194,7 @@ function benderEffects(p){
 }
 function compactCardText(c){let t=(c.text||'').replace(/\s+/g,' ').trim();return t||'No additional effect.'}
 function card(c,can=false){let state=effectBadges(c),pending=EB_MP.enabled?EB_MP.input?.pending():null;if(pending?.cardId!==c.id)pending=null;let summary=`<div class="rules card-summary">${compactCardText(c)}</div>`;let typeLine=c.type==='RESPONSE'?'Response · Reaction':c.type==='TECHNIQUE'?`Technique${c.role?' · '+c.role:''}`:`<span class="eb-stat-number">${c.a}</span> ATK · <span class="eb-stat-number">${c.h}/${c.max}</span> HP${c.guard?' · Guard':''}`;return `<div class="card ${c.el.toLowerCase()} ${can?'play':''} ${pending?'mp-pending':''}" data-id="${c.id}" data-inspect="1"><span class=cost>${c.c}</span><b>${ebElementIcon(c.el)} ${c.n}</b><div class=small>${typeLine}</div>${summary}${state}${pending?`<div class="small card-status">${pending.kind==='TECHNIQUE'?'Activating…':'Placing…'}</div>`:c.sick?'<div class="small card-status">Summoning sickness</div>':''}<div class="why card-inspect-hint">Double-tap for details</div></div>`}
-function slots(id,p){let own=p===me(),pending=own&&EB_MP.enabled?EB_MP.input?.pending():null;document.getElementById(id).innerHTML=p.slots.map((m,i)=>{let placing=!m&&pending?.kind==='MANIFESTATION'&&pending.slotIndex===i;return `<div class="slot ${placing?'mp-pending':''}" data-slot="${i}" data-own="${own?'1':'0'}">${m?card(m):placing?'':`<span class=small>M${i+1} · empty</span>`}</div>`}).join('')}
+function slots(id,p){let own=p===me(),pending=own&&EB_MP.enabled?EB_MP.input?.pending():null;document.getElementById(id).innerHTML=p.slots.map((m,i)=>{let placing=!m&&pending?.kind==='MANIFESTATION'&&pending.slotIndex===i;return `<div class="slot ${placing?'mp-pending':''}" data-slot="${i}" data-own="${own?'1':'0'}" data-eb-anchor="slot" data-eb-side="${own?'you':'rival'}" data-eb-slot="${i}">${m?card(m):placing?'':`<span class=small>M${i+1} · empty</span>`}</div>`}).join('')}
 let selectedCardId=null,dragState=null;
 function ebMpInputLocked(){return !!(EB_MP.enabled&&EB_MP.input?.isLocked())}
 function ebCancelActivePointerInteraction(){dragState?.cancel?.()}
@@ -1316,7 +1318,7 @@ function beginCardDrag(ev,c,el){
 function validateState(){if(!G)return true;let ok=true,seen=new Set();for(const p of G.p){if(p.e<0||p.e>p.maxE||p.maxE>7||p.slots.length!==3||typeof p.initiationToken!=='boolean')ok=false;for(const c of [...p.deck,...p.hand,...p.wake,...p.slots.filter(Boolean)]){if(seen.has(c.id))ok=false;seen.add(c.id)}}if(!ok)console.error('ELEMENTBOUND invariant violation',G);return ok}
 function resUI(p){if(!HYBRIDS[p.el])return '';let r=p.turnState.resonance,h=HYBRIDS[p.el];return `<span class="pill">${r.active?ebElementIcon(p.el)+' RESONANCE ACTIVE':'Resonance '+ebElementIcon(h.parents[0])+(r.a?'●':'○')+' '+ebElementIcon(h.parents[1])+(r.b?'●':'○')}</span>`}
 function ebZoneCount(side,zone){let count=side?.[`${zone}Count`];return Number.isInteger(count)?count:(Array.isArray(side?.[zone])?side[zone].length:0)}
-function render(){if(!G)return;let p=me(),e=foe();document.getElementById('rev').textContent=`REV ${G.rev}`;document.getElementById('turn').textContent=`Turn ${G.turn} · ${G.active?'RIVAL':'YOU'}`;let chainEl=document.getElementById('chain');if(chainEl){let chainRelevant=G.chain>0&&(current().el==='LIGHTNING'||current().el==='STORM');chainEl.hidden=!chainRelevant;chainEl.textContent=`Chain ${G.chain}`;}document.getElementById('difficulty').textContent=diff;ebSetIconText(document.getElementById('pname'),p.el.toLowerCase(),p.name,ebElementName(p.el));ebSetIconText(document.getElementById('ename'),e.el.toLowerCase(),e.name,ebElementName(e.el));ebSetIconText(document.getElementById('pvit'),'heart',p.vit,'Vitality');ebSetIconText(document.getElementById('evit'),'heart',e.vit,'Vitality');document.getElementById('pstats').innerHTML=`<span class=pill>Essence ${p.e}/${p.maxE}</span><span class=pill>Hand ${ebZoneCount(p,'hand')}</span><span class=pill>Deck ${ebZoneCount(p,'deck')}</span><span class=pill>Wake ${ebZoneCount(p,'wake')}</span>${p.initiationToken?'<span class="pill">Initiation ●</span>':''}${resUI(p)}${benderEffects(p)}<div class=stathelp>Essence = spendable energy · Hand = playable cards · Deck = draw pile · Wake = used/destroyed cards</div>`;document.getElementById('estats').innerHTML=`<span class=pill>Essence ${e.e}/${e.maxE}</span><span class=pill>Hand ${ebZoneCount(e,'hand')}</span><span class=pill>Deck ${ebZoneCount(e,'deck')}</span><span class=pill>Wake ${ebZoneCount(e,'wake')}</span>${e.initiationToken?'<span class="pill">Initiation ●</span>':''}${resUI(e)}${benderEffects(e)}`;slots('pslots',p);slots('eslots',e);let h=document.getElementById('hand');h.innerHTML=p.hand.map(c=>card(c,playable(c))).join('');h.querySelectorAll('.card').forEach(x=>{let c=p.hand.find(c=>c.id==x.dataset.id);if(!c)return;if(c.type==='TECHNIQUE'){x.onclick=()=>{if(G.active!==0||G.winner)return;selectHandCard(c)}}else if(c.type==='RESPONSE'){x.onclick=null;x.draggable=false;x.ondragstart=ev=>ev.preventDefault();x.onpointerdown=null}else{x.onclick=null;x.draggable=false;x.ondragstart=ev=>ev.preventDefault();x.onpointerdown=ev=>beginCardDrag(ev,c,x)}});wireDropSlots();wireCardInspectGestures();document.getElementById('attack').disabled=!!G.pendingResponse||(!!G.trial&&!['WATER','NATURE','LIGHTNING','AIR'].includes(G.trial.element))||G.active||G.winner||!p.slots.some(x=>x&&x.ready&&!x.sick);document.getElementById('end').disabled=!!G.pendingResponse||!!G.trial||G.active||G.winner;document.getElementById('you').classList.toggle('active',G.active===0);document.getElementById('enemy').classList.toggle('active',G.active===1);document.getElementById('winner').innerHTML=G.winner?(G.trial?`<div class=win>${ebIconMarkup(G.trial.icon)} TRIAL COMPLETE · ${G.trial.title.replace('Trial of ','').toUpperCase()} MASTERED<div class=small>${G.trial.mastered}</div></div>`:`<div class=win>${ebIconMarkup('trophy')} ${G.winner} wins<div class=small>${G.winReason==='CARD_DEPLETION'?'Opponent ran out of cards · Hand 0 / Deck 0':'Opponent reached 0 Vitality'}</div></div>`):'';renderTrialUI();let l=document.getElementById('log');l.innerHTML=G.logs.map(x=>`<div>${x}</div>`).join('');l.scrollTop=l.scrollHeight;requestAnimationFrame(()=>{ebVisualState();ebDrainFx();ebRenderFx()})}
+function render(){if(!G)return;let p=me(),e=foe();document.getElementById('rev').textContent=`REV ${G.rev}`;document.getElementById('turn').textContent=`Turn ${G.turn} · ${G.active?'RIVAL':'YOU'}`;let chainEl=document.getElementById('chain');if(chainEl){let chainRelevant=G.chain>0&&(current().el==='LIGHTNING'||current().el==='STORM');chainEl.hidden=!chainRelevant;chainEl.textContent=`Chain ${G.chain}`;}document.getElementById('difficulty').textContent=diff;ebSetIconText(document.getElementById('pname'),p.el.toLowerCase(),p.name,ebElementName(p.el));ebSetIconText(document.getElementById('ename'),e.el.toLowerCase(),e.name,ebElementName(e.el));ebSetIconText(document.getElementById('pvit'),'heart',p.vit,'Vitality');ebSetIconText(document.getElementById('evit'),'heart',e.vit,'Vitality');document.getElementById('pstats').innerHTML=`<span class=pill>Essence ${p.e}/${p.maxE}</span><span class=pill>Hand ${ebZoneCount(p,'hand')}</span><span class=pill>Deck ${ebZoneCount(p,'deck')}</span><span class=pill>Wake ${ebZoneCount(p,'wake')}</span>${p.initiationToken?'<span class="pill">Initiation ●</span>':''}${resUI(p)}${benderEffects(p)}<div class=stathelp>Essence = spendable energy · Hand = playable cards · Deck = draw pile · Wake = used/destroyed cards</div>`;document.getElementById('estats').innerHTML=`<span class=pill>Essence ${e.e}/${e.maxE}</span><span class=pill>Hand ${ebZoneCount(e,'hand')}</span><span class=pill>Deck ${ebZoneCount(e,'deck')}</span><span class=pill>Wake ${ebZoneCount(e,'wake')}</span>${e.initiationToken?'<span class="pill">Initiation ●</span>':''}${resUI(e)}${benderEffects(e)}`;slots('pslots',p);slots('eslots',e);let h=document.getElementById('hand');h.innerHTML=p.hand.map(c=>card(c,playable(c))).join('');h.querySelectorAll('.card').forEach(x=>{let c=p.hand.find(c=>c.id==x.dataset.id);if(!c)return;x.dataset.ebAnchor='hand-card';x.dataset.ebCard=c.n;if(c.type==='TECHNIQUE'){x.onclick=()=>{if(G.active!==0||G.winner)return;selectHandCard(c)}}else if(c.type==='RESPONSE'){x.onclick=null;x.draggable=false;x.ondragstart=ev=>ev.preventDefault();x.onpointerdown=null}else{x.onclick=null;x.draggable=false;x.ondragstart=ev=>ev.preventDefault();x.onpointerdown=ev=>beginCardDrag(ev,c,x)}});wireDropSlots();wireCardInspectGestures();document.getElementById('attack').disabled=!!G.pendingResponse||(!!G.trial&&!['WATER','NATURE','LIGHTNING','AIR'].includes(G.trial.element))||G.active||G.winner||!p.slots.some(x=>x&&x.ready&&!x.sick);document.getElementById('end').disabled=!!G.pendingResponse||!!G.trial||G.active||G.winner;document.getElementById('you').classList.toggle('active',G.active===0);document.getElementById('enemy').classList.toggle('active',G.active===1);document.getElementById('winner').innerHTML=G.winner&&!G.trial?`<div class=win>${ebIconMarkup('trophy')} ${G.winner} wins<div class=small>${G.winReason==='CARD_DEPLETION'?'Opponent ran out of cards · Hand 0 / Deck 0':'Opponent reached 0 Vitality'}</div></div>`:'';renderTrialUI();let l=document.getElementById('log');l.innerHTML=G.logs.map(x=>`<div>${x}</div>`).join('');l.scrollTop=l.scrollHeight;requestAnimationFrame(()=>{ebVisualState();ebDrainFx();ebRenderFx()})}
 function findLiveCardById(id){if(!G)return null;for(const p of G.p){for(const c of [...p.hand,...p.deck,...p.wake,...p.slots.filter(Boolean)])if(c.id===id)return c}return null}
 function inspectCard(c){if(!c)return;let terms=Object.keys(GLOSSARY).filter(k=>((c.text||'')+' '+(c.type||'')).toLowerCase().includes(k.toLowerCase()));let body=document.getElementById('mb'),mw=document.getElementById('mw');document.getElementById('mt').textContent=`${ebElementName(c.el)} ${c.n}`;body.innerHTML=`<div class="inspectCardFull ${c.el.toLowerCase()}"><div class="inspectMeta"><b>${c.type}${c.role?' · '+c.role:''} · ${c.c} Essence</b>${c.type!=='TECHNIQUE'?`<br>${c.a} ATK · ${c.h}/${c.max} HP${c.guard?' · Guard':''}`:''}</div><div class="inspectRule">${c.text||'No additional effect.'}</div>${c.tip?`<div class="inspectStrategy"><b>Strategy</b><br>${c.tip}</div>`:''}${terms.length?`<div class="inspectTerms">${terms.map(k=>`<div><b>${k}:</b> ${GLOSSARY[k]}</div>`).join('')}</div>`:''}<div class="small">Detail view is informational only. It does not play, target, move, activate, or re-cycle the card.</div></div><button onclick="closeCardInspect()">CLOSE</button>`;let d=document.getElementById('modalDismiss');if(d)d.style.display='none';mw.classList.remove('hide','inspect-leave');mw.classList.add('cardInspectMode','inspect-enter');requestAnimationFrame(()=>requestAnimationFrame(()=>mw.classList.remove('inspect-enter')))}
 function closeCardInspect(){let mw=document.getElementById('mw');if(!mw.classList.contains('cardInspectMode'))return hideModal();mw.classList.remove('inspect-enter');mw.classList.add('inspect-leave');clearTimeout(closeCardInspect._t);closeCardInspect._t=setTimeout(()=>{mw.classList.add('hide');mw.classList.remove('cardInspectMode','inspect-leave');let d=document.getElementById('modalDismiss');if(d)d.style.display=''},170)}
@@ -1649,7 +1651,7 @@ function runEBVerification(){
   test('UI/RULES','Combat FX queue freezes immutable event payloads',()=>{EB_FX_QUEUE.length=0;let e={kind:'hit',damage:3,el:'FIRE'};ebQueueFx(e);let q=EB_FX_QUEUE.pop();ebAssert(Object.isFrozen(q)&&q.damage===3&&q.el==='FIRE')});
   test('UI/RULES','Fire damage color remains Fire source color',()=>ebAssert(EB_FX_COLOR.FIRE==='#ff704d'&&EB_FX_COLOR.NATURE!==EB_FX_COLOR.FIRE));
   test('AI','Easy and Medium action budgets are lower than Difficult',()=>{let easy=2,medium=2,hard=5;ebAssert(easy===medium&&medium<hard)});
-  test('TRIALS','All six Prime Trials are registered',()=>{const els=['FIRE','WATER','NATURE','EARTH','LIGHTNING','AIR'];els.forEach(x=>{ebAssert(document.querySelector(`#trials button[onclick="startTrial('${x}')"]`),`Missing ${x} trial registration`)});ebAssert(typeof startTrial==='function','startTrial missing')});
+  test('TRIALS','All six Prime Trials are registered',()=>{const els=['FIRE','WATER','NATURE','EARTH','LIGHTNING','AIR'];els.forEach(x=>{ebAssert(window.EB_Trials?.TRIAL_DATA[x]?.strip?.length,`Missing ${x} trial registration`)});ebAssert(typeof startTrial==='function','startTrial missing')});
  } finally {G=saved.G;choice=saved.choice;diff=saved.diff;uid=saved.uid}
  test('UI','Battlefield rail permits horizontal and vertical pan',()=>{let rule=[...document.styleSheets].flatMap(ss=>{try{return [...ss.cssRules]}catch(e){return[]}}).find(r=>r.selectorText==='#battle .slots'&&String(r.style.touchAction||'').includes('pan-x'));ebAssert(rule&&String(rule.style.touchAction).includes('pan-y'),'field touch-action must permit pan-x and pan-y')});
    test('UI','Chain HUD is contextual',()=>{let el=document.getElementById('chain');ebAssert(el&&el.classList.contains('chainContext'),'contextual Chain indicator missing')});
@@ -1960,6 +1962,8 @@ function ebBalanceClear(){if(EB_BL_RUNNING)return;EB_BL_LAST=null;document.getEl
 setup();
 ebHydrateStaticIcons();
 ebDevInstall();
+window.EB_Trials?.renderMap();
+window.addEventListener('resize',()=>{if(G?.trial?.hintLevel)ebTrialApplyHints()});
 ebSetupMatchmaking();
 ebMpInitializeFromUrl();
 
