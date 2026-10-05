@@ -219,7 +219,7 @@ async function run() {
       assert.equal(await page.locator('#whatsNewButton').evaluate(button=>button.classList.contains('has-badge')),true,'What\'s New dot is visible');checks++;
       await page.locator('#whatsNewButton').click();
       await visible('.whats-new-sheet','What\'s New sheet');
-      assert.equal(await page.locator('.whats-new-list li').count(),3,'What\'s New renders release notes');checks++;
+      assert.equal(await page.locator('.whats-new-list li').count(),await page.evaluate(()=>EB_RELEASE.notes.length),'What\'s New renders every release note');checks++;
       assert.equal(await page.evaluate(()=>document.querySelector('.whats-new-sheet').contains(document.activeElement)),true,'focus moves into What\'s New');checks++;
       assert.equal(await page.locator('#whatsNewButton').evaluate(button=>button.classList.contains('has-badge')),false,'opening What\'s New clears the dot');checks++;
       await shot('13-whats-new');
@@ -295,6 +295,10 @@ async function run() {
       await page.locator('.callout[data-element="BLOOM"]').scrollIntoViewIfNeeded();await shot('21-trials-map-callouts');
       await page.evaluate(()=>{localStorage.removeItem(EB_Trials.STORAGE_KEY);EB_Trials.renderMap();scrollTo(0,0)});
       await page.locator('.trial-map-node[data-element="FIRE"]').click();await visible('.trial-chapter-sheet','Fire chapter sheet');
+      assert.equal(await page.locator('.trial-chapter-backdrop.is-open').count(),1,'chapter backdrop reaches its open state');checks++;
+      const chapterMotion=await page.locator('.trial-chapter-sheet').evaluate(sheet=>({sheet:getComputedStyle(sheet).transitionDuration,backdrop:getComputedStyle(sheet.parentElement).transitionDuration}));assert.deepEqual(chapterMotion,{sheet:'0.34s',backdrop:'0.3s'},'chapter sheet and backdrop use approved opening durations');checks++;
+      await page.evaluate(()=>EB_Trials.openChapter('WATER',document.querySelector('.trial-map-node[data-element="WATER"]')));assert.equal(await page.locator('.trial-chapter-backdrop').count(),1,'chapter motion never stacks sheets');checks++;
+      await page.locator('.trial-chapter-backdrop.is-opening').waitFor({state:'detached'});await page.keyboard.press('Escape');assert.equal(await page.locator('.trial-chapter-backdrop.is-closing').count(),1,'Escape starts the chapter close transition');checks++;await page.locator('.trial-chapter-backdrop').waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement===document.querySelector('.trial-map-node[data-element="FIRE"]')),true,'chapter close restores node focus');checks++;await page.locator('.trial-map-node[data-element="FIRE"]').click();await page.locator('.trial-chapter-backdrop.is-opening').waitFor({state:'detached'});
       assert.equal(await page.locator('.trial-chapter-step').count(),3,'Fire chapter shows three steps');checks++;
       assert.equal(await page.locator('.trial-chapter-step.is-coming').count(),2,'Set up and Cash in are coming soon');checks++;
       await shot('17-trial-chapter');
@@ -302,6 +306,7 @@ async function run() {
       assert.equal(await page.locator('.trial-token').count(),4,'Fire trial renders its four-token strip');checks++;
       assert.equal(await page.locator('.trial-token.is-next').getAttribute('aria-label'),'Step 1: Cinder Adept, next','Cinder Adept starts as the next token');checks++;
       assert.equal(await page.locator('#trialObjective').isVisible(),false,'trial objective sentence is not displayed');checks++;
+      assert.equal(await page.locator('.trial-goal').count(),0,'trial screen omits goal badges');checks++;
       await shot('18-trial-strip');
       await page.evaluate(()=>{window.EB_TRIAL_HINT_MS=40;ebTrialScheduleHint()});await page.locator('[data-eb-card="Cinder Adept"].trial-hint-card').waitFor({state:'visible'});await page.evaluate(()=>{window.EB_TRIAL_HINT_MS=20000;ebTrialScheduleHint()});checks++;
       await page.locator('[data-eb-card="Cinder Adept"] .trial-hint-badge').waitFor({state:'visible'});checks++;
@@ -310,6 +315,7 @@ async function run() {
       await page.evaluate(()=>{window.EB_TRIAL_HINT_MS=20000;const c=me().hand.find(card=>card.n==='Cinder Adept');play(c,0);const flame=me().hand.find(card=>card.n==='Flame Burst');play(flame,null,{bender:true})});
       await visible('.trial-recap','trial recap');
       assert.equal(await page.locator('.trial-recap-stars .is-earned').count(),2,'a completed trial after Rewind earns two stars');checks++;
+      assert.equal(await page.locator('.trial-recap-mastered').count(),0,'trial recap omits the retired mastery line');checks++;
       await shot('19-trial-recap');
       await page.locator('.trial-recap .primary').click();await visible('#trials.on','Trials map after Continue');
       assert.equal(await page.locator('.trial-map-node[data-element="FIRE"] .trial-star-pips .is-earned').count(),2,'Fire node shows two earned stars');checks++;
@@ -342,6 +348,7 @@ async function run() {
 
       await menuPush({trigger:'.home-links button:first-child',from:'#home',to:'#codex',label:'Home to Codex'});
       await visible('.codex-card-grid .codex-card', 'codex cards');
+      assert.equal(await page.locator('.codex-mastery').count(),0,'Codex cards omit retired mastery stars');checks++;
       await calmBackground('Codex');
       await foundation('codex');
       await shot('03-codex');

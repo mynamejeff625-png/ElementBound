@@ -19,5 +19,5 @@ equal(trials.loadProgress({getItem(){throw Error('blocked')}}),{},'throwing stor
 const fire=trials.TRIAL_DATA.FIRE.strip,fixture={played:['Cinder Adept'],statuses:['Burning'],progress:{},hit:0};
 equal(trials.completedTokens(fire,fixture),2,'Fire fixture completes setup card and Burning tokens');
 fixture.played.push('Flame Burst');fixture.hit=3;equal(trials.completedTokens(fire,fixture),4,'Fire fixture completes the payoff and hit tokens');
-for(const element of trials.PRIME_ORDER){ok(trials.TRIAL_DATA[element].strip.length>0,`${element} has a strip`);ok(trials.TRIAL_DATA[element].goals.length>0,`${element} has goals`)}
+for(const element of trials.PRIME_ORDER){ok(trials.TRIAL_DATA[element].strip.length>0,`${element} has a strip`);equal('goals' in trials.TRIAL_DATA[element],false,`${element} has no goal badges`)}
 console.log(`Trials map 1.6.0: ${checks} checks passed`);
