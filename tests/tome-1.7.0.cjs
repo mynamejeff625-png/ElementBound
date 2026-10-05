@@ -1,0 +1,49 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const ROOT=path.resolve(__dirname,'..');
+const tome=require('../js/tomeData.js');
+const source=fs.readFileSync(path.join(ROOT,'docs/TOME.md'),'utf8');
+const game=fs.readFileSync(path.join(ROOT,'js/game.js'),'utf8');
+const allJs=fs.readdirSync(path.join(ROOT,'js')).filter(name=>name.endsWith('.js')).map(name=>fs.readFileSync(path.join(ROOT,'js',name),'utf8')).join('\n');
+const html=fs.readFileSync(path.join(ROOT,'index.html'),'utf8');
+const css=fs.readFileSync(path.join(ROOT,'css/tome.css'),'utf8');
+let checks=0;
+function check(value,message){assert.ok(value,message);checks++}
+function equal(actual,expected,message){assert.deepEqual(actual,expected,message);checks++}
+
+// Every approved page appears exactly once, in source order.
+const lessons=[...source.matchAll(/^### ([IVX]+) · (.+)$/gm)].map(match=>match[2]);
+const entries=[...source.matchAll(/^#### (.+?)(?: \((?:symbol|term|element page)\))?$/gm)].map(match=>match[1]);
+const expected=['Contents',...lessons,...entries.slice(0,31),'Effects at a Glance','The Nine Elements',...entries.slice(31)];
+equal(tome.pages.map(page=>page.title),expected,'all 62 source pages retain their approved order');
+equal(new Set(tome.pages.map(page=>page.id)).size,62,'page ids are unique');
+
+// Approved content is preserved, including every Archivist line and Rules field.
+for(const page of tome.pages.filter(page=>page.archivist))check(source.includes(`**Archivist:** ${page.archivist}`)||source.includes(`- **Archivist:** ${page.archivist}`),`${page.title}: Archivist text comes from TOME.md`);
+for(const page of tome.pages.filter(page=>page.rule||page.rules)){const value=page.rule||page.rules;check(source.includes(value),`${page.title}: rule text comes from TOME.md`)}
+for(const page of tome.pages.filter(page=>page.confuse))check(source.includes(page.confuse),`${page.title}: Don't-confuse text comes from TOME.md`);
+
+// Links resolve, chapters follow the binding order, and each element tab has a destination.
+const titles=new Set(tome.pages.map(page=>page.title));
+const linked=[...JSON.stringify(tome.pages).matchAll(/\[\[([^\]]+)\]\]/g)].map(match=>match[1]);
+equal([...new Set(linked.filter(title=>!titles.has(title)))],[],'every linked term resolves');
+equal(tome.chapters.map(chapter=>chapter.id),['contents','core','FIRE','WATER','EARTH','NATURE','LIGHTNING','AIR','MAGMA','BLOOM','STORM'],'chapter order matches the approved Tome');
+for(const chapter of tome.chapters)check(tome.pages.some(page=>page.chapter===chapter.id),`${chapter.label}: tab has a destination`);
+
+// Quick facts and effects-at-a-glance use only the approved values.
+const allowed={on:['Manifestation','Bender','Manifestation or Bender','Your turn','Your deck'],lasts:['Instant','Next attack','Until used','Until used or round end','Round end','Until your next turn','While on field','Until destroyed','Stays','This turn','Each draw'],stacks:['No','No (1 per round)','Up to 3','Counts up','3 uses']};
+for(const page of tome.pages.filter(page=>page.facts))for(const key of Object.keys(allowed))check(allowed[key].includes(page.facts[key]),`${page.title}: ${key} uses an approved quick-fact value`);
+const glance=tome.pages.find(page=>page.kind==='glance');equal(glance.table.length,10,'effects-at-a-glance has ten rows');
+
+// The new full-screen Tome replaces only the old help entry points.
+check(/<section id="tome" class="screen"/.test(html),'full-screen Tome exists');
+check(/onclick="goTome\(\)"/.test(html),'How to Play opens the Tome');
+check(/function goTome\(\)/.test(game),'game exposes Tome navigation');
+check(!/HELP_SECTIONS|showHelpSection|showRules/.test(allJs),'legacy modal help code is removed from js/');
+check(/const GLOSSARY=/.test(game),'card-inspection glossary remains');
+check(/@media\(prefers-reduced-motion:reduce\)/.test(css),'Tome supplies reduced-motion behavior');
+const tomeSource=fs.readFileSync(path.join(ROOT,'js/tome.js'),'utf8');
+check(/Math\.abs\(dx\)>8/.test(tomeSource)&&/if\(!state\.drag\.moved\)return/.test(tomeSource),'Tome preserves taps until a swipe crosses its movement threshold');
+console.log(`Tome 1.7.0: ${checks} checks passed`);
