@@ -1,15 +1,15 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.7.1',
-  label:'First Lessons',
+  version:'1.7.2',
+  label:'Tome links',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Playable First Lessons · Learn in seconds',
+  focus:'Tap any term on a card to read it in the Tome',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'First Lessons now play: tap through each idea in seconds',
-    'New to Element Bound? Look for Start here on How to Play'
+    'Tap a term on any card to open its Tome page',
+    'In the Tome, tap a card name to see the card'
   ])
 });
 
