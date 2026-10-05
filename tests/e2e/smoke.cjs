@@ -393,7 +393,7 @@ async function run() {
       await menuPush({trigger:'.home-links button:nth-child(2)',from:'#home',to:'#tome',label:'Home to Tome'});
       await visible('.tome-cover','Tome cover');
       await calmBackground('Tome');
-      assert.equal(await page.evaluate(()=>document.activeElement?.textContent),'Open the Tome','Tome cover receives focus');checks++;
+      await page.waitForFunction(()=>document.activeElement?.textContent==='Open the Tome');assert.equal(await page.evaluate(()=>document.activeElement?.textContent),'Open the Tome','Tome cover receives focus');checks++;
       await shot('04-tome-cover');
       await page.locator('.tome-cover .primary').click();
       await page.locator('.tome-cover').waitFor({state:'detached',timeout:2000});
