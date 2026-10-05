@@ -212,7 +212,7 @@ async function run() {
       const homeArt=await page.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').backgroundImage);
       assert.match(homeArt,/image-1-de14f0ce02bf\.png/, 'main menu uses the plain environment artwork');checks++;
       const stamp = await page.locator('#buildStamp').textContent();
-      assert.equal(stamp, 'Alpha 1.6.0', 'main menu shows only the concise release version'); checks++;
+      assert.equal(stamp, await page.evaluate(()=>`Alpha ${EB_RELEASE.version}`), 'main menu shows only the concise release version'); checks++;
       await foundation('home');
       await shot('01-home');
       assert.equal(await page.locator('#whatsNewButton').getAttribute('aria-label'),"What's New, 1 unread update",'What\'s New announces its unread update');checks++;
@@ -262,6 +262,10 @@ async function run() {
       await foundation('trials');
       assert.equal(await page.locator('.trial-map-node').count(),9,'Trials map shows nine chapters');checks++;
       assert.equal(await page.locator('.trial-map-node.is-hybrid:disabled').count(),3,'all Hybrid chapters start locked');checks++;
+      assert.ok(await page.locator('.trial-river path').count()>=9,'Trials map path is rendered with SVG paths');checks++;
+      const trialNodeXs=await page.locator('.trial-map-node.is-prime').evaluateAll(nodes=>nodes.map(node=>Math.round(node.getBoundingClientRect().x)));
+      assert.ok(new Set(trialNodeXs).size>2,'Prime nodes follow a winding path instead of two fixed columns');checks++;
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'Trials map has no horizontal scroll');checks++;
       await shot('16-trials-map');
       await page.locator('.trial-map-node[data-element="FIRE"]').click();await visible('.trial-chapter-sheet','Fire chapter sheet');
       assert.equal(await page.locator('.trial-chapter-step').count(),3,'Fire chapter shows three steps');checks++;
@@ -282,10 +286,30 @@ async function run() {
       await shot('19-trial-recap');
       await page.locator('.trial-recap .primary').click();await visible('#trials.on','Trials map after Continue');
       assert.equal(await page.locator('.trial-map-node[data-element="FIRE"] .trial-star-pips .is-earned').count(),2,'Fire node shows two earned stars');checks++;
+      assert.equal(await page.locator('.trial-river-segment[data-segment="0"].is-cleared').count(),1,'Fire completion lights the Fire to Water stretch');checks++;
+
+      await page.evaluate(()=>startTrial('NATURE'));await visible('#battle.on','Nature Full combo trial');
+      await page.evaluate(()=>{window.EB_TRIAL_HINT_MS=40;ebTrialScheduleHint()});await page.locator('[data-eb-card="Sproutling"].trial-hint-card').waitFor({state:'visible'});checks++;
+      await page.evaluate(()=>{window.EB_TRIAL_HINT_MS=20000;ebTrialScheduleHint();const sprout=me().hand.find(card=>card.n==='Sproutling');play(sprout,1);applyPrimeSummonGift(sprout,me().slots.find(card=>card?.n==='Grove Beast'));hideModal();const mend=me().hand.find(card=>card.n==='Verdant Mend');play(mend,null,{friend:me().slots.find(card=>card?.n==='Grove Beast')});attack(me().slots.find(card=>card?.n==='Grove Beast'),null)});
+      await visible('.trial-recap','Nature trial recap');
+      assert.equal(await page.locator('.trial-recap-stars .is-earned').count(),3,'idle hint does not prevent a mistake-free three-star Nature run');checks++;
+      await page.locator('.trial-recap .primary').click();await visible('#trials.on','Trials map after Nature');
+
+      await page.evaluate(()=>startTrial('WATER'));await visible('#battle.on','Water Full combo trial');
+      await page.evaluate(()=>{const shift=me().hand.find(card=>card.n==='Current Shift'),brute=foe().slots.find(card=>card?.n==='Tide Brute');play(shift,null,{enemy:brute})});
+      await visible('.trial-soaked-preview','Soaked Tide Brute preview');
+      assert.match(await page.locator('.trial-soaked-preview').textContent(),/4\s*→\s*2/,'Soaked preview shows 4 to 2');checks++;
+      await shot('20-trial-water-soaked');
+      await page.locator('#end').click();await visible('.trial-recap','Water trial recap');
+      assert.equal(await page.evaluate(()=>me().vit),1,'Soaked Tide Brute leaves the player at 1 Vitality');checks++;
+      assert.equal(await page.locator('.trial-impact-chip').count(),1,'Soaked impact displays its minus-two chip');checks++;
+      await page.locator('.trial-recap .primary').click();await visible('#trials.on','Trials map after Water');
+
       await page.reload({waitUntil:'load'});await page.evaluate(()=>goTrials());await visible('#trials.on','Trials map after reload');await navUnlocked();
       assert.equal(await page.locator('.trial-map-node[data-element="FIRE"] .trial-star-pips .is-earned').count(),2,'Fire stars persist after reload');checks++;
       assert.equal(await page.locator('.trial-map-node[data-element="WATER"]:not(:disabled),.trial-map-node[data-element="EARTH"]:not(:disabled)').count(),2,'Water and Earth remain unlocked');checks++;
-      assert.equal(await page.locator('.trial-map-node.is-hybrid:disabled').count(),3,'one Prime completion does not unlock a Hybrid');checks++;
+      assert.equal(await page.locator('.trial-map-node.is-hybrid:disabled').count(),2,'Water and Nature completion unlocks only Bloom');checks++;
+      assert.equal(await page.locator('.trial-map-node[data-element="BLOOM"]:not(:disabled)').count(),1,'Bloom unlock persists after both parents are cleared');checks++;
       await menuPush({trigger:'#trials .trial-map-header button',from:'#trials',to:'#home',direction:'back',label:'Trials to Home'});
 
       await menuPush({trigger:'.home-links button:first-child',from:'#home',to:'#codex',label:'Home to Codex'});
