@@ -219,7 +219,7 @@ async function run() {
       assert.equal(await page.locator('#whatsNewButton').evaluate(button=>button.classList.contains('has-badge')),true,'What\'s New dot is visible');checks++;
       await page.locator('#whatsNewButton').click();
       await visible('.whats-new-sheet','What\'s New sheet');
-      assert.equal(await page.locator('.whats-new-list li').count(),3,'What\'s New renders release notes');checks++;
+      assert.equal(await page.locator('.whats-new-list li').count(),await page.evaluate(()=>EB_RELEASE.notes.length),'What\'s New renders every release note');checks++;
       assert.equal(await page.evaluate(()=>document.querySelector('.whats-new-sheet').contains(document.activeElement)),true,'focus moves into What\'s New');checks++;
       assert.equal(await page.locator('#whatsNewButton').evaluate(button=>button.classList.contains('has-badge')),false,'opening What\'s New clears the dot');checks++;
       await shot('13-whats-new');
