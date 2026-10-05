@@ -263,6 +263,10 @@ async function run() {
       assert.equal(await page.locator('.trial-map-node').count(),9,'Trials map shows nine chapters');checks++;
       assert.equal(await page.locator('.trial-map-node.is-hybrid:disabled').count(),3,'all Hybrid chapters start locked');checks++;
       assert.ok(await page.locator('.trial-river path').count()>=8,'Trials map path is rendered with SVG paths');checks++;
+      assert.equal(await page.locator('.trial-river path').evaluateAll(paths=>paths.every(path=>getComputedStyle(path).fill==='none')),true,'every river and branch path has no fill');checks++;
+      assert.equal(await page.locator('.trial-map-node').evaluateAll(nodes=>nodes.every(node=>{const box=node.getBoundingClientRect();return box.width>=56&&box.height>=56})),true,'every Trial node has a visible touch and focus box');checks++;
+      assert.equal(await page.locator('.trial-node-lock').count(),0,'locked medallions do not show duplicate lock icons');checks++;
+      assert.equal(await page.locator('.trial-map-header.friends-header').count(),1,'Trials uses the standard framed screen header');checks++;
       assert.equal(await page.locator('.callout').count(),3,'all locked Hybrids show completion callouts');checks++;
       const mapGeometry=await page.evaluate(()=>{
         const boxes=[...document.querySelectorAll('.trial-node-plate,.callout')].map(node=>({node,rect:node.getBoundingClientRect()}));
@@ -282,8 +286,12 @@ async function run() {
       assert.equal(mapGeometry.hybridsAfter,true,'every Hybrid follows both parents');checks++;
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'Trials map has no horizontal scroll');checks++;
       await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await page.locator('.ember').first().evaluate(node=>getComputedStyle(node).display),'none','reduced motion hides ambient embers');checks++;await page.emulateMedia({reducedMotion:'no-preference'});
+      await page.evaluate(()=>{localStorage.setItem(EB_Trials.STORAGE_KEY,JSON.stringify({FIRE:1,WATER:1,EARTH:1,_seen:7,_unlocked:1}));EB_Trials.renderMap();scrollTo(0,0)});
+      assert.equal(await page.locator('.callout[data-element="MAGMA"]').count(),0,'Magma callout is absent after both parents are cleared');checks++;
+      assert.equal(await page.locator('.callout[data-element="BLOOM"] .cchip.done .ccheck').count(),1,'approved map state checks Water in Bloom callout');checks++;
       await shot('16-trials-map');
-      await page.locator('.callout[data-element="MAGMA"]').scrollIntoViewIfNeeded();await shot('21-trials-map-callouts');await page.evaluate(()=>scrollTo(0,0));
+      await page.locator('.callout[data-element="BLOOM"]').scrollIntoViewIfNeeded();await shot('21-trials-map-callouts');
+      await page.evaluate(()=>{localStorage.removeItem(EB_Trials.STORAGE_KEY);EB_Trials.renderMap();scrollTo(0,0)});
       await page.locator('.trial-map-node[data-element="FIRE"]').click();await visible('.trial-chapter-sheet','Fire chapter sheet');
       assert.equal(await page.locator('.trial-chapter-step').count(),3,'Fire chapter shows three steps');checks++;
       assert.equal(await page.locator('.trial-chapter-step.is-coming').count(),2,'Set up and Cash in are coming soon');checks++;
