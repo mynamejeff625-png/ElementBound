@@ -463,11 +463,11 @@ async function run() {
       await swipe(glanceStage.x+glanceStage.width*.15,glanceStage.y+glanceStage.height*.55,glanceStage.x+glanceStage.width*.8,glanceStage.y+glanceStage.height*.55);
       await page.waitForTimeout(700);
       assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Card Depletion','swiping right flips back to the previous page');checks++;
-      await page.locator('.tome-tab[aria-label="Water"]').click();await page.waitForTimeout(700);
-      await page.locator('.tome-page.is-current .tome-chip',{hasText:'Soaked'}).click();await page.waitForTimeout(700);
+      await page.locator('.tome-tab[aria-label="Water"]').click();await page.waitForFunction(()=>document.querySelector('.tome-page.is-current .tome-title')?.textContent.trim()==='Water',null,{timeout:5000});await page.waitForTimeout(700);
+      await page.locator('.tome-page.is-current .tome-chip',{hasText:'Soaked'}).click();await page.waitForFunction(()=>document.querySelector('.tome-page.is-current .tome-title')?.textContent.trim()==='Soaked',null,{timeout:5000});await page.waitForTimeout(700);
       await page.locator('.tome-page.is-current .tome-card-chip',{hasText:'River Serpent'}).click();await page.locator('.tome-peek-backdrop.is-open').waitFor({timeout:5000});await page.waitForTimeout(400);
       assert.equal((await page.locator('.tome-peek .codex-card-name').textContent()).trim(),'River Serpent','Seen on chip opens the card in a peek sheet');checks++;
-      await page.locator('.tome-peek .codex-keyword',{hasText:'Soaked'}).click();await page.waitForTimeout(300);
+      await page.locator('.tome-peek .codex-keyword',{hasText:'Soaked'}).click();await page.locator('.tome-peek .tome-title').waitFor({timeout:5000});
       assert.equal((await page.locator('.tome-peek .tome-title').textContent()).trim(),'Soaked','a keyword inside the peek opens its term in place');checks++;
       assert.match(await page.locator('.tome-peek .tome-ribbon').textContent(),/Back to River Serpent/,'the peek keeps its own back trail');checks++;
       await shot('04f-tome-peek');
@@ -478,7 +478,7 @@ async function run() {
       assert.equal((await page.locator('.tome-peek .tome-title').textContent()).trim(),'Burning','card inspect terms open their Tome page above the inspect sheet');checks++;
       assert.equal(await page.locator('.tome-peek .tome-try').count(),0,'Try it is hidden inside a peek');checks++;
       await page.keyboard.press('Escape');await page.locator('.tome-peek-backdrop').waitFor({state:'detached',timeout:5000});
-      await page.evaluate(()=>closeCardInspect());await page.waitForTimeout(400);
+      await page.evaluate(()=>closeCardInspect());await page.locator('#mw').waitFor({state:'hidden',timeout:5000});
       await page.emulateMedia({reducedMotion:'reduce'});
       const reducedFlip=await page.locator('.tome-page.is-current').evaluate(el=>getComputedStyle(el).transitionDuration);
       assert.equal(reducedFlip,'0.15s','reduced motion uses a 150 ms cross-fade');checks++;
