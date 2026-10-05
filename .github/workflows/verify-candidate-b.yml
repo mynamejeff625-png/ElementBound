@@ -33,6 +33,8 @@ jobs:
       - run: node --check js/trials.js
       - run: node --check tests/trials-map-1.6.0.cjs
       - run: node tests/trials-map-1.6.0.cjs
+      - run: node --check tests/trials-polish-1.6.1.cjs
+      - run: node tests/trials-polish-1.6.1.cjs
       - run: node --check js/codex.js
       - run: node --check js/cardBrowser.js
       - run: node --check js/deckSelect.js

@@ -361,8 +361,13 @@ the transition. Hard remains the display label for the existing internal
 
 ### Element Trials *(Phase 2)*
 
-Trials are a nine-chapter journey map: six always-open Prime nodes and three
-Hybrid branches that unlock after both parents earn at least one star. Each
+Trials are a nine-chapter journey map following one winding, S-shaped river:
+six always-open Prime nodes alternate along the main path and three Hybrid
+nodes sit on short side branches. Cleared stretches become solid glowing
+bronze; uncleared stretches remain dim and dotted. The newly cleared stretch
+lights once when the player returns to the map (or appears immediately with
+reduced motion). Hybrid branches unlock after both parents earn at least one
+star. Each
 chapter has Set up, Cash in and Full combo steps; the first two roll out over
 time, while each Prime's existing puzzle is its Full combo step.
 
@@ -377,9 +382,17 @@ Hints grow only when the player is stuck: level 1 rings and numbers the next
 card after 20 seconds or one wrong card; level 2 connects it to the target after
 another delay or mistake. Reduced motion keeps those guides static. Rewind
 restarts immediately. A completion earns one star, no Rewind earns a second,
-and no hints earns a third; the device keeps the best chapter result. The recap
+and no wrong moves earns a third; idle hints never reduce stars. The device
+keeps the best chapter result. The recap
 replays the symbols and marks its combo cards as mastered in the Codex and deck
 select.
+
+Every trial must fail without its combo. Trial setups use real card rules where
+possible and a naive attack or wrong ordering cannot accidentally complete the
+lesson. Water now Soaks Tide Brute before its scripted strike, visibly reducing
+4 damage to 2; Nature Seeds Grove Beast with Sproutling before Verdant Mend adds
+Growth; Air gives Sky Raptor Momentum so its printed rule can bypass Guard. Air
+step ② Cash in will teach the deferred swap → Weakened lesson.
 
 ### Field anchors
 
@@ -454,5 +467,8 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-04 | Every menu screen uses one symmetric 380 ms push; reduced motion uses a 150 ms cross-fade |
 | 2026-10-04 | The online deck picker uses medallions and a keyboard-accessible listbox while the hidden native select remains authoritative |
 | 2026-10-04 | Trials teach combos through symbols; each chapter has three steps that can roll out over time |
-| 2026-10-04 | Trial stars mean complete / no Rewind / no hints, with the best result kept locally |
+| 2026-10-04 | Trial stars keep the best result locally; the third-star condition was revised after Owner playtesting on 2026-10-05 |
 | 2026-10-04 | The Phase 3 field must support Trial overlays through stable hand-card, slot and Bender anchors |
+| 2026-10-05 | The Trials map follows one winding river; cleared stretches glow and newly cleared progress lights once |
+| 2026-10-05 | Trial stars mean complete / no Rewind / no wrong moves; idle reading time and automatic hints are free |
+| 2026-10-05 | Every trial must fail without its combo; Water, Nature and Air use clearer real-rule lessons, while Air's swap → Weakened lesson moves to step ② |

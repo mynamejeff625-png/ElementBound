@@ -1,16 +1,16 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.6.0',
-  label:'Element Trials',
+  version:'1.6.1',
+  label:'Trials polish',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Journey map · Symbol-guided combos · Stars',
+  focus:'Winding trials map · Fair stars · Clearer trials',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Element Trials now has a journey map',
-    'Learn each combo by its symbols',
-    'Earn up to 3 stars per trial'
+    'The Trials map now follows a winding path that lights up as you clear it',
+    'Take your time: the third star is for a mistake-free combo',
+    'Water, Nature and Air trials now show their combos clearly'
   ])
 });
 
