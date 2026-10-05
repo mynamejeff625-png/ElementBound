@@ -130,7 +130,7 @@
     cardNode.append(medallion(key,'codex-card-medallion--l'));cardNode.append(node('h2','codex-card-name',card.n));cardNode.append(node('div','codex-card-deck',catalog.INFO[key][0]));cardNode.append(node('div','codex-card-short',shortFor(card)));
     if(card.type==='MANIFESTATION'){const stats=node('div','codex-card-stats');stats.append(stat('sword',card.a,'Attack'));stats.append(stat('heart',card.h,'Health'));cardNode.append(stats)}return cardNode;
   }
-  function infoPanel(card){const panel=node('section','codex-info');panel.append(node('p','',card.text||'No additional effect.'));const tip=node('p');tip.append(node('strong','','How to use it: '));tip.append(document.createTextNode(card.tip||'No additional guidance.'));panel.append(tip);const words=extractKeywords(card);if(words.length){const chips=node('div','codex-keywords');words.forEach(word=>chips.append(node('span','eb-chip',word)));panel.append(chips)}return panel}
+  function infoPanel(card){const panel=node('section','codex-info');panel.append(node('p','',card.text||'No additional effect.'));const tip=node('p');tip.append(node('strong','','How to use it: '));tip.append(document.createTextNode(card.tip||'No additional guidance.'));panel.append(tip);const words=extractKeywords(card);if(words.length){const chips=node('div','codex-keywords');words.forEach(word=>{const chip=node('button','eb-chip codex-keyword',word);chip.type='button';chip.dataset.tomeTerm=word;chip.setAttribute('aria-label',`${word}: open its page in the Tome`);chips.append(chip)});panel.append(chips)}return panel}
   function renderZoom(position,animate=false){
     const zoom=state.zoom;if(!zoom)return;zoom.position=position;zoom.root.classList.toggle('is-sliding',animate);
     zoom.slides.forEach((slide,index)=>{const distance=index-position,abs=Math.abs(distance),scale=interpolate(1,.9,Math.min(1,abs)),opacity=interpolate(1,.45,Math.min(1,abs));slide.style.transform=`translateX(${distance*300}px) scale(${scale})`;slide.style.opacity=String(opacity);slide.style.pointerEvents=abs<.5?'':'none';slide.setAttribute('aria-hidden',String(abs>=.5))});
@@ -155,9 +155,11 @@
   }
   function open(){build();settle(state.current,false);return api}
   function setLocked(locked){state.locked=!!locked;if(state.root)state.root.classList.toggle('is-deck-locked',state.locked);if(state.dial)state.dial.inert=state.locked}
-  const api={open,closeZoom,setLocked,get current(){return state.current},get key(){return DECKS[state.current]},get root(){return state.root},get grids(){return state.grids},get dial(){return state.dial}};
+  function detail(name){for(const key of DECKS){const card=deckCards(key).find(item=>item.n===name);if(card)return[largeCard(card,key),infoPanel(card)]}return null}
+  const api={open,closeZoom,setLocked,detail,get current(){return state.current},get key(){return DECKS[state.current]},get root(){return state.root},get grids(){return state.grids},get dial(){return state.dial}};
   return api;
   }
 
-  return{DECKS,KEYWORDS,circularOffset,dialInterpolation,deckCards,extractKeywords,resolveSwipe,create};
+  function cardDetail(name){return create({}).detail(name)}
+  return{DECKS,KEYWORDS,circularOffset,dialInterpolation,deckCards,extractKeywords,resolveSwipe,create,cardDetail};
 });

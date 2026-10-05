@@ -411,6 +411,8 @@ anatomy, an effect Quick facts strip, "Don't confuse with" boxes and in-text
 term links with a back trail. All words and page rules live in `docs/TOME.md`.
 The narrator font is Cormorant Garamond italic, self-hosted.
 
+The Tome also opens as a **peek sheet** over any screen: a term chip on a card (Codex, deck select, duel inspect) or any `data-tome-term` element slides up that term's page (340 ms, same as the Trials chapter sheet) without leaving the screen. Links inside the peek replace its page and keep their own back trail; Try it is hidden there. "Seen on" card chips open the card the same way.
+
 ### Field anchors
 
 Trial overlays are layout-agnostic and may locate duel UI only through these
@@ -493,3 +495,4 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-05 | No mastery stars on Codex or deck select cards |
 | 2026-10-05 | How to Play becomes the Bender's Tome: one flip-page book (First Lessons + Glossary) with an Archivist narrator, element thumb tabs, Quick facts strips, "Don't confuse with" boxes and linked terms (`docs/TOME.md`) |
 | 2026-10-05 | Cormorant Garamond (italic, self-hosted, SIL OFL) is approved as the narrator font |
+| 2026-10-05 | Terms on cards open their Tome page in a peek sheet over the current screen, including mid-duel; the duel is never left |

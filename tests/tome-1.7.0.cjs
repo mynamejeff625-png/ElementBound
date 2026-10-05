@@ -55,4 +55,10 @@ const tomeSource=fs.readFileSync(path.join(ROOT,'js/tome.js'),'utf8'),lessonSour
 check(html.includes('js/tomeLessons.js')&&/lessons\.mount\(page\.id,api\)/.test(tomeSource),'lesson module loads and mounts inside lesson pages');
 check(/STORAGE_KEY='ebTomeOpened'/.test(lessonSource),'new-player nudge uses the approved storage key');
 check(/Math\.abs\(dx\)>8/.test(tomeSource)&&/if\(!state\.drag\.moved\)return/.test(tomeSource),'Tome preserves taps until a swipe crosses its movement threshold');
+const browserSource=fs.readFileSync(path.join(ROOT,'js/cardBrowser.js'),'utf8');
+check(/peek,peekCard,closePeek,has:/.test(tomeSource),'Tome exposes peek, peekCard and has');
+check(/\[data-tome-term\]/.test(tomeSource),'any element with data-tome-term opens a Tome peek');
+check(/chip\.dataset\.tomeTerm=word/.test(browserSource)&&/cardDetail/.test(browserSource),'card keywords link to the Tome and cards can render alone');
+check(/data-tome-term=/.test(game)&&/GLOSSARY\[k\]/.test(game),'duel card inspect links its terms while keeping the short glossary text');
+for(const keyword of ['Burning','Guard','Flow','Soaked','Seeded','Growth','Armor','Chain','Charged','Momentum','Weakened','Resonance'])check(tome.pages.some(page=>page.title===keyword),`card keyword ${keyword} has a Tome page`);
 console.log(`Tome 1.7.0: ${checks} checks passed`);
