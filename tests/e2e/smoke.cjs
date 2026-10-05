@@ -266,7 +266,9 @@ async function run() {
       assert.equal(await page.locator('.trial-river path').evaluateAll(paths=>paths.every(path=>getComputedStyle(path).fill==='none')),true,'every river and branch path has no fill');checks++;
       assert.equal(await page.locator('.trial-map-node').evaluateAll(nodes=>nodes.every(node=>{const box=node.getBoundingClientRect();return box.width>=56&&box.height>=56})),true,'every Trial node has a visible touch and focus box');checks++;
       assert.equal(await page.locator('.trial-node-lock').count(),0,'locked medallions do not show duplicate lock icons');checks++;
-      assert.equal(await page.locator('.trial-map-header.friends-header').count(),1,'Trials uses the standard framed screen header');checks++;
+      assert.equal(await page.locator('.trial-map-header.codex-header .codex-title').count(),1,'Trials uses the standard plain screen header');checks++;
+      assert.match((await page.locator('#trialStars').textContent()).trim(),/^0 \/ 27 stars$/,'Trials header includes the stars unit');checks++;
+      const trialMapBox=await page.locator('.trial-map').boundingBox();assert.ok(Math.abs(trialMapBox.width-vp.width)<=1&&Math.abs(trialMapBox.x)<=1,'Trials map spans the viewport width');checks++;
       assert.equal(await page.locator('.callout').count(),3,'all locked Hybrids show completion callouts');checks++;
       const mapGeometry=await page.evaluate(()=>{
         const boxes=[...document.querySelectorAll('.trial-node-plate,.callout')].map(node=>({node,rect:node.getBoundingClientRect()}));

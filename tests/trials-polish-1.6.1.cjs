@@ -18,6 +18,9 @@ assert.equal(EB_Trials.PATH_SEGMENTS[0],'M 142.0 96.0 C 238.0 96.0, 152.0 266.0,
 assert.equal(EB_Trials.BRANCHES.MAGMA,'M 197.4 551.0 C 202.5 590.7, 134.0 632.0, 84.0 632.0');
 const trialCss=fs.readFileSync('css/trials.css','utf8'),trialSource=fs.readFileSync('js/trials.js','utf8'),versionSource=fs.readFileSync('js/version.js','utf8');
 assert.match(trialCss,/\.trial-map\{[^}]*background:transparent/);
+assert.match(trialCss,/\.trial-map\{[^}]*width:calc\(100% \+ 24px\)[^}]*margin:8px -12px 0/);
+assert.match(trialCss,/#trials::after\{[^}]*position:fixed/);
+assert.match(trialCss,/mask-image:linear-gradient\(to bottom/);
 assert.match(trialCss,/\.trial-river path\{fill:none\}/);
 assert.match(trialSource,/river-dim branch-dim trial-river-branch/);
 assert.doesNotMatch(trialSource,/trial-node-lock/);
@@ -63,4 +66,4 @@ startTrial('AIR');play(hand('Crosswind'),null,{friend:unit(me(),'Gale Scout')});
 ({checks});
 `,ctx);
 assert.equal(result.checks,17);
-console.log(`Trials polish 1.6.2: 22 unit checks and ${result.checks} real-duel checks passed`);
+console.log(`Trials polish 1.6.2: 25 unit checks and ${result.checks} real-duel checks passed`);
