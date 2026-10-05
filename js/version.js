@@ -1,16 +1,15 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.7.0',
-  label:"The Bender's Tome",
+  version:'1.7.1',
+  label:'First Lessons',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:"The Bender's Tome · Lessons & glossary",
+  focus:'Playable First Lessons · Learn in seconds',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    "How to Play is now the Bender's Tome, a book you can flip through",
-    'A page for every term, symbol and element, with Quick facts',
-    'Tap an underlined term to jump to it; a ribbon takes you back'
+    'First Lessons now play: tap through each idea in seconds',
+    'New to Element Bound? Look for Start here on How to Play'
   ])
 });
 

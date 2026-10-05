@@ -25,6 +25,13 @@ for(const page of tome.pages.filter(page=>page.archivist))check(source.includes(
 for(const page of tome.pages.filter(page=>page.rule||page.rules)){const value=page.rule||page.rules;check(source.includes(value),`${page.title}: rule text comes from TOME.md`)}
 for(const page of tome.pages.filter(page=>page.confuse))check(source.includes(page.confuse),`${page.title}: Don't-confuse text comes from TOME.md`);
 
+
+// First Lessons preserve every approved Demo says line, including the Pass branch.
+const lessonBlocks=[...source.matchAll(/^### ([IVX]+) · ([^\n]+)\n([\s\S]*?)(?=^### |^---$)/gm)];
+for(const [,roman,title,block] of lessonBlocks){const page=tome.pages.find(item=>item.title===title),line=block.match(/^- \*\*Demo says:\*\* (.+)$/m)?.[1]||'',approved=[...line.matchAll(/"([^"]*)"/g)].map(match=>match[1]);equal(page.says.slice(0,approved.length),approved,`${roman}: Demo says lines match TOME.md`)}
+const passLine=source.match(/^#### Pass[\s\S]*?- \*\*Archivist:\*\* "([^"]+)"/m)[1];
+equal(tome.pages.find(page=>page.id==='lesson-v').says.at(-1),passLine,'Defense lesson Pass branch matches the Pass Archivist line');
+
 // Links resolve, chapters follow the binding order, and each element tab has a destination.
 const titles=new Set(tome.pages.map(page=>page.title));
 const linked=[...JSON.stringify(tome.pages).matchAll(/\[\[([^\]]+)\]\]/g)].map(match=>match[1]);
@@ -44,6 +51,8 @@ check(/function goTome\(\)/.test(game),'game exposes Tome navigation');
 check(!/HELP_SECTIONS|showHelpSection|showRules/.test(allJs),'legacy modal help code is removed from js/');
 check(/const GLOSSARY=/.test(game),'card-inspection glossary remains');
 check(/@media\(prefers-reduced-motion:reduce\)/.test(css),'Tome supplies reduced-motion behavior');
-const tomeSource=fs.readFileSync(path.join(ROOT,'js/tome.js'),'utf8');
+const tomeSource=fs.readFileSync(path.join(ROOT,'js/tome.js'),'utf8'),lessonSource=fs.readFileSync(path.join(ROOT,'js/tomeLessons.js'),'utf8');
+check(html.includes('js/tomeLessons.js')&&/lessons\.mount\(page\.id,api\)/.test(tomeSource),'lesson module loads and mounts inside lesson pages');
+check(/STORAGE_KEY='ebTomeOpened'/.test(lessonSource),'new-player nudge uses the approved storage key');
 check(/Math\.abs\(dx\)>8/.test(tomeSource)&&/if\(!state\.drag\.moved\)return/.test(tomeSource),'Tome preserves taps until a swipe crosses its movement threshold');
 console.log(`Tome 1.7.0: ${checks} checks passed`);

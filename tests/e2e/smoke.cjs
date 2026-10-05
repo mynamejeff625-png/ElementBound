@@ -214,6 +214,8 @@ async function run() {
       const stamp = await page.locator('#buildStamp').textContent();
       assert.equal(stamp, await page.evaluate(()=>`Alpha ${EB_RELEASE.version}`), 'main menu shows only the concise release version'); checks++;
       await foundation('home');
+      assert.equal((await page.locator('.tome-start-badge').textContent()).trim(),'Start here','fresh profile nudges new players toward How to Play');checks++;
+      assert.equal(await page.locator('.home-links button:last-child').getAttribute('aria-label'),'How to Play, start here','new-player nudge is announced accessibly');checks++;
       await shot('01-home');
       assert.equal(await page.locator('#whatsNewButton').getAttribute('aria-label'),"What's New, 1 unread update",'What\'s New announces its unread update');checks++;
       assert.equal(await page.locator('#whatsNewButton').evaluate(button=>button.classList.contains('has-badge')),true,'What\'s New dot is visible');checks++;
@@ -421,6 +423,28 @@ async function run() {
       assert.match(await page.locator('.tome-page.is-current .tome-ribbon').textContent(),/Back to Soaked/,'linked term exposes a return ribbon');checks++;
       await page.locator('.tome-page.is-current .tome-ribbon').click();await page.waitForTimeout(700);
       assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Soaked','return ribbon restores the source term');checks++;
+      await page.evaluate(()=>EB_Tome.flipTo(1,{clearTrail:true,focus:true}));await page.waitForTimeout(700);
+      const ownVitality=page.locator('.tome-page.is-current .tl-plate[data-plate="you"] .tl-value');
+      await page.locator('.tome-page.is-current .tl-plate[data-plate="you"]').click();
+      assert.equal(await ownVitality.textContent(),'30','wrong Lesson I tap leaves your Vitality unchanged');checks++;
+      assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Your Bender','tapping inside a lesson board does not flip the page');checks++;
+      await page.evaluate(()=>EB_Tome.flipTo(4,{clearTrail:true,focus:true}));await page.waitForTimeout(700);
+      await page.locator('.tome-page.is-current .tl-card[data-card="Cinder Adept"]').click({force:true});
+      assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Effects & Combos','playing a mini card does not flip the page');checks++;
+      assert.equal(await page.locator('.tome-page.is-current .tl-plate[data-plate="rival"] .eb-icon').count()>1,true,'Cinder Adept applies the visible Burning glyph');checks++;
+      await shot('04d-tome-lesson');
+      await page.locator('.tome-page.is-current .tl-card[data-card="Flame Burst"]').click({force:true});
+      assert.equal((await page.locator('.tome-page.is-current .tl-say').textContent()).trim(),'3 damage instead of 2. That is a combo.','Lesson IV finishes with the approved line');checks++;
+      assert.equal(await page.locator('.tome-page.is-current .tl-plate[data-plate="rival"]>.tl-value').textContent(),'7','Lesson IV reduces rival Vitality to 7');checks++;
+      await page.waitForFunction(()=>document.querySelector('.tome-page.is-current .tome-try')?.classList.contains('tl-hint'));assert.equal(await page.locator('.tome-page.is-current .tome-try').evaluate(button=>button.classList.contains('tl-hint')),true,'Lesson IV completion highlights Try it');checks++;
+      await page.locator('.tome-page.is-current .tl-finish .ghost').click();await page.waitForTimeout(200);
+      assert.equal(await page.locator('.tome-page.is-current .tl-plate[data-plate="rival"]>.tl-value').textContent(),'10','Again resets Lesson IV Vitality');checks++;
+      await page.evaluate(()=>EB_Tome.flipTo(5,{clearTrail:true,focus:true}));await page.waitForTimeout(700);
+      await visible('.tome-page.is-current .tl-response','Lesson V Response Window');
+      await page.locator('.tome-page.is-current .tl-response').scrollIntoViewIfNeeded();
+      await shot('04e-tome-lesson-v');
+      await page.locator('.tome-page.is-current .tl-response button',{hasText:'Pass'}).click();
+      assert.equal((await page.locator('.tome-page.is-current .tl-say').textContent()).trim(),'Passing is a choice too. Save the Response for the attack that matters.','Lesson V Pass branch uses the approved line');checks++;
       assert.ok((await page.locator('.tome-page:not([hidden])').count())<=5,'Tome keeps only the nearby page window rendered');checks++;
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'Tome causes no horizontal scroll');checks++;
       assert.match(await page.locator('.tome-narr').first().evaluate(el=>getComputedStyle(el).fontFamily),/Cormorant Garamond/,'Archivist uses the narrator font');checks++;
@@ -440,6 +464,7 @@ async function run() {
       assert.equal(await page.evaluate(()=>document.activeElement?.classList.contains('tome-title')),true,'reduced-motion flip finishes and focuses within 200 ms');checks++;
       await page.emulateMedia({reducedMotion:'no-preference'});
       await menuPush({trigger:'#tome .tome-header button',from:'#tome',to:'#home',direction:'back',label:'Tome to Home'});
+      assert.equal(await page.locator('.tome-start-badge').count(),0,'opening the Tome clears the Start here badge');checks++;
 
       await menuPush({trigger:'.home-play',from:'#home',to:'#setup',label:'Home to deck select'});
       await visible('#setup .deckselect-shell .codex-card','deck select cards');
