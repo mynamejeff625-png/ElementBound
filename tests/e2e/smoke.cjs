@@ -424,9 +424,15 @@ async function run() {
       assert.ok((await page.locator('.tome-page:not([hidden])').count())<=5,'Tome keeps only the nearby page window rendered');checks++;
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'Tome causes no horizontal scroll');checks++;
       assert.match(await page.locator('.tome-narr').first().evaluate(el=>getComputedStyle(el).fontFamily),/Cormorant Garamond/,'Archivist uses the narrator font');checks++;
-      await page.evaluate(()=>EB_Tome.flipTo(EB_Tome.pages.findIndex(page=>page.kind==='glance'),{clearTrail:true,focus:true}));await page.waitForTimeout(700);
+      await page.locator('.tome-tab[aria-label="Contents"]').click();await page.waitForTimeout(700);
+      await page.locator('.tome-page.is-current button',{hasText:'Effects at a Glance'}).first().click();await page.waitForTimeout(700);
+      assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Effects at a Glance','a mouse click on a Contents row reaches its button');checks++;
       assert.equal(await page.locator('.tome-glance-row').count(),10,'Effects at a Glance shows ten rows');checks++;
       await shot('04c-tome-glance');
+      const glanceStage=await page.locator('.tome-stage').boundingBox();
+      await swipe(glanceStage.x+glanceStage.width*.15,glanceStage.y+glanceStage.height*.55,glanceStage.x+glanceStage.width*.8,glanceStage.y+glanceStage.height*.55);
+      await page.waitForTimeout(700);
+      assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Card Depletion','swiping right flips back to the previous page');checks++;
       await page.emulateMedia({reducedMotion:'reduce'});
       const reducedFlip=await page.locator('.tome-page.is-current').evaluate(el=>getComputedStyle(el).transitionDuration);
       assert.equal(reducedFlip,'0.15s','reduced motion uses a 150 ms cross-fade');checks++;
