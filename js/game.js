@@ -1,7 +1,13 @@
 
 const EB_RELEASE=window.EB_RELEASE||Object.freeze({version:'0.0.0',label:'Development',engine:'EB-development',balanceLab:'Balance Lab',ruleset:'EB-RULES-DEVELOPMENT'});
 
-const {E,HYBRIDS,INFO,BASE,RESPONSES,TECH,HYBRID_CARDS}=window.ElementBoundCards;
+const {HYBRIDS,INFO,BASE,RESPONSES,TECH,HYBRID_CARDS}=window.ElementBoundCards;
+const EB_ELEMENT_NAMES={FIRE:'Fire',WATER:'Water',NATURE:'Nature',EARTH:'Earth',LIGHTNING:'Lightning',AIR:'Air',MAGMA:'Magma',STORM:'Storm',BLOOM:'Bloom'};
+function ebElementName(element){return EB_ELEMENT_NAMES[element]||String(element||'')}
+function ebIconMarkup(name,label){return window.EB_UI.icon(name.toLowerCase(),label?{label}:{}).outerHTML}
+function ebElementIcon(element){let icon=window.EB_UI.icon(element.toLowerCase(),{label:ebElementName(element)});icon.classList.add('element-icon',`eb-element--${element.toLowerCase()}`);return icon.outerHTML}
+function ebSetIconText(node,icon,text,label){if(!node)return;node.replaceChildren(window.EB_UI.icon(icon,{label}),document.createTextNode(` ${text}`))}
+function ebHydrateStaticIcons(){if(!document.querySelectorAll)return;document.querySelectorAll('[data-eb-element-icon]').forEach(host=>{let name=host.dataset.ebElementIcon,icon=window.EB_UI.icon(name);icon.classList.add('element-icon',`eb-element--${name}`);host.replaceWith(icon)});document.querySelectorAll('[data-eb-static-icon]').forEach(host=>host.replaceWith(window.EB_UI.icon(host.dataset.ebStaticIcon)))}
 
 function responseCard(el){return window.ElementBoundMatchFactory.createResponseCard(()=>++uid,el)}
 let EB_HYBRID_RESPONSE_CHOICE=null;
@@ -62,8 +68,27 @@ function go(id){
  return true;
 }
 function ebPulseChain(){let el=document.getElementById('chain');if(!el)return;el.hidden=false;el.classList.remove('chainPulse');void el.offsetWidth;el.classList.add('chainPulse');setTimeout(()=>el.classList.remove('chainPulse'),420)}
-function setup(){EB_VIS=null;let d=document.getElementById('decks');d.innerHTML='';Object.keys(INFO).forEach(k=>{let x=document.createElement('button');x.className='deck';let kind=HYBRIDS[k]?'HYBRID':'PRIME';x.innerHTML=`<b>${E[k]} ${INFO[k][0]}</b><div class=small>${kind} · ${INFO[k][1]}</div><div class=small>${INFO[k][2]}</div>`;x.onclick=()=>{choice=k;EB_HYBRID_RESPONSE_CHOICE=null;document.querySelectorAll('.deck').forEach(y=>y.classList.remove('sel'));x.classList.add('sel');ready()};d.appendChild(x)});let q=document.getElementById('diffs');q.innerHTML='';['Easy','Medium','Difficult'].forEach(k=>{let x=document.createElement('button');x.className='diff';x.textContent=k;x.onclick=()=>{diff=k;document.querySelectorAll('.diff').forEach(y=>y.classList.remove('sel'));x.classList.add('sel');ready()};q.appendChild(x)})}
-function ready(){document.getElementById('start').disabled=!(choice&&diff)}
+const EB_MENU_NAV_CLASSES=['eb-nav-forward-from','eb-nav-forward-to','eb-nav-back-from','eb-nav-back-to'];
+function ebNavigate(toId,{direction='forward'}={}){
+ const to=document.getElementById(toId),from=document.querySelector('.screen.on');
+ if(!to||!from||from===to||EB_NAV_LOCK)return from===to;
+ const back=direction==='back',reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,duration=reduce?150:380;
+ if(from.id==='home'){from.classList.add('is-home-leaving');void from.offsetWidth;from.classList.add('is-home-calm')}
+ clearTimeout(EB_NAV_T);EB_NAV_LOCK=true;window.scrollTo(0,0);
+ from.classList.add(back?'eb-nav-back-from':'eb-nav-forward-from');
+ to.classList.add('on',back?'eb-nav-back-to':'eb-nav-forward-to');
+ EB_NAV_T=setTimeout(()=>{
+  from.classList.remove('on',...EB_MENU_NAV_CLASSES);to.classList.remove(...EB_MENU_NAV_CLASSES);window.scrollTo(0,0);
+  const heading=to.querySelector('h1,h2,.codex-title,.title');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true})}else{to.tabIndex=-1;to.focus({preventScroll:true})}
+  EB_NAV_LOCK=false;
+ },duration);return true;
+}
+function goDeckSelect(){EB_VIS=null;window.EB_DeckSelect.open();return ebNavigate('setup')}
+function goDeckSelectBack(){window.EB_DeckSelect.changeDeck();return ebNavigate('home',{direction:'back'})}
+function goFriends(){return ebNavigate('friends')}
+function goFriendsBack(){return ebNavigate('home',{direction:'back'})}
+function startSelectedMatch(deckKey,difficultyKey){choice=deckKey;diff=difficultyKey;EB_HYBRID_RESPONSE_CHOICE=null;startMatch()}
+function setup(){}
 function mk(el,n,c,a,h,guard=false,text='',tip=''){return window.ElementBoundMatchFactory.manifestation(()=>++uid,el,n,c,a,h,guard,text,tip)}
 function deck(el,responseEl=null){return window.ElementBoundMatchFactory.createDeck(el,{responseElement:responseEl,nextId:()=>++uid})}
 function shuffle(a){return window.ElementBoundMatchFactory.shuffle(a,Math.random)}
@@ -77,22 +102,24 @@ let EB_INIT_RAF1=0,EB_INIT_RAF2=0,EB_INIT_RUN=0;
 function ebInitiativeCancelPresentation(){clearTimeout(EB_INIT_T);EB_INIT_T=0;if(EB_INIT_RAF1)cancelAnimationFrame(EB_INIT_RAF1);if(EB_INIT_RAF2)cancelAnimationFrame(EB_INIT_RAF2);EB_INIT_RAF1=EB_INIT_RAF2=0;EB_INIT_RUN++}
 function ebInitiativeReveal(){if(!G||!G.initiative||G.initiative.finished||G.initiative.revealed)return;clearTimeout(EB_INIT_T);EB_INIT_T=0;let r=document.getElementById('initiativeResult'),b=document.getElementById('initiativeBonus'),p=document.getElementById('initiativePanel'),c=document.getElementById('initiativeCoin');if(c)c.classList.remove('flip');if(r)r.textContent=G.active===0?'YOU WON · YOU GO FIRST':'RIVAL WON · RIVAL GOES FIRST';if(b)b.textContent=G.active===0?'Rival receives the Initiation Token':'You receive the Initiation Token';if(p){p.classList.remove('land');void p.offsetWidth;p.classList.add('land')}G.initiative.revealed=true;EB_INIT_T=setTimeout(ebInitiativeFinish,1500)}
 function ebInitiativeSkip(){if(!G||!G.initiative||G.initiative.finished)return;EB_INIT_RUN++;if(EB_INIT_RAF1)cancelAnimationFrame(EB_INIT_RAF1);if(EB_INIT_RAF2)cancelAnimationFrame(EB_INIT_RAF2);EB_INIT_RAF1=EB_INIT_RAF2=0;clearTimeout(EB_INIT_T);EB_INIT_T=0;if(!G.initiative.revealed)ebInitiativeReveal();else ebInitiativeFinish()}
-function ebInitiativeShow(){let o=document.getElementById('initiativeOverlay'),c=document.getElementById('initiativeCoin'),r=document.getElementById('initiativeResult'),b=document.getElementById('initiativeBonus');if(!o)return ebInitiativeFinish();ebInitiativeCancelPresentation();let run=EB_INIT_RUN;o.classList.remove('hide');if(r)r.textContent='FLIPPING…';if(b)b.textContent='';if(c)c.classList.remove('flip');/* Two paint opportunities prevent iOS Safari from coalescing overlay reveal + animation start. */EB_INIT_RAF1=requestAnimationFrame(()=>{if(run!==EB_INIT_RUN||!G||!G.initiative||G.initiative.finished)return;EB_INIT_RAF2=requestAnimationFrame(()=>{if(run!==EB_INIT_RUN||!G||!G.initiative||G.initiative.finished)return;if(c)c.classList.add('flip');EB_INIT_T=setTimeout(ebInitiativeReveal,1500)})})}
+function ebInitiativeShow(){if(!G||!G.initiative||G.initiative.finished)return;let o=document.getElementById('initiativeOverlay'),c=document.getElementById('initiativeCoin'),r=document.getElementById('initiativeResult'),b=document.getElementById('initiativeBonus');if(!o)return ebInitiativeFinish();ebInitiativeCancelPresentation();let run=EB_INIT_RUN;o.classList.remove('hide');if(r)r.textContent='FLIPPING…';if(b)b.textContent='';if(c)c.classList.remove('flip');/* Two paint opportunities prevent iOS Safari from coalescing overlay reveal + animation start. */EB_INIT_RAF1=requestAnimationFrame(()=>{if(run!==EB_INIT_RUN||!G||!G.initiative||G.initiative.finished)return;EB_INIT_RAF2=requestAnimationFrame(()=>{if(run!==EB_INIT_RUN||!G||!G.initiative||G.initiative.finished)return;if(c)c.classList.add('flip');EB_INIT_T=setTimeout(ebInitiativeReveal,1500)})})}
 function startMatch(){
  if(HYBRIDS[choice]&&!HYBRIDS[choice].parents.includes(EB_HYBRID_RESPONSE_CHOICE)){
-  let h=HYBRIDS[choice];modal('Choose your Hybrid Response card',h.parents.map(el=>[`${E[el]} ${RESPONSES[el].n}`,()=>{EB_HYBRID_RESPONSE_CHOICE=el;hideModal();setTimeout(startMatch,190)}]));return;
+  let h=HYBRIDS[choice];modal('Choose your Hybrid Response card',h.parents.map(el=>[`${ebElementName(el)} ${RESPONSES[el].n}`,()=>{EB_HYBRID_RESPONSE_CHOICE=el;hideModal();setTimeout(startMatch,190)}]));return;
  }
  selectedCardId=null;clearTimeout(EB_INIT_T);let keys=Object.keys(INFO),pool=keys.filter(x=>x!==choice&&x!==window.lastOpp);if(!pool.length)pool=keys.filter(x=>x!==choice);let opp=pool[Math.floor(Math.random()*pool.length)];window.lastOpp=opp;
  let oppResp=HYBRIDS[opp]?HYBRIDS[opp].parents[Math.floor(Math.random()*HYBRIDS[opp].parents.length)]:opp;
- G=window.ElementBoundMatchFactory.createInitialState({players:[{name:'Your Bender',element:choice,responseElement:EB_HYBRID_RESPONSE_CHOICE},{name:`${diff} ${INFO[opp][0]} Rival`,element:opp,responseElement:oppResp}],random:Math.random});let starter=G.active;G.initiative.revealed=false;G.initiative.finished=false;uid=Math.max(uid,...G.p.flatMap(p=>[...p.deck,...p.hand].map(c=>Number(c.id)||0)));
+ G=window.ElementBoundMatchFactory.createInitialState({players:[{name:'Your Bender',element:choice,responseElement:EB_HYBRID_RESPONSE_CHOICE},{name:`${diff} ${INFO[opp][0]} Rival`,element:opp,responseElement:oppResp}],random:Math.random});let starter=G.active;G.initiative.revealed=false;G.initiative.finished=false;uid=Math.max(uid,...G.p.flatMap(p=>[...p.deck,...p.hand].map(c=>Number(c.id)||0)));let rival=document.getElementById('initiativeRival');if(rival){rival.className=`initRival eb-element--${opp.toLowerCase()}`;rival.replaceChildren(window.EB_UI.icon(opp.toLowerCase(),{label:INFO[opp][0]}),document.createTextNode(`vs ${INFO[opp][0]}`))}
  EB_INIT_LOCK=true;go('battle');render();setTimeout(ebInitiativeShow,140)
 }
 
 let activeTrial=null;
+let EB_TRIAL_RUN={rewound:false,maxHint:0,wrongMoves:0},EB_TRIAL_HINT_T=null;
 
 function goTrials(){
   activeTrial=null;
-  go('trials');
+  clearTimeout(EB_TRIAL_HINT_T);window.EB_Trials?.closeChapter({restore:false});window.EB_Trials?.renderMap();
+  ebNavigate('trials');
 }
 
 function trialManifestation(el,name){
@@ -109,8 +136,9 @@ function trialTechnique(el,name,cost){
   return{id:++uid,el,n:t[0],c:cost,type:'TECHNIQUE',zone:'HAND',text:t[1],tip:t[2],role:null};
 }
 
-function startTrial(el){
+function startTrial(el,rewind=false){
   if(!['FIRE','WATER','NATURE','EARTH','LIGHTNING','AIR'].includes(el))return;
+  if(!rewind)EB_TRIAL_RUN={rewound:false,maxHint:0,wrongMoves:0};
   activeTrial=el;
 
   let p,e,trial;
@@ -131,10 +159,11 @@ function startTrial(el){
     ];
 
     trial={
+      ...window.EB_Trials.TRIAL_DATA.FIRE,
       id:'FIRE_01',
       element:'FIRE',
       title:'Trial of Flame',
-      icon:'🔥',
+      icon:'fire',
       objective:'Defeat the rival this turn by using Burning before your payoff.',
       fail:'Burning needed to come before the payoff.',
       mastered:'SETUP → PAYOFF',
@@ -158,10 +187,11 @@ function startTrial(el){
     p.hand=[trialTechnique('LIGHTNING','Static Step',1)];
 
     trial={
+      ...window.EB_Trials.TRIAL_DATA.LIGHTNING,
       id:'LIGHTNING_01',
       element:'LIGHTNING',
       title:'Trial of Storms',
-      icon:'⚡',
+      icon:'lightning',
       objective:'Use Static Step → build Charge → attack with Spark Runner to release it.',
       fail:'Charge first. Then release it with Spark Runner.',
       mastered:'CHARGE → RELEASE',
@@ -175,31 +205,32 @@ function startTrial(el){
     e.deck=[]; e.hand=[]; e.wake=[]; e.slots=[null,null,null]; e.marks=[];
 
     p.vit=24; p.maxE=1; p.e=1;
-    e.vit=12; e.maxE=0; e.e=0;
+    e.vit=4; e.maxE=0; e.e=0;
+
+    let raptor=trialManifestation('AIR','Sky Raptor');
+    raptor.zone='FIELD'; raptor.ready=true; raptor.sick=false;
+    p.slots[0]=raptor;
 
     let scout=trialManifestation('AIR','Gale Scout');
     scout.zone='FIELD'; scout.ready=true; scout.sick=false;
-    p.slots[0]=scout;
+    p.slots[1]=scout;
 
-    let target=trialManifestation('EARTH','Stone Initiate');
-    target.zone='FIELD'; target.ready=false; target.sick=false; target.armor=0;
-    e.slots[0]=target;
-
-    let anchor=trialManifestation('EARTH','Earthen Guard');
-    anchor.n='Wind Anchor'; anchor.zone='FIELD'; anchor.ready=false; anchor.sick=false; anchor.guard=false;
-    e.slots[2]=anchor;
+    let guard=trialManifestation('EARTH','Earthen Guard');
+    guard.zone='FIELD'; guard.ready=false; guard.sick=false;
+    e.slots[1]=guard;
 
     p.hand=[trialTechnique('AIR','Crosswind',1)];
 
     trial={
+      ...window.EB_Trials.TRIAL_DATA.AIR,
       id:'AIR_01',
       element:'AIR',
       title:'Trial of Winds',
-      icon:'🌪️',
-      objective:'Use Crosswind to give Gale Scout Momentum and SWAP Stone Initiate with Wind Anchor → then attack Stone Initiate.',
-      fail:'Give Gale Scout Momentum and swap the targets first. Then attack Stone Initiate.',
-      mastered:'MOMENTUM + SWAP → EXPLOIT',
-      progress:{step:0,swapped:false,exploited:false,targetId:target.id}
+      icon:'air',
+      objective:'Give Sky Raptor Momentum with Crosswind, then ignore Guard and strike the rival Bender.',
+      fail:'Sky Raptor needs Momentum before it can fly past Guard.',
+      mastered:'MOMENTUM → BYPASS',
+      progress:{step:0,momentum:false,hit:0}
     };
   }else if(el==='EARTH'){
     p=player('Your Bender','EARTH');
@@ -227,10 +258,11 @@ function startTrial(el){
     p.hand=[trialTechnique('EARTH',TECH.EARTH[0],1)];
 
     trial={
+      ...window.EB_Trials.TRIAL_DATA.EARTH,
       id:'EARTH_01',
       element:'EARTH',
       title:'Trial of Stone',
-      icon:'🪨',
+      icon:'earth',
       objective:'Use Fortify → gain Armor → survive the Trial Colossus strike.',
       fail:'Armor first. Without it, Earthen Guard cannot hold the line.',
       mastered:'GUARD → SURVIVE',
@@ -244,32 +276,26 @@ function startTrial(el){
     e.deck=[]; e.hand=[]; e.wake=[]; e.slots=[null,null,null]; e.marks=[];
 
     p.vit=27; p.maxE=3; p.e=3;
-    e.vit=4; e.maxE=0; e.e=0;
-
-    // Root Keeper begins damaged so healing has an immediate, visible purpose.
-    let keeper=trialManifestation('NATURE','Root Keeper');
-    keeper.zone='FIELD'; keeper.ready=true; keeper.sick=false;
-    keeper.h=3; keeper.max=4; keeper.growth=0;
-    p.slots[0]=keeper;
+    e.vit=3; e.maxE=0; e.e=0;
 
     // Grove Beast is the payoff: Growth must be built before the finishing attack.
     let beast=trialManifestation('NATURE','Grove Beast');
     beast.zone='FIELD'; beast.ready=true; beast.sick=false;
     beast.growth=0;
-    p.slots[1]=beast;
+    p.slots[0]=beast;
 
-    // Use Nature's existing technique, but the trial tracks the heal/growth lesson.
-    p.hand=[trialTechnique('NATURE',TECH.NATURE[0],3)];
+    p.hand=[trialManifestation('NATURE','Sproutling'),trialTechnique('NATURE',TECH.NATURE[0],2)];
 
     trial={
+      ...window.EB_Trials.TRIAL_DATA.NATURE,
       id:'NATURE_01',
       element:'NATURE',
       title:'Trial of Roots',
-      icon:'🌿',
-      objective:'Use your Nature Technique on Root Keeper → gain Growth → attack with Grove Beast.',
-      fail:'Use the Technique first. Growth must be created before Grove Beast can finish.',
-      mastered:'GROW → STRIKE',
-      progress:{step:0,grew:false,techniqueApplied:false}
+      icon:'nature',
+      objective:'Summon Sproutling to Seed Grove Beast, use Verdant Mend, then attack for 3.',
+      fail:'Seed Grove Beast before using Verdant Mend.',
+      mastered:'SEED → GROW → STRIKE',
+      progress:{step:0,seeded:false,grew:false,techniqueApplied:false,hit:0}
     };
   }else{
     p=player('Your Bender','WATER');
@@ -278,8 +304,8 @@ function startTrial(el){
     p.deck=[]; p.hand=[]; p.wake=[]; p.slots=[null,null,null]; p.marks=[];
     e.deck=[]; e.hand=[]; e.wake=[]; e.slots=[null,null,null]; e.marks=[];
 
-    p.vit=30; p.maxE=1; p.e=1;
-    e.vit=1; e.maxE=0; e.e=0;
+    p.vit=3; p.maxE=1; p.e=1;
+    e.vit=30; e.maxE=0; e.e=0;
 
     // Tide begins with a ready attacker so the puzzle is about sequencing,
     // not waiting through summoning sickness.
@@ -287,23 +313,23 @@ function startTrial(el){
     serpent.zone='FIELD'; serpent.ready=true; serpent.sick=false;
     p.slots[0]=serpent;
 
-    let guard=trialManifestation('EARTH','Stone Initiate');
-    guard.n='Driftstone';
-    guard.h=2; guard.max=2; guard.armor=0;
-    guard.zone='FIELD'; guard.ready=true; guard.sick=false;
-    e.slots[1]=guard;
+    let brute=trialManifestation('EARTH','Boulder Ram');
+    brute.n='Tide Brute'; brute.a=4; brute.h=4; brute.max=4; brute.guard=true; brute.text='Guard.'; brute.tip='Soak Tide Brute before ending your turn to reduce its strike from 4 damage to 2.';
+    brute.zone='FIELD'; brute.ready=true; brute.sick=false; brute.armor=0;
+    e.slots[1]=brute;
 
     p.hand=[trialTechnique('WATER','Current Shift',1)];
 
     trial={
+      ...window.EB_Trials.TRIAL_DATA.WATER,
       id:'WATER_01',
       element:'WATER',
       title:'Trial of Tides',
-      icon:'💧',
-      objective:'Apply Soaked, then use River Serpent to break the Driftstone.',
-      fail:'Soak the target before you strike.',
-      mastered:'SOAK → STRIKE',
-      progress:{soaked:false}
+      icon:'water',
+      objective:'Soak Tide Brute, end the turn, and survive its weakened strike.',
+      fail:'Soak the threat before ending your turn.',
+      mastered:'SOAK → SURVIVE',
+      progress:{soaked:false,survived:false,actions:[]}
     };
   }
 
@@ -316,73 +342,36 @@ function startTrial(el){
 
   add(`TRIAL START · ${trial.title.replace('Trial of ','')} · ${trial.mastered}`);
   go('battle');
+  ebTrialScheduleHint();
   render();
 }
 function resetTrial(){
-  if(activeTrial)startTrial(activeTrial);
+  if(activeTrial){EB_TRIAL_RUN.rewound=true;EB_TRIAL_RUN.maxHint=0;startTrial(activeTrial,true)}
 }
 
 function exitBattle(){
   selectedCardId=null;
   hideModal();
   if(EB_MP.enabled){ebStopMultiplayer();G=null;go('home');return}
-  if(G&&G.trial){G=null;goTrials()}
-  else go('setup');
+  if(G&&G.trial){G=null;activeTrial=null;clearTimeout(EB_TRIAL_HINT_T);window.EB_Trials?.renderMap();go('trials')}
+  else goDeckSelect();
 }
 
-function renderTrialUI(){
-  let box=document.getElementById('trialObjective');
-  if(!box||!G)return;
-
-  if(!G.trial){
-    box.classList.remove('on');
-    box.innerHTML='';
-    return;
-  }
-
-  box.classList.add('on');
-  let p=me(),e=foe(),t=G.trial;
-  let failed=!G.winner && p.hand.length===0 && e.vit>0 &&
-    ((t.element==='FIRE') ||
-     (t.element==='WATER' && (!t.progress.soaked || !e.slots.some(Boolean))) ||
-     (t.element==='EARTH' && !t.progress.survived) ||
-     false);
-
-  box.innerHTML=failed
-    ? `<b>${t.icon} ${t.title} · Sequence missed</b><span class="small">${t.fail}</span><button class="ghost" style="margin-top:8px" onclick="resetTrial()">↻ TRY AGAIN</button>`
-    : `<b>${t.icon} ${t.title}</b><span class="small">${t.objective}</span>${G.winner?'<button class="ghost" style="margin-top:8px" onclick="resetTrial()">↻ TRY AGAIN</button>':''}`;
-}
-
-
-function rootsTechniqueBridge(target){
-  if(G&&G.trial&&G.trial.element==='NATURE'){
-    return resolveNatureTrialGrowth(target);
-  }
-  return false;
-}
-function resolveNatureTrialGrowth(target){
-  if(!G||!G.trial||G.trial.element!=='NATURE')return false;
-  let p=me(), t=G.trial;
-  let keeper=p.slots.find(x=>x&&x.n==='Root Keeper');
-  let beast=p.slots.find(x=>x&&x.n==='Grove Beast');
-  if(!keeper||!beast)return false;
-
-  // The technique must resolve on Root Keeper. Attacks cannot advance this state.
-  if(!target || target.n!=='Root Keeper'){
-    add('ROOTS · Drag/tap the Nature Technique onto Root Keeper.');
-    return false;
-  }
-  if(t.progress.step!==0)return true;
-
-  keeper.h=Math.min(keeper.max,(keeper.h||0)+1);
-  keeper.growth=Math.min(3,(keeper.growth||0)+1);
-  beast.growth=Math.min(3,(beast.growth||0)+1);
-  t.progress.techniqueApplied=true;
-  t.progress.grew=true;
-  t.progress.step=1;
-  add('ROOTS · GROWTH READY → now attack with Grove Beast.');
-  return true;
-}
+function ebTrialState(){if(!G?.trial)return{};let t=G.trial,statuses=[];if((foe().marks||[]).includes('Burning'))statuses.push('Burning');if(t.progress.soaked)statuses.push('Soaked');if(t.progress.armored)statuses.push('Armor');if(t.progress.seeded)statuses.push('Seeded');if(t.progress.grew)statuses.push('Growth');if(t.progress.charged)statuses.push('Charged');if(t.progress.momentum)statuses.push('Momentum');return{played:t.progress.played||[],statuses,actions:t.progress.actions||[],progress:t.progress,hit:t.progress.hit||0}}
+function ebTrialCompletedCount(){return G?.trial?window.EB_Trials.completedTokens(G.trial.strip,ebTrialState()):0}
+function ebTrialScheduleHint(){clearTimeout(EB_TRIAL_HINT_T);if(!G?.trial||G.winner)return;EB_TRIAL_HINT_T=setTimeout(()=>{if(!G?.trial||G.winner)return;ebTrialRaiseHint();ebTrialScheduleHint()},Number(window.EB_TRIAL_HINT_MS)||20000)}
+function ebTrialRaiseHint(){if(!G?.trial)return;G.trial.hintLevel=Math.min(2,(G.trial.hintLevel||0)+1);EB_TRIAL_RUN.maxHint=Math.max(EB_TRIAL_RUN.maxHint,G.trial.hintLevel);render()}
+function ebTrialWrongMove(index=ebTrialCompletedCount()){if(!G?.trial)return;let t=G.trial;t.wrongMoves=(t.wrongMoves||0)+1;EB_TRIAL_RUN.wrongMoves=(EB_TRIAL_RUN.wrongMoves||0)+1;t.missedIndex=index;ebTrialRaiseHint()}
+function ebTrialTrackCard(card){if(!G?.trial||!card)return;let t=G.trial,count=ebTrialCompletedCount(),next=t.strip[count],correct=next?.kind==='card'&&next.name===card.n;t.progress.played=t.progress.played||[];if(!t.progress.played.includes(card.n))t.progress.played.push(card.n);if(correct){t.hintLevel=0;t.missedIndex=null;ebTrialScheduleHint()}else ebTrialWrongMove(count)}
+function ebTrialTokenMarkup(token,state,index){let icon='';if(token.kind==='card')icon=`<img src="assets/medallions/${G.trial.element.toLowerCase()}.webp" alt="">`;else if(token.kind==='status')icon=ebIconMarkup(token.name.toLowerCase());else icon=ebIconMarkup(token.kind==='hit'?'sword':token.kind==='action'?'hourglass':'shield');let label=token.kind==='card'||token.kind==='status'||token.kind==='action'?token.name:token.kind==='hit'?String(token.value):'Survive',status=state==='done'?'done':state==='next'?'next':state==='missed'?'missed':'later';return `<span class="trial-token is-${status}" aria-label="Step ${index+1}: ${label}, ${status}">${icon}<span>${label}</span></span>`}
+function ebTrialStripMarkup(t,recap=false){let completed=ebTrialCompletedCount();return `<div class="trial-strip${recap?' trial-recap-strip':''}">${t.strip.map((token,index)=>(index?'<span class="trial-arrow" aria-hidden="true">→</span>':'')+ebTrialTokenMarkup(token,index<completed?'done':index===t.missedIndex?'missed':index===completed?'next':'later',index)).join('')}</div>`}
+function ebTrialGoalsMarkup(t){const meta={turns:['hourglass','win within'],hit:['sword','deal'],shield:['shield','survive the rival turn'],essence:['essence','your Essence']};return `<div class="trial-goals">${t.goals.map(goal=>{let [icon,label]=meta[goal.kind],value=goal.value??'';return `<span class="trial-goal" aria-label="${label}${value?' '+value:''}">${ebIconMarkup(icon)}${value}</span>`}).join('')}</div>`}
+function ebTrialMasteredLine(t){return t.strip.filter(token=>token.kind==='card').map(token=>token.name).join(' · ')}
+function ebTrialRecap(t){if(!t.completionStored){t.earnedStars=window.EB_Trials.starsForRun({completed:true,rewound:EB_TRIAL_RUN.rewound,wrongMoves:EB_TRIAL_RUN.wrongMoves||0});window.EB_Trials.record(t.element,t.earnedStars);t.completionStored=true;clearTimeout(EB_TRIAL_HINT_T)}return `<section class="trial-recap"><h2>Trial Complete</h2><div class="trial-recap-stars" aria-label="${t.earnedStars} stars">${[1,2,3].map(star=>{let icon=ebIconMarkup('star');return star<=t.earnedStars?icon.replace('class="eb-icon"','class="eb-icon is-earned"'):icon}).join('')}</div>${ebTrialStripMarkup(t,true)}<div class="trial-recap-mastered"><b>mastered</b><br>${ebTrialMasteredLine(t)}</div><button class="primary" onclick="ebTrialContinue()">CONTINUE</button></section>`}
+function ebTrialContinue(){if(!G?.trial)return;G=null;activeTrial=null;window.EB_Trials.renderMap();go('trials')}
+function ebTrialApplyHints(){document.querySelectorAll('.trial-hint-arrow,.trial-hint-badge').forEach(node=>node.remove());document.querySelectorAll('.trial-hint-card').forEach(node=>node.classList.remove('trial-hint-card'));if(!G?.trial||!G.trial.hintLevel)return;let next=G.trial.strip[ebTrialCompletedCount()],cardName=next?.kind==='card'?next.name:null,anchor=cardName&&document.querySelector(`[data-eb-anchor="hand-card"][data-eb-card="${CSS.escape(cardName)}"]`);if(!anchor)return;anchor.classList.add('trial-hint-card');let badge=document.createElement('span');badge.className='trial-hint-badge';badge.textContent=['①','②','③','④','⑤'][ebTrialCompletedCount()]||'•';anchor.append(badge);if(G.trial.hintLevel>1)ebTrialDrawHintArrow(anchor)}
+function ebTrialDrawHintArrow(source){let target=G.trial.element==='FIRE'?document.querySelector('[data-eb-anchor="bender"][data-eb-side="rival"]'):G.trial.element==='EARTH'||G.trial.element==='NATURE'?document.querySelector('[data-eb-anchor="slot"][data-eb-side="you"]'):document.querySelector('[data-eb-anchor="slot"][data-eb-side="rival"]');if(!source||!target)return;let a=source.getBoundingClientRect(),b=target.getBoundingClientRect(),x=a.left+a.width/2,y=a.top+a.height/2,tx=b.left+b.width/2,ty=b.top+b.height/2,length=Math.hypot(tx-x,ty-y),angle=Math.atan2(ty-y,tx-x)*180/Math.PI,id=`trial-arrow-${Date.now()}`,arrow=document.createElement('span');arrow.id=id;arrow.className='trial-hint-arrow';arrow.setAttribute('aria-hidden','true');document.body.append(arrow);let sheet=[...document.styleSheets].find(item=>{try{return!!item.cssRules}catch(_error){return false}});try{sheet.insertRule(`#${id}{left:${x}px;top:${y}px;width:${length}px;transform:rotate(${angle}deg)}`,sheet.cssRules.length)}catch(_error){arrow.remove()}}
+function renderTrialUI(){let guide=document.getElementById('trialGuide'),winner=document.getElementById('winner');if(!guide||!G)return;if(!G.trial){guide.classList.remove('on');guide.innerHTML='';return}let t=G.trial,impact=t.progress.soakedImpact?`<span class="trial-impact-chip">${ebIconMarkup('soaked')} −2</span>`:'';guide.classList.add('on');guide.innerHTML=`<button class="eb-icon-btn eb-icon-btn--framed trial-rewind" onclick="resetTrial()" aria-label="Rewind trial">${ebIconMarkup('rewind')}</button>${ebTrialGoalsMarkup(t)}${ebTrialStripMarkup(t)}${impact}`;if(G.winner)winner.innerHTML=G.winner===me().name?ebTrialRecap(t):`<section class="trial-recap trial-recap--failed"><h2>Trial Failed</h2><p>${t.fail||'Try the combo again.'}</p><button class="primary" onclick="resetTrial()">REWIND</button></section>`;requestAnimationFrame(ebTrialApplyHints)}
 
 
 function resolveStormTrial(){
@@ -424,6 +413,8 @@ function resolveStoneTrial(){
   add(`Trial Colossus attacks Earthen Guard · Armor blocks ${blocked} · ${dealt} damage`);
 
   if(guard.h>0){
+    t.progress.played=t.progress.played||[];
+    if(!t.progress.played.includes('Earthen Guard'))t.progress.played.push('Earthen Guard');
     t.progress.survived=true;
     t.progress.step=2;
     e.vit=0;
@@ -435,7 +426,21 @@ function resolveStoneTrial(){
   return t.progress.survived;
 }
 
-function registerAffinity(p,c){let h=HYBRIDS[p.el];if(!h||c.el===p.el)return;let r=p.turnState.resonance;if(c.el===h.parents[0])r.a=true;if(c.el===h.parents[1])r.b=true;let was=r.active;r.active=r.a&&r.b;p.turnState.resolved.push(c.id);if(r.active&&!was)add(`${E[p.el]} ${INFO[p.el][0]} RESONANCE ACTIVE`)}
+function resolveTidesTrial(){
+  if(!G?.trial||G.trial.element!=='WATER'||G.winner)return false;
+  let t=G.trial,p=me(),e=foe(),brute=e.slots.find(x=>x&&x.n==='Tide Brute');
+  if(!brute)return false;
+  t.progress.actions=t.progress.actions||[];
+  if(!t.progress.actions.includes('End Turn'))t.progress.actions.push('End Turn');
+  let wasSoaked=(brute.marks||[]).includes('Soaked'),power=ebSoakedAttackPower(brute,brute.a);
+  p.vit-=power;brute.ready=false;
+  add(`Tide Brute strikes your Bender for ${power}`);
+  if(wasSoaked){t.progress.soaked=true;t.progress.soakedImpact=true}
+  if(p.vit>0&&wasSoaked){t.progress.survived=true;e.vit=0;add(`TIDES TRIAL · Soak → Survive complete · ${p.vit} Vitality remains`)}
+  bump();return true;
+}
+
+function registerAffinity(p,c){let h=HYBRIDS[p.el];if(!h||c.el===p.el)return;let r=p.turnState.resonance;if(c.el===h.parents[0])r.a=true;if(c.el===h.parents[1])r.b=true;let was=r.active;r.active=r.a&&r.b;p.turnState.resolved.push(c.id);if(r.active&&!was)add(`${ebElementName(p.el)} ${INFO[p.el][0]} RESONANCE ACTIVE`)}
 function resonant(p){return !!(p.turnState&&p.turnState.resonance.active)}
 function add(s){G.logs.push(`T${G.turn} ${s}`)}function bump(s){G.rev++;if(s)add(s);winCheck();validateState();render()}
 function me(){return G.p[0]}function foe(){return G.p[1]}function current(){return G.p[G.active]}function other(){return G.p[1-G.active]}
@@ -526,8 +531,9 @@ function applyPrimeSummonGift(c,target){
    add(`${c.n}: ${target.n} ${gained?'gains 1 Armor':'already gained Armor this round'}${gained?` → ${target.armor}`:''}`);
    return true;
  }
- if(c.el==='NATURE'&&c.n==='Sproutling'){
+  if(c.el==='NATURE'&&c.n==='Sproutling'){
    addMark(target,'Seeded');
+   if(G?.trial?.element==='NATURE'&&target.n==='Grove Beast')G.trial.progress.seeded=true;
    add(`${c.n}: ${target.n} gains Seeded`);
    return true;
  }
@@ -557,12 +563,12 @@ function resolvePrimeSummonGift(p,c,isAI=false){
  return true;
 }
 
-function play(c,slotIndex=null,techTarget=undefined){if(!playable(c))return;if(c.type==='TECHNIQUE'&&techTarget===undefined){chooseTechniqueTarget(c);return}if(c.type!=='TECHNIQUE'&&(slotIndex===null||slotIndex<0||slotIndex>2||me().slots[slotIndex]))return;if(EB_MP.enabled){selectedCardId=null;ebMpPlay(c,slotIndex,techTarget);return}selectedCardId=null;let p=me();p.e-=c.c;p.hand=p.hand.filter(x=>x.id!==c.id);G.chain++;
+function play(c,slotIndex=null,techTarget=undefined){if(!playable(c))return;if(c.type==='TECHNIQUE'&&techTarget===undefined){chooseTechniqueTarget(c);return}if(c.type!=='TECHNIQUE'&&(slotIndex===null||slotIndex<0||slotIndex>2||me().slots[slotIndex]))return;if(EB_MP.enabled){selectedCardId=null;ebMpPlay(c,slotIndex,techTarget);return}if(G.trial)ebTrialTrackCard(c);selectedCardId=null;let p=me();p.e-=c.c;p.hand=p.hand.filter(x=>x.id!==c.id);G.chain++;
 if(c.type==='TECHNIQUE'){sendToWake(p,c,'technique');
  if(HYBRIDS[c.el]){resolveHybridTechnique(p,foe(),c,false,techTarget)}
- else if(c.el==='FIRE'){let t=techTarget&&techTarget.enemy;if(t){let burn=(t.marks||[]).includes('Burning');let d=hit(t,burn?3:2,c.el,c.n);add(`${c.n}: ${d} damage to ${t.n}${burn?' (Burning bonus)':''}`);death(foe())}else if(techTarget&&techTarget.bender&&activeGuards(foe()).length){add(`GUARD · ${activeGuards(foe())[0].n} blocks ${c.n} from targeting the rival Bender`)}else{let burn=(foe().marks||[]).includes('Burning'),d=burn?3:2;foe().vit-=d;ebQueueFx({kind:'benderHit',side:1,damage:d,el:c.el,label:c.n});add(`${c.n}: ${d} damage to rival Bender${burn?' (Burning bonus)':''}`)}}
+ else if(c.el==='FIRE'){let t=techTarget&&techTarget.enemy;if(t){let burn=(t.marks||[]).includes('Burning');let d=hit(t,burn?3:2,c.el,c.n);if(G.trial?.element==='FIRE')G.trial.progress.hit=d;add(`${c.n}: ${d} damage to ${t.n}${burn?' (Burning bonus)':''}`);death(foe())}else if(techTarget&&techTarget.bender&&activeGuards(foe()).length){add(`GUARD · ${activeGuards(foe())[0].n} blocks ${c.n} from targeting the rival Bender`)}else{let burn=(foe().marks||[]).includes('Burning'),d=burn?3:2;foe().vit-=d;if(G.trial?.element==='FIRE')G.trial.progress.hit=d;ebQueueFx({kind:'benderHit',side:1,damage:d,el:c.el,label:c.n});add(`${c.n}: ${d} damage to rival Bender${burn?' (Burning bonus)':''}`)}}
  else if(c.el==='EARTH'){let t=techTarget&&techTarget.friend;if(t){let gained=gainArmor(t);add(`${c.n}: ${t.n} ${gained?'gains 1 Armor':'already gained Armor this round'}`);if(gained&&G.trial&&G.trial.element==='EARTH')resolveStoneTrial()}else add(`${c.n}: no friendly target`)}
- else if(c.el==='NATURE'){let t=techTarget&&techTarget.friend;if(t&&(t.marks||[]).includes('Seeded')&&grow(t,p)){add(`${c.n}: Seeded → Growth ${t.growth}`)}else add(`${c.n}: no effect (target is not Seeded or Growth is already 3)`) }
+ else if(c.el==='NATURE'){let t=techTarget&&techTarget.friend;if(t&&(t.marks||[]).includes('Seeded')&&grow(t,p)){if(G.trial?.element==='NATURE'&&t.n==='Grove Beast'){G.trial.progress.techniqueApplied=true;G.trial.progress.grew=true;G.trial.progress.step=1}add(`${c.n}: Seeded → Growth ${t.growth}`)}else add(`${c.n}: no effect (target is not Seeded or Growth is already 3)`) }
  else if(c.el==='WATER'){let t=techTarget&&techTarget.enemy;if(t)addMark(t,'Soaked');if(G.trial&&G.trial.element==='WATER'&&t)G.trial.progress.soaked=true;add(`${c.n}: Flow 1${t?' + applies Soaked':''}`);flow1(p,false)}
  else if(c.el==='LIGHTNING'){
   if(G.chain===2){addMark(foe(),'Charged');add(`${c.n}: second card → rival Bender is Charged`)}
@@ -570,7 +576,7 @@ if(c.type==='TECHNIQUE'){sendToWake(p,c,'technique');
   if(G.trial&&G.trial.element==='LIGHTNING')resolveStormTrial();
 }
  else if(c.el==='AIR'){
-  let friend=techTarget&&techTarget.friend;if(friend&&p.slots.includes(friend)){let gained=gainMomentum(friend);add(`${c.n}: ${friend.n} ${gained?'gains':'remains at'} Momentum ${momentumStacks(friend)}/3`)}else add(`${c.n}: no friendly target for Momentum`);
+  let friend=techTarget&&techTarget.friend;if(friend&&p.slots.includes(friend)){let gained=gainMomentum(friend);if(G.trial?.element==='AIR'){if(friend.n==='Sky Raptor'){G.trial.progress.momentum=true;G.trial.progress.step=1}else ebTrialWrongMove()}add(`${c.n}: ${friend.n} ${gained?'gains':'remains at'} Momentum ${momentumStacks(friend)}/3`)}else add(`${c.n}: no friendly target for Momentum`);
   let arr=foe().slots,m=techTarget&&techTarget.enemy,other=techTarget&&techTarget.swapWith,from=m?arr.indexOf(m):-1,to=other?arr.indexOf(other):-1;
   if(from>=0&&to>=0&&from!==to){
     [arr[from],arr[to]]=[arr[to],arr[from]];
@@ -578,11 +584,7 @@ if(c.type==='TECHNIQUE'){sendToWake(p,c,'technique');
     // Crosswind creates a tactical opening for Gale Scout this turn.
     // Store it in turnState so it expires naturally when the next turn starts.
     p.turnState.airOpening=true;
-    add(`${c.n}: swaps ${m.n} M${from+1} ↔ ${other.n} M${to+1} · ${weakened} Weakened · Air Opening ready`);
-    if(G.trial&&G.trial.element==='AIR'&&c.n==='Crosswind'&&(m.id===G.trial.progress.targetId||other.id===G.trial.progress.targetId)){
-      G.trial.progress.swapped=true;G.trial.progress.step=1;
-      add('WINDS · SWAP complete → attack Stone Initiate with Gale Scout.');
-    }
+    add(`${c.n}: swaps ${m.n} M${from+1} and ${other.n} M${to+1} · ${weakened} Weakened · Air Opening ready`);
   }
 }
 }else{let i=slotIndex;if(i==null||i<0||i>2||p.slots[i])return;c.zone='FIELD';c.ready=true;c.sick=true;c.marks=c.marks||[];if(HYBRIDS[c.el]){/* hybrid avatar enters normally */}if(c.el==='FIRE'&&c.n==='Cinder Adept'){addMark(foe(),'Burning');add(`${c.n}: applies Burning to rival Bender`)}if(c.el==='WATER'&&c.n==='Mist Adept'){add(`${c.n}: Flow 1`);flow1(p,false)}if(c.el==='LIGHTNING'&&c.n==='Spark Runner'&&G.chain===2){G.chain++;add(`${c.n}: second card → +1 Chain (Chain ${G.chain})`);ebPulseChain()}p.slots[i]=c;ebQueueFx({kind:'summon',id:c.id,el:c.el,label:c.n});add(`SUMMON ${c.n} → M${i+1}`);resolvePrimeSummonGift(p,c,false)}registerAffinity(p,c);bump()}
@@ -817,17 +819,7 @@ function ebAttackCore(att,t){hideModal();let defending=foe(),owner=me();
  if(!t&&activeGuards(defending).length&&attackBypassesGuard(att,owner)){
    add(`BYPASS · ${att.n} ignores Guard and strikes the rival Bender`);
  }
- att.ready=false;if(t){applyObsidianRavagerTrigger(att,t,owner);applyQuickBeforeAttack(foe(),t);let q=t.quick&&t.quick.kind==='REDUCE'?t.quick.value:0;if(q)t.quick=null;let power=Math.max(0,att.a+elementalAttackBonus(att,t,me())-q);
-if(G.trial&&G.trial.element==='AIR'&&att.n==='Gale Scout'&&t&&t.id===G.trial.progress.targetId){
-  if(!G.trial.progress.swapped){
-    power=0;
-    att.ready=true;
-    add('WINDS · No opening yet → swap two enemies with Crosswind first.');
-  }else{
-    G.trial.progress.exploited=true;G.trial.progress.step=2;
-    add('WINDS · EXPLOIT → Gale Scout gains temporary Momentum.');
-  }
-}
+ if(G.trial){let next=G.trial.strip[ebTrialCompletedCount()],waterSoak=G.trial.element==='WATER'&&att.n==='River Serpent'&&t?.n==='Tide Brute'&&!(t.marks||[]).includes('Soaked')&&!G.trial.progress.soaked;if(next?.kind==='card'&&next.name===att.n)ebTrialTrackCard(att);else if(!waterSoak)ebTrialWrongMove()}att.ready=false;if(t){applyObsidianRavagerTrigger(att,t,owner);applyQuickBeforeAttack(foe(),t);let q=t.quick&&t.quick.kind==='REDUCE'?t.quick.value:0;if(q)t.quick=null;let power=Math.max(0,att.a+elementalAttackBonus(att,t,me())-q);
 
 if(G.trial&&G.trial.element==='LIGHTNING'&&att.n==='Spark Runner'){
   if(G.trial.progress.step!==1){
@@ -841,21 +833,15 @@ if(G.trial&&G.trial.element==='LIGHTNING'&&att.n==='Spark Runner'){
     add('STORMS · RELEASE → Charge converted into burst damage.');
   }
 }
-if(G.trial&&G.trial.element==='NATURE'&&att.n==='Grove Beast'){
-  if(!G.trial.progress.techniqueApplied){
-    power=0;
-    add('ROOTS · Technique first → then strike.');
-  }else{
-    power+=(att.growth||0);
-  }
-}power=ebSoakedAttackPower(att,power);let preHitHP=t.h,guardsAtImpact=activeGuards(foe()).length;
+power=ebSoakedAttackPower(att,power);let preHitHP=t.h,guardsAtImpact=activeGuards(foe()).length;
  let d=hit(t,power,att.el,att.n);add(`${att.n} attacks ${t.n} for ${d}`);
  // River Serpent: only a successful hit on a Manifestation applies Soaked.
  // The target keeps Soaked until its own next attack resolves.
  if(att.el==='WATER'&&att.n==='River Serpent'&&d>0){
    addMark(t,'Soaked');
+   if(G.trial?.element==='WATER'&&t.n==='Tide Brute'){G.trial.progress.soaked=true;G.trial.progress.soakedByAttack=true}
    add(`WATER · River Serpent damages ${t.n} → Soaked`);
- } applyQuickAfterDamage(foe(),t);resolveOverflowDamage(foe(),t,d,preHitHP,guardsAtImpact,att.el,att.n,1);death(foe());winCheck();if(G.trial&&G.trial.element==='WATER'&&G.trial.progress.soaked&&!foe().slots.some(Boolean)){foe().vit=0;add('TIDE TRIAL · Soak → Strike complete')}if(G.trial&&G.trial.element==='LIGHTNING'&&G.trial.progress.released){foe().vit=0;add('STORMS TRIAL · Charge → Release complete')}if(G.trial&&G.trial.element==='AIR'&&G.trial.progress.exploited){foe().vit=0;add('WINDS TRIAL · Swap → Exploit complete')}if(G.trial&&G.trial.element==='NATURE'&&G.trial.progress.step===1&&G.trial.progress.techniqueApplied&&G.trial.progress.grew&&att.n==='Grove Beast'&&!foe().slots.some(Boolean)){foe().vit=0;add('ROOTS TRIAL · Grow → Strike complete')}}else{applyObsidianRavagerTrigger(att,foe(),owner);let power=ebSoakedAttackPower(att,Math.max(0,att.a+elementalAttackBonus(att,foe(),me())));foe().vit-=power;ebQueueFx({kind:'benderHit',side:1,damage:power,el:att.el,label:att.n});add(`${att.n} hits rival Bender for ${power}`)}bump()}
+ } applyQuickAfterDamage(foe(),t);resolveOverflowDamage(foe(),t,d,preHitHP,guardsAtImpact,att.el,att.n,1);death(foe());winCheck();if(G.trial&&G.trial.element==='LIGHTNING'&&G.trial.progress.released){G.trial.progress.hit=1;foe().vit=0;add('STORMS TRIAL · Charge → Release complete')}}else{applyObsidianRavagerTrigger(att,foe(),owner);let power=ebSoakedAttackPower(att,Math.max(0,att.a+elementalAttackBonus(att,foe(),me())));if(G.trial?.element==='LIGHTNING'&&att.n==='Spark Runner'){if(G.trial.progress.step!==1){power=0;add('STORMS · Use Static Step first.')}else{power+=(att.charge||0);att.charge=0;G.trial.progress.released=true;G.trial.progress.step=2;G.trial.progress.hit=power}}foe().vit-=power;if(G.trial&&att.n==='Grove Beast'&&G.trial.element==='NATURE')G.trial.progress.hit=power;if(G.trial&&att.n==='Sky Raptor'&&G.trial.element==='AIR')G.trial.progress.hit=power;ebQueueFx({kind:'benderHit',side:1,damage:power,el:att.el,label:att.n});add(`${att.n} hits rival Bender for ${power}`)}bump()}
 function attack(att,t){
  if(!G||G.winner||G.pendingResponse||G.active!==0)return;let defending=foe();
  if(EB_MP.enabled){hideModal();ebMpSubmit('ATTACK',{attackerId:att.id,targetId:t?t.id:null,targetType:t?'MANIFESTATION':'BENDER'});return}
@@ -864,7 +850,7 @@ function attack(att,t){
  let before=t.h;ebAttackCore(att,t);if(G.winner)return;
  if(t&&t.h<before){let post=ebChooseAIResponse(defending,att,t,'AFTER');if(post.ok)bump()}
 }
-function endTurn(){if(!G||EB_INIT_LOCK||G.winner||G.pendingResponse||G.active!==0||G.trial)return;if(EB_MP.enabled){ebMpSubmit('END_TURN',{});return}G.active=1;turnStart();setTimeout(ai,350)}
+function endTurn(){if(!G||EB_INIT_LOCK||G.winner||G.pendingResponse||G.active!==0)return;if(G.trial)return G.trial.element==='WATER'?resolveTidesTrial():undefined;if(EB_MP.enabled){ebMpSubmit('END_TURN',{});return}G.active=1;turnStart();setTimeout(ai,350)}
 function turnStart(){
  let p=current();p.slots.filter(Boolean).forEach(m=>{m.quick=null;m.turnFlags={}});p.turnState=freshTurnState(p.el);p.maxE=Math.min(7,2+Math.floor((G.turn-1)));p.e=p.maxE;p.slots.filter(Boolean).forEach(m=>{m.ready=true;m.sick=false});draw(p,true);G.chain=0;bump(`${p.name} turn begins`)}
 /* Alpha 0.8.50 — shared AI target policy. Pure scoring: no state mutation, no slot-order preference. */
@@ -897,7 +883,7 @@ for(let step=0;step<budget;step++){let legal=p.hand.filter(c=>c.c<=p.e&&(c.type=
    else if(c.el==='NATURE'){let t=p.slots.find(m=>m&&(m.marks||[]).includes('Seeded')&&(m.growth||0)<3);if(t&&grow(t,p)){add(`Rival Verdant Mend: ${t.n} gains Growth ${t.growth}`)}else add('Rival Verdant Mend: no Seeded target · no effect')}
    else if(c.el==='WATER'){let t=e.slots.find(Boolean);if(t)addMark(t,'Soaked');add(`Rival Current Shift: Flow 1${t?' + Soaked':''}`);flow1(p,true)}
    else if(c.el==='LIGHTNING'){if(G.chain===2){addMark(e,'Charged');add(`Rival Static Step: second card → your Bender is Charged`)}else add(`Rival Static Step: Flow 1`)}
-   else if(c.el==='AIR'){let t=p.slots.find(m=>m&&m.n==='Sky Raptor'&&momentumStacks(m)<3)||p.slots.filter(Boolean).sort((a,b)=>momentumStacks(a)-momentumStacks(b))[0];if(t){gainMomentum(t);add(`Rival Crosswind: ${t.n} gains Momentum ${momentumStacks(t)}/3`)}else add('Rival Crosswind: no friendly target');let occupied=e.slots.map((m,i)=>m?i:-1).filter(i=>i>=0);if(occupied.length>=2){let [from,to]=occupied,a=e.slots[from],b=e.slots[to];[e.slots[from],e.slots[to]]=[b,a];let weakened=[applyCrosswindWeakness(a),applyCrosswindWeakness(b)].filter(Boolean).length;p.turnState.airOpening=true;add(`Rival Crosswind swaps M${from+1} ↔ M${to+1} · ${weakened} Weakened · Air Opening ready`)}}
+   else if(c.el==='AIR'){let t=p.slots.find(m=>m&&m.n==='Sky Raptor'&&momentumStacks(m)<3)||p.slots.filter(Boolean).sort((a,b)=>momentumStacks(a)-momentumStacks(b))[0];if(t){gainMomentum(t);add(`Rival Crosswind: ${t.n} gains Momentum ${momentumStacks(t)}/3`)}else add('Rival Crosswind: no friendly target');let occupied=e.slots.map((m,i)=>m?i:-1).filter(i=>i>=0);if(occupied.length>=2){let [from,to]=occupied,a=e.slots[from],b=e.slots[to];[e.slots[from],e.slots[to]]=[b,a];let weakened=[applyCrosswindWeakness(a),applyCrosswindWeakness(b)].filter(Boolean).length;p.turnState.airOpening=true;add(`Rival Crosswind swaps M${from+1} and M${to+1} · ${weakened} Weakened · Air Opening ready`)}}
  }else{let i=p.slots.findIndex(x=>!x);if(i<0)continue;c.zone='FIELD';c.sick=true;c.ready=true;c.marks=c.marks||[];p.slots[i]=c;if(c.el==='FIRE'&&c.n==='Cinder Adept'){addMark(e,'Burning');add(`Rival ${c.n}: applies Burning to your Bender`)}if(c.el==='WATER'&&c.n==='Mist Adept'){add(`Rival ${c.n}: Flow 1`);flow1(p,true)}if(c.el==='LIGHTNING'&&c.n==='Spark Runner'&&G.chain===2){G.chain++;add(`Rival ${c.n}: second card → +1 Chain (Chain ${G.chain})`);ebPulseChain()}resolvePrimeSummonGift(p,c,true);add(`Rival summons ${c.n}`)}
  registerAffinity(p,c);
  winCheck();
@@ -944,7 +930,7 @@ function showDuelEndPrompt(result){
  if(!G||G.trial||!G.winner||G.endPromptShown)return;
  G.endPromptShown=true;
  let playerWon=result.winnerIndex===0;
- let title=result.reason==='DRAW'?'⚖️ DUEL DRAW':playerWon?'🏆 YOU WIN':'🏆 RIVAL BENDER WINS';
+ let title=result.reason==='DRAW'?'DUEL DRAW':playerWon?'YOU WIN':'RIVAL BENDER WINS';
  let reason=result.reason==='DRAW'?'Both Benders reached 0 Vitality at the same settlement point.':result.reason==='CARD_DEPLETION'
    ? `${G.p[result.loserIndex].name} has no cards remaining in Hand or Deck.`
    : `${G.p[result.loserIndex].name} reached 0 Vitality.`;
@@ -1041,7 +1027,12 @@ function ebDrainFx(){
    }
  },ix*110)));
 }
-const EB_FX_COLOR={FIRE:'#ff704d',WATER:'#55c7ff',NATURE:'#67d77a',EARTH:'#d0a25c',LIGHTNING:'#ffe45d',AIR:'#bdeaff',MAGMA:'#ff633f',STORM:'#aa91ff',BLOOM:'#6be8ae'};
+const EB_FX_COLOR_FALLBACK={FIRE:'#ff704d',WATER:'#55c7ff',NATURE:'#67d77a',EARTH:'#d0a25c',LIGHTNING:'#ffe45d',AIR:'#bdeaff',MAGMA:'#ff633f',STORM:'#aa91ff',BLOOM:'#6be8ae'};
+const EB_FX_COLOR=Object.fromEntries(Object.entries(EB_FX_COLOR_FALLBACK).map(([element,fallback])=>{
+ const token=`--eb-el-${element.toLowerCase()}`;
+ const value=typeof getComputedStyle==='function'?getComputedStyle(document.documentElement).getPropertyValue(token).trim():'';
+ return[element,(value||fallback).toLowerCase()];
+}));
 function ebSnap(){
  if(!G)return null;
  return {p:G.p.map(p=>({vit:p.vit,marks:[...(p.marks||[])],slots:p.slots.map((c,i)=>c?{id:c.id,n:c.n,el:c.el,h:c.h,a:c.a,armor:c.armor||0,growth:c.growth||0,momentum:momentumStacks(c),ready:!!c.ready,sick:!!c.sick,marks:[...(c.marks||[])],quick:c.quick?c.quick.kind:null,slot:i}:null)}))};
@@ -1079,7 +1070,7 @@ function ebFocus(text,el='AIR'){
 function ebShortFocus(log){
  if(!log)return null;let s=log.replace(/^T\d+\s*/, '');
  if(/AIR · Gale Scout exploits/i.test(s))return['OPENING EXPLOITED · MOMENTUM','AIR'];
- if(/RESONANCE ACTIVE/i.test(s))return['RESONANCE ACTIVE',s.match(/🔥|💧|🌿|🪨|⚡|🌪️/)?'STORM':'AIR'];
+ if(/RESONANCE ACTIVE/i.test(s))return['RESONANCE ACTIVE',/Fire|Water|Nature|Earth|Lightning|Air/i.test(s)?'STORM':'AIR'];
  if(/destroyed/i.test(s))return['MANIFESTATION BROKEN','FIRE'];
  if(/Armor/i.test(s))return['ARMOR SHIFT','EARTH'];
  if(/Growth/i.test(s))return['GROWTH','NATURE'];
@@ -1161,8 +1152,8 @@ function benderEffects(p){
  return b.length?`<div class=bender-effects aria-label="Bender active effects">${b.join('')}</div>`:'';
 }
 function compactCardText(c){let t=(c.text||'').replace(/\s+/g,' ').trim();return t||'No additional effect.'}
-function card(c,can=false){let state=effectBadges(c),pending=EB_MP.enabled?EB_MP.input?.pending():null;if(pending?.cardId!==c.id)pending=null;let summary=`<div class="rules card-summary">${compactCardText(c)}</div>`;let typeLine=c.type==='RESPONSE'?'Response · Reaction':c.type==='TECHNIQUE'?`Technique${c.role?' · '+c.role:''}`:`${c.a} ATK · ${c.h}/${c.max} HP${c.guard?' · Guard':''}`;return `<div class="card ${c.el.toLowerCase()} ${can?'play':''} ${pending?'mp-pending':''}" data-id="${c.id}" data-inspect="1"><span class=cost>${c.c}</span><b>${E[c.el]} ${c.n}</b><div class=small>${typeLine}</div>${summary}${state}${pending?`<div class="small card-status">${pending.kind==='TECHNIQUE'?'Activating…':'Placing…'}</div>`:c.sick?'<div class="small card-status">Summoning sickness</div>':''}<div class="why card-inspect-hint">↗ Double-tap for details</div></div>`}
-function slots(id,p){let own=p===me(),pending=own&&EB_MP.enabled?EB_MP.input?.pending():null;document.getElementById(id).innerHTML=p.slots.map((m,i)=>{let placing=!m&&pending?.kind==='MANIFESTATION'&&pending.slotIndex===i;return `<div class="slot ${placing?'mp-pending':''}" data-slot="${i}" data-own="${own?'1':'0'}">${m?card(m):placing?'':`<span class=small>M${i+1} · empty</span>`}</div>`}).join('')}
+function card(c,can=false){let state=effectBadges(c),pending=EB_MP.enabled?EB_MP.input?.pending():null;if(pending?.cardId!==c.id)pending=null;let summary=`<div class="rules card-summary">${compactCardText(c)}</div>`,soakedPreview=G?.trial?.element==='WATER'&&c.n==='Tide Brute'&&(c.marks||[]).includes('Soaked');let attack=soakedPreview?`<span class="trial-soaked-preview">${ebIconMarkup('soaked')} <s>${c.a}</s> → ${Math.max(0,c.a-2)}</span>`:`<span class="eb-stat-number">${c.a}</span>`;let typeLine=c.type==='RESPONSE'?'Response · Reaction':c.type==='TECHNIQUE'?`Technique${c.role?' · '+c.role:''}`:`${attack} ATK · <span class="eb-stat-number">${c.h}/${c.max}</span> HP${c.guard?' · Guard':''}`;return `<div class="card ${c.el.toLowerCase()} ${can?'play':''} ${pending?'mp-pending':''}" data-id="${c.id}" data-inspect="1"><span class=cost>${c.c}</span><b>${ebElementIcon(c.el)} ${c.n}</b><div class=small>${typeLine}</div>${summary}${state}${pending?`<div class="small card-status">${pending.kind==='TECHNIQUE'?'Activating…':'Placing…'}</div>`:c.sick?'<div class="small card-status">Summoning sickness</div>':''}<div class="why card-inspect-hint">Double-tap for details</div></div>`}
+function slots(id,p){let own=p===me(),pending=own&&EB_MP.enabled?EB_MP.input?.pending():null;document.getElementById(id).innerHTML=p.slots.map((m,i)=>{let placing=!m&&pending?.kind==='MANIFESTATION'&&pending.slotIndex===i;return `<div class="slot ${placing?'mp-pending':''}" data-slot="${i}" data-own="${own?'1':'0'}" data-eb-anchor="slot" data-eb-side="${own?'you':'rival'}" data-eb-slot="${i}">${m?card(m):placing?'':`<span class=small>M${i+1} · empty</span>`}</div>`}).join('')}
 let selectedCardId=null,dragState=null;
 function ebMpInputLocked(){return !!(EB_MP.enabled&&EB_MP.input?.isLocked())}
 function ebCancelActivePointerInteraction(){dragState?.cancel?.()}
@@ -1284,18 +1275,14 @@ function beginCardDrag(ev,c,el){
  document.addEventListener('pointercancel',cancel,{capture:true,passive:false});
 }
 function validateState(){if(!G)return true;let ok=true,seen=new Set();for(const p of G.p){if(p.e<0||p.e>p.maxE||p.maxE>7||p.slots.length!==3||typeof p.initiationToken!=='boolean')ok=false;for(const c of [...p.deck,...p.hand,...p.wake,...p.slots.filter(Boolean)]){if(seen.has(c.id))ok=false;seen.add(c.id)}}if(!ok)console.error('ELEMENTBOUND invariant violation',G);return ok}
-function resUI(p){if(!HYBRIDS[p.el])return '';let r=p.turnState.resonance,h=HYBRIDS[p.el];return `<span class="pill">${r.active?E[p.el]+' RESONANCE ACTIVE':'Resonance '+E[h.parents[0]]+(r.a?'●':'○')+' '+E[h.parents[1]]+(r.b?'●':'○')}</span>`}
+function resUI(p){if(!HYBRIDS[p.el])return '';let r=p.turnState.resonance,h=HYBRIDS[p.el];return `<span class="pill">${r.active?ebElementIcon(p.el)+' RESONANCE ACTIVE':'Resonance '+ebElementIcon(h.parents[0])+(r.a?'●':'○')+' '+ebElementIcon(h.parents[1])+(r.b?'●':'○')}</span>`}
 function ebZoneCount(side,zone){let count=side?.[`${zone}Count`];return Number.isInteger(count)?count:(Array.isArray(side?.[zone])?side[zone].length:0)}
-function render(){if(!G)return;let p=me(),e=foe();document.getElementById('rev').textContent=`REV ${G.rev}`;document.getElementById('turn').textContent=`Turn ${G.turn} · ${G.active?'RIVAL':'YOU'}`;let chainEl=document.getElementById('chain');if(chainEl){let chainRelevant=G.chain>0&&(current().el==='LIGHTNING'||current().el==='STORM');chainEl.hidden=!chainRelevant;chainEl.textContent=`Chain ${G.chain}`;}document.getElementById('difficulty').textContent=diff;document.getElementById('pname').textContent=`${E[p.el]} ${p.name}`;document.getElementById('ename').textContent=`${E[e.el]} ${e.name}`;document.getElementById('pvit').textContent=`❤️ ${p.vit}`;document.getElementById('evit').textContent=`❤️ ${e.vit}`;document.getElementById('pstats').innerHTML=`<span class=pill>Essence ${p.e}/${p.maxE}</span><span class=pill>Hand ${ebZoneCount(p,'hand')}</span><span class=pill>Deck ${ebZoneCount(p,'deck')}</span><span class=pill>Wake ${ebZoneCount(p,'wake')}</span>${p.initiationToken?'<span class="pill">Initiation ●</span>':''}${resUI(p)}${benderEffects(p)}<div class=stathelp>Essence = spendable energy · Hand = playable cards · Deck = draw pile · Wake = used/destroyed cards</div>`;document.getElementById('estats').innerHTML=`<span class=pill>Essence ${e.e}/${e.maxE}</span><span class=pill>Hand ${ebZoneCount(e,'hand')}</span><span class=pill>Deck ${ebZoneCount(e,'deck')}</span><span class=pill>Wake ${ebZoneCount(e,'wake')}</span>${e.initiationToken?'<span class="pill">Initiation ●</span>':''}${resUI(e)}${benderEffects(e)}`;slots('pslots',p);slots('eslots',e);let h=document.getElementById('hand');h.innerHTML=p.hand.map(c=>card(c,playable(c))).join('');h.querySelectorAll('.card').forEach(x=>{let c=p.hand.find(c=>c.id==x.dataset.id);if(!c)return;if(c.type==='TECHNIQUE'){x.onclick=()=>{if(G.active!==0||G.winner)return;selectHandCard(c)}}else if(c.type==='RESPONSE'){x.onclick=null;x.draggable=false;x.ondragstart=ev=>ev.preventDefault();x.onpointerdown=null}else{x.onclick=null;x.draggable=false;x.ondragstart=ev=>ev.preventDefault();x.onpointerdown=ev=>beginCardDrag(ev,c,x)}});wireDropSlots();wireCardInspectGestures();document.getElementById('attack').disabled=!!G.pendingResponse||(!!G.trial&&!['WATER','NATURE','LIGHTNING','AIR'].includes(G.trial.element))||G.active||G.winner||!p.slots.some(x=>x&&x.ready&&!x.sick);document.getElementById('end').disabled=!!G.pendingResponse||!!G.trial||G.active||G.winner;document.getElementById('you').classList.toggle('active',G.active===0);document.getElementById('enemy').classList.toggle('active',G.active===1);document.getElementById('winner').innerHTML=G.winner?(G.trial?`<div class=win>${G.trial.icon} TRIAL COMPLETE · ${G.trial.title.replace('Trial of ','').toUpperCase()} MASTERED<div class=small>${G.trial.mastered}</div></div>`:`<div class=win>🏆 ${G.winner} wins<div class=small>${G.winReason==='CARD_DEPLETION'?'Opponent ran out of cards · Hand 0 / Deck 0':'Opponent reached 0 Vitality'}</div></div>`):'';renderTrialUI();let l=document.getElementById('log');l.innerHTML=G.logs.map(x=>`<div>${x}</div>`).join('');l.scrollTop=l.scrollHeight;requestAnimationFrame(()=>{ebVisualState();ebDrainFx();ebRenderFx()})}
+function render(){if(!G)return;let p=me(),e=foe();document.getElementById('rev').textContent=`REV ${G.rev}`;document.getElementById('turn').textContent=`Turn ${G.turn} · ${G.active?'RIVAL':'YOU'}`;let chainEl=document.getElementById('chain');if(chainEl){let chainRelevant=G.chain>0&&(current().el==='LIGHTNING'||current().el==='STORM');chainEl.hidden=!chainRelevant;chainEl.textContent=`Chain ${G.chain}`;}document.getElementById('difficulty').textContent=diff;ebSetIconText(document.getElementById('pname'),p.el.toLowerCase(),p.name,ebElementName(p.el));ebSetIconText(document.getElementById('ename'),e.el.toLowerCase(),e.name,ebElementName(e.el));ebSetIconText(document.getElementById('pvit'),'heart',p.vit,'Vitality');ebSetIconText(document.getElementById('evit'),'heart',e.vit,'Vitality');document.getElementById('pstats').innerHTML=`<span class=pill>Essence ${p.e}/${p.maxE}</span><span class=pill>Hand ${ebZoneCount(p,'hand')}</span><span class=pill>Deck ${ebZoneCount(p,'deck')}</span><span class=pill>Wake ${ebZoneCount(p,'wake')}</span>${p.initiationToken?'<span class="pill">Initiation ●</span>':''}${resUI(p)}${benderEffects(p)}<div class=stathelp>Essence = spendable energy · Hand = playable cards · Deck = draw pile · Wake = used/destroyed cards</div>`;document.getElementById('estats').innerHTML=`<span class=pill>Essence ${e.e}/${e.maxE}</span><span class=pill>Hand ${ebZoneCount(e,'hand')}</span><span class=pill>Deck ${ebZoneCount(e,'deck')}</span><span class=pill>Wake ${ebZoneCount(e,'wake')}</span>${e.initiationToken?'<span class="pill">Initiation ●</span>':''}${resUI(e)}${benderEffects(e)}`;slots('pslots',p);slots('eslots',e);let h=document.getElementById('hand');h.innerHTML=p.hand.map(c=>card(c,playable(c))).join('');h.querySelectorAll('.card').forEach(x=>{let c=p.hand.find(c=>c.id==x.dataset.id);if(!c)return;x.dataset.ebAnchor='hand-card';x.dataset.ebCard=c.n;if(c.type==='TECHNIQUE'){x.onclick=()=>{if(G.active!==0||G.winner)return;selectHandCard(c)}}else if(c.type==='RESPONSE'){x.onclick=null;x.draggable=false;x.ondragstart=ev=>ev.preventDefault();x.onpointerdown=null}else{x.onclick=null;x.draggable=false;x.ondragstart=ev=>ev.preventDefault();x.onpointerdown=ev=>beginCardDrag(ev,c,x)}});wireDropSlots();wireCardInspectGestures();document.getElementById('attack').disabled=!!G.pendingResponse||(!!G.trial&&!['WATER','NATURE','LIGHTNING','AIR'].includes(G.trial.element))||G.active||G.winner||!p.slots.some(x=>x&&x.ready&&!x.sick);document.getElementById('end').disabled=!!G.pendingResponse||(!!G.trial&&G.trial.element!=='WATER')||G.active||G.winner;document.getElementById('you').classList.toggle('active',G.active===0);document.getElementById('enemy').classList.toggle('active',G.active===1);document.getElementById('winner').innerHTML=G.winner&&!G.trial?`<div class=win>${ebIconMarkup('trophy')} ${G.winner} wins<div class=small>${G.winReason==='CARD_DEPLETION'?'Opponent ran out of cards · Hand 0 / Deck 0':'Opponent reached 0 Vitality'}</div></div>`:'';renderTrialUI();let l=document.getElementById('log');l.innerHTML=G.logs.map(x=>`<div>${x}</div>`).join('');l.scrollTop=l.scrollHeight;requestAnimationFrame(()=>{ebVisualState();ebDrainFx();ebRenderFx()})}
 function findLiveCardById(id){if(!G)return null;for(const p of G.p){for(const c of [...p.hand,...p.deck,...p.wake,...p.slots.filter(Boolean)])if(c.id===id)return c}return null}
-function inspectCard(c){if(!c)return;let terms=Object.keys(GLOSSARY).filter(k=>((c.text||'')+' '+(c.type||'')).toLowerCase().includes(k.toLowerCase()));let body=document.getElementById('mb'),mw=document.getElementById('mw');document.getElementById('mt').textContent=`${E[c.el]} ${c.n}`;body.innerHTML=`<div class="inspectCardFull ${c.el.toLowerCase()}"><div class="inspectMeta"><b>${c.type}${c.role?' · '+c.role:''} · ${c.c} Essence</b>${c.type!=='TECHNIQUE'?`<br>${c.a} ATK · ${c.h}/${c.max} HP${c.guard?' · Guard':''}`:''}</div><div class="inspectRule">${c.text||'No additional effect.'}</div>${c.tip?`<div class="inspectStrategy"><b>Strategy</b><br>${c.tip}</div>`:''}${terms.length?`<div class="inspectTerms">${terms.map(k=>`<div><b>${k}:</b> ${GLOSSARY[k]}</div>`).join('')}</div>`:''}<div class="small">Detail view is informational only. It does not play, target, move, activate, or re-cycle the card.</div></div><button onclick="closeCardInspect()">CLOSE</button>`;let d=document.getElementById('modalDismiss');if(d)d.style.display='none';mw.classList.remove('hide','inspect-leave');mw.classList.add('cardInspectMode','inspect-enter');requestAnimationFrame(()=>requestAnimationFrame(()=>mw.classList.remove('inspect-enter')))}
+function inspectCard(c){if(!c)return;let terms=Object.keys(GLOSSARY).filter(k=>((c.text||'')+' '+(c.type||'')).toLowerCase().includes(k.toLowerCase()));let body=document.getElementById('mb'),mw=document.getElementById('mw');document.getElementById('mt').textContent=`${ebElementName(c.el)} ${c.n}`;body.innerHTML=`<div class="inspectCardFull ${c.el.toLowerCase()}"><div class="inspectMeta"><b>${c.type}${c.role?' · '+c.role:''} · ${c.c} Essence</b>${c.type!=='TECHNIQUE'?`<br>${c.a} ATK · ${c.h}/${c.max} HP${c.guard?' · Guard':''}`:''}</div><div class="inspectRule">${c.text||'No additional effect.'}</div>${c.tip?`<div class="inspectStrategy"><b>Strategy</b><br>${c.tip}</div>`:''}${terms.length?`<div class="inspectTerms">${terms.map(k=>`<div><b>${k}:</b> ${GLOSSARY[k]}</div>`).join('')}</div>`:''}<div class="small">Detail view is informational only. It does not play, target, move, activate, or re-cycle the card.</div></div><button onclick="closeCardInspect()">CLOSE</button>`;let d=document.getElementById('modalDismiss');if(d)d.style.display='none';mw.classList.remove('hide','inspect-leave');mw.classList.add('cardInspectMode','inspect-enter');requestAnimationFrame(()=>requestAnimationFrame(()=>mw.classList.remove('inspect-enter')))}
 function closeCardInspect(){let mw=document.getElementById('mw');if(!mw.classList.contains('cardInspectMode'))return hideModal();mw.classList.remove('inspect-enter');mw.classList.add('inspect-leave');clearTimeout(closeCardInspect._t);closeCardInspect._t=setTimeout(()=>{mw.classList.add('hide');mw.classList.remove('cardInspectMode','inspect-leave');let d=document.getElementById('modalDismiss');if(d)d.style.display=''},170)}
 function wireCardInspectGestures(){document.querySelectorAll('#battle .card[data-inspect="1"]').forEach(el=>{if(el.dataset.doubleTapWired==='1')return;el.dataset.doubleTapWired='1';let lastTap=0,startX=0,startY=0,moved=false;el.addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse')return;startX=ev.clientX;startY=ev.clientY;moved=false},{passive:true});el.addEventListener('pointermove',ev=>{if(Math.hypot(ev.clientX-startX,ev.clientY-startY)>7)moved=true},{passive:true});el.addEventListener('pointerup',ev=>{if(ev.pointerType==='mouse'||moved)return;let now=performance.now();if(lastTap&&now-lastTap<=360){lastTap=0;ev.preventDefault();ev.stopPropagation();let c=findLiveCardById(+el.dataset.id);inspectCard(c)}else lastTap=now},{passive:false});el.addEventListener('dblclick',ev=>{ev.preventDefault();ev.stopPropagation();let c=findLiveCardById(+el.dataset.id);inspectCard(c)})})}
-function allCodexCards(){let out=[];Object.keys(BASE).forEach(el=>{BASE[el].forEach(z=>out.push({el,n:z[0],c:z[1],type:'MANIFESTATION',a:z[2],h:z[3],text:z[4],tip:z[5]}));let t=TECH[el];out.push({el,n:t[0],c:t[3],type:'TECHNIQUE',text:t[1],tip:t[2]});let r=RESPONSES[el];out.push({el,n:r.n,c:r.c,type:'RESPONSE',text:r.text,tip:r.tip})});Object.keys(HYBRID_CARDS).forEach(el=>HYBRID_CARDS[el].forEach(z=>out.push({el,...z})));return out}
-let codexFilter='ALL';
-function goCodex(){codexFilter='ALL';renderCodex();go('codex')}
-function renderCodex(){let f=document.getElementById('codexFilters');f.innerHTML=['ALL',...Object.keys(INFO)].map(k=>`<button class="diff ${codexFilter===k?'sel':''}" style="padding:7px 9px" onclick="codexFilter='${k}';renderCodex()">${k==='ALL'?'All':E[k]+' '+INFO[k][0]}</button>`).join('');let cards=allCodexCards().filter(c=>codexFilter==='ALL'||c.el===codexFilter);document.getElementById('codexList').innerHTML=cards.map((c,i)=>`<button class="deck codexCard ${c.el.toLowerCase()}" onclick="codexDetail('${c.el}','${c.n.replace(/'/g,"\\'")}')"><b>${E[c.el]} ${c.n}</b><div class=small>${c.type} · ${c.c} Essence${c.a!=null?` · ${c.a} ATK / ${c.h} HP`:''}</div><div class=rules>${c.text}</div></button>`).join('')}
-function codexDetail(el,name){let c=allCodexCards().find(x=>x.el===el&&x.n===name);if(!c)return;let terms=Object.keys(GLOSSARY).filter(k=>(c.text+' '+c.type).toLowerCase().includes(k.toLowerCase()));let body=document.getElementById('mb');document.getElementById('mt').textContent=`${E[el]} ${c.n}`;body.innerHTML=`<div class=rules><b>${c.type} · ${c.c} Essence</b>${c.a!=null?`<br>${c.a} ATK · ${c.h} HP`:''}<p>${c.text}</p><p><b>How to use it:</b> ${c.tip}</p>${terms.map(k=>`<p><b>${k}:</b> ${GLOSSARY[k]}</p>`).join('')}</div><button onclick="hideModal()">CLOSE</button>`;document.getElementById('mw').classList.remove('hide')}
+function goCodex(){window.EB_Codex.open();ebNavigate('codex')}
 const HELP_SECTIONS={
 'START HERE':{intro:'New to Element Bound? You only need this much to begin. Play cards with Essence, build a field, attack the rival, and protect your own Bender.',terms:['Bender','Vitality','Essence','Manifestation','Technique','ATK','HP']},
 'YOUR TURN':{intro:'A turn is about choosing when to build, when to attack, and when to save resources. Strong turns usually come from sequencing cards instead of spending Essence blindly.',terms:['Turn','Hand','Field Slot','Summoning sickness','Ready','Target','Chain']},
@@ -1305,7 +1292,7 @@ const HELP_SECTIONS={
 'HYBRIDS':{intro:'Hybrid decks combine two Prime elements. Their special reward is Resonance: sequence both parent elements in one turn, then cash in with Hybrid cards.',terms:['Prime','Hybrid','Resonance','Quick']},
 'WHEN THE CARDS RUN OUT':{intro:'An empty Deck alone does not end the duel: failed draws still cause Exhaustion while cards remain in Hand. But when both your Hand and Deck are empty, Card Depletion ends the standard duel immediately.',terms:['Hand','Deck','Exhaustion','Card Depletion','Wake']}
 };
-function showHelpSection(key){let sec=HELP_SECTIONS[key];document.getElementById('mt').textContent=key;let b=document.getElementById('mb');b.innerHTML=`<div class="helpIntro">${sec.intro}</div>${sec.terms.map(k=>`<div class="helpTerm"><b>${k}</b><div class="rules">${GLOSSARY[k]}</div></div>`).join('')}<button class="helpBack" onclick="showRules()">← HELP MENU</button><button onclick="hideModal()">CLOSE</button>`;document.getElementById('mw').classList.remove('hide')}
+function showHelpSection(key){let sec=HELP_SECTIONS[key];document.getElementById('mt').textContent=key;let b=document.getElementById('mb');b.innerHTML=`<div class="helpIntro">${sec.intro}</div>${sec.terms.map(k=>`<div class="helpTerm"><b>${k}</b><div class="rules">${GLOSSARY[k]}</div></div>`).join('')}<button class="helpBack" onclick="showRules()">BACK TO HELP</button><button onclick="hideModal()">CLOSE</button>`;document.getElementById('mw').classList.remove('hide')}
 function showRules(){document.getElementById('mt').textContent='How to Play';let b=document.getElementById('mb');b.innerHTML=`<div class="helpIntro"><b>Welcome, Bender.</b><br>You do not need to memorize a rulebook. Learn the basics, then open a section whenever a word or mechanic is unclear.</div><div class="helpWhy">Your goal: win by reducing the rival Bender’s Vitality to 0, or by leaving them with no cards in both their Hand and Deck. If either happens, the duel ends immediately.</div><div class="helpGrid">${Object.keys(HELP_SECTIONS).map(k=>`<button class="helpCard" onclick="showHelpSection('${k}')"><b>${k}</b><span>${HELP_SECTIONS[k].intro}</span></button>`).join('')}</div><button onclick="hideModal()">CLOSE</button>`;document.getElementById('mw').classList.remove('hide')}
 
 
@@ -1317,7 +1304,10 @@ let EB_DEV_TAPS=0,EB_DEV_LAST_REPORT='';
 function ebDevInstall(){
  const stamp=document.getElementById('buildStamp'); if(!stamp)return;
  stamp.title='Build information';
- stamp.addEventListener('click',()=>{EB_DEV_TAPS++;if(EB_DEV_TAPS>=5){EB_DEV_TAPS=0;go('devcheck');runEBVerification()}});
+ let pressTimer=0,suppressClick=false,open=()=>{EB_DEV_TAPS=0;go('devcheck');runEBVerification()};
+ stamp.addEventListener('pointerdown',()=>{clearTimeout(pressTimer);suppressClick=false;pressTimer=setTimeout(()=>{pressTimer=0;suppressClick=true;open()},600)});
+ ['pointerup','pointercancel','pointerleave'].forEach(type=>stamp.addEventListener(type,()=>clearTimeout(pressTimer)));
+ stamp.addEventListener('click',()=>{if(suppressClick){suppressClick=false;return}EB_DEV_TAPS++;if(EB_DEV_TAPS>=5)open()});
 }
 function ebAssert(cond,msg=''){if(!cond)throw new Error(msg||'Assertion failed')}
 function ebTestCard(el,name){let c=deck(el).find(x=>x.n===name);if(!c)throw new Error(`Missing card: ${el}/${name}`);return c}
@@ -1451,6 +1441,35 @@ function ebMatchmakingSession(){
 }
 function ebMatchmakingMessage(text,error=false){let el=document.getElementById('mpMatchmakingResult');if(el){el.textContent=text;el.style.color=error?'#ffb4b4':''}}
 function ebSetMatchmakingEnabled(enabled){for(const id of ['mpCreateMatch','mpJoinMatch']){let button=document.getElementById(id);if(button)button.disabled=!enabled}let connect=document.getElementById('mpConnectOnline');if(connect)connect.hidden=enabled}
+let EB_DECK_PICKER_CLOSE_T=null;
+function ebDeckMedallion(element){let image=document.createElement('img');image.src=`assets/medallions/${element.toLowerCase()}.webp`;image.alt='';image.width=40;image.height=40;return image}
+function ebDeckPickerCopy(element){let copy=document.createElement('span');copy.className='mp-deck-copy';let name=document.createElement('strong');name.className=`eb-element--${element.toLowerCase()}`;name.textContent=INFO[element][0];let style=document.createElement('small');style.textContent=INFO[element][1];copy.append(name,style);return copy}
+function ebUpdateDeckTrigger(animate=false){
+ let select=document.getElementById('mpDeck'),trigger=document.getElementById('mpDeckPicker'),element=select?.value;if(!trigger||!INFO[element])return;
+ const render=()=>{trigger.replaceChildren(ebDeckMedallion(element),ebDeckPickerCopy(element));let chevron=document.createElement('span');chevron.className='mp-deck-chevron';chevron.setAttribute('aria-hidden','true');chevron.textContent='⌄';trigger.append(chevron);trigger.setAttribute('aria-label',`Choose your deck. Selected: ${INFO[element][0]}`)};
+ if(!animate)return render();trigger.classList.add('is-changing');setTimeout(()=>{render();requestAnimationFrame(()=>trigger.classList.remove('is-changing'))},75);
+}
+function ebCloseDeckPicker({restoreFocus=true}={}){
+ let overlay=document.querySelector('.mp-deck-backdrop'),trigger=document.getElementById('mpDeckPicker');if(!overlay)return;
+ clearTimeout(EB_DECK_PICKER_CLOSE_T);overlay.querySelector('.mp-deck-sheet')?.classList.add('is-closing');trigger?.setAttribute('aria-expanded','false');document.removeEventListener('keydown',ebDeckPickerKeydown);
+ let reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ EB_DECK_PICKER_CLOSE_T=setTimeout(()=>{overlay.remove();if(restoreFocus)trigger?.focus({preventScroll:true})},reduce?150:300);
+}
+function ebChooseOnlineDeck(element){let select=document.getElementById('mpDeck'),trigger=document.getElementById('mpDeckPicker');if(!select||!INFO[element])return;trigger?.classList.add('is-changing');select.value=element;select.dispatchEvent(new Event('change',{bubbles:true}));ebUpdateDeckTrigger(true);ebCloseDeckPicker()}
+function ebDeckPickerKeydown(event){
+ let options=[...document.querySelectorAll('.mp-deck-option')],index=options.indexOf(document.activeElement);if(!options.length)return;
+ if(event.key==='Escape'){event.preventDefault();ebCloseDeckPicker();return}
+ if(event.key==='Tab'){event.preventDefault();index=(index+(event.shiftKey?-1:1)+options.length)%options.length;options[index].focus({preventScroll:true});return}
+ if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();index=(index+(event.key==='ArrowDown'?1:-1)+options.length)%options.length;options[index].focus({preventScroll:true});return}
+ if((event.key==='Enter'||event.key===' ')&&index>=0){event.preventDefault();ebChooseOnlineDeck(options[index].dataset.deck)}
+}
+function ebOpenDeckPicker(){
+ if(document.querySelector('.mp-deck-backdrop'))return;let select=document.getElementById('mpDeck'),trigger=document.getElementById('mpDeckPicker');if(!select||!trigger)return;
+ let overlay=document.createElement('div');overlay.className='mp-deck-backdrop';overlay.addEventListener('click',event=>{if(event.target===overlay)ebCloseDeckPicker()});
+ let title=document.createElement('h2');title.id='mpDeckPickerTitle';title.textContent='Choose your deck';let list=document.createElement('div');list.className='mp-deck-list';
+ Object.keys(INFO).forEach(element=>{let option=document.createElement('button');option.type='button';option.className='mp-deck-option';option.dataset.deck=element;option.setAttribute('role','option');option.setAttribute('aria-selected',String(select.value===element));option.append(ebDeckMedallion(element),ebDeckPickerCopy(element));let tag=document.createElement('span');tag.className='mp-deck-tag';tag.textContent=HYBRIDS[element]?'Hybrid':'Prime';let check=document.createElement('span');check.className='mp-deck-check';check.append(window.EB_UI.icon('check',{label:'Selected'}));option.append(tag,check);option.addEventListener('click',()=>ebChooseOnlineDeck(element));list.append(option)});
+ let sheet=window.EB_UI.sheet({variant:'choice',children:[title,list]});sheet.classList.add('mp-deck-sheet');sheet.setAttribute('role','listbox');sheet.setAttribute('aria-labelledby',title.id);overlay.append(sheet);document.body.append(overlay);trigger.setAttribute('aria-expanded','true');document.addEventListener('keydown',ebDeckPickerKeydown);(list.querySelector('[aria-selected="true"]')||list.firstElementChild)?.focus({preventScroll:true});
+}
 async function ebEnsureMatchmakingAuth(){
  try{
    let existing=ebMatchmakingSession();if(existing){EB_MP.authSession=existing;ebSetMatchmakingEnabled(true);ebMatchmakingMessage('Ready to create or join a match');return existing}
@@ -1466,7 +1485,8 @@ async function ebEnsureMatchmakingAuth(){
 }
 function ebSetupMatchmaking(){
  console.debug('[ElementBound] ebSetupMatchmaking ran');
- let select=document.getElementById('mpDeck');if(select&&!select.options.length)select.innerHTML=Object.keys(INFO).map(element=>`<option value="${element}">${E[element]} ${INFO[element][0]}</option>`).join('');
+ let select=document.getElementById('mpDeck');if(select&&!select.options.length)select.innerHTML=Object.keys(INFO).map(element=>`<option value="${element}">${ebElementName(element)} ${INFO[element][0]}</option>`).join('');
+ let picker=document.getElementById('mpDeckPicker');if(select&&picker&&!picker.dataset.bound){picker.dataset.bound='true';picker.addEventListener('click',ebOpenDeckPicker);select.addEventListener('change',()=>{if(!picker.classList.contains('is-changing'))ebUpdateDeckTrigger()});ebUpdateDeckTrigger()}
  let invited=new URLSearchParams(location.search).get('join'),input=document.getElementById('mpRoomCode');if(invited&&input)input.value=invited.toUpperCase();ebSetMatchmakingEnabled(false);
  let panel=document.getElementById('mpMatchmaking'),connect=document.getElementById('mpConnectOnline'),begin=()=>ebEnsureMatchmakingAuth().catch(()=>{});
  if(panel&&connect&&window.ElementBoundFirebaseBootstrap)window.ElementBoundFirebaseBootstrap.bindConnectButton(connect,begin);if(invited)begin();
@@ -1590,7 +1610,7 @@ function runEBVerification(){
   test('UI/RULES','Combat FX queue freezes immutable event payloads',()=>{EB_FX_QUEUE.length=0;let e={kind:'hit',damage:3,el:'FIRE'};ebQueueFx(e);let q=EB_FX_QUEUE.pop();ebAssert(Object.isFrozen(q)&&q.damage===3&&q.el==='FIRE')});
   test('UI/RULES','Fire damage color remains Fire source color',()=>ebAssert(EB_FX_COLOR.FIRE==='#ff704d'&&EB_FX_COLOR.NATURE!==EB_FX_COLOR.FIRE));
   test('AI','Easy and Medium action budgets are lower than Difficult',()=>{let easy=2,medium=2,hard=5;ebAssert(easy===medium&&medium<hard)});
-  test('TRIALS','All six Prime Trials are registered',()=>{const els=['FIRE','WATER','NATURE','EARTH','LIGHTNING','AIR'];els.forEach(x=>{ebAssert(document.querySelector(`#trials button[onclick="startTrial('${x}')"]`),`Missing ${x} trial registration`)});ebAssert(typeof startTrial==='function','startTrial missing')});
+  test('TRIALS','All six Prime Trials are registered',()=>{const els=['FIRE','WATER','NATURE','EARTH','LIGHTNING','AIR'];els.forEach(x=>{ebAssert(window.EB_Trials?.TRIAL_DATA[x]?.strip?.length,`Missing ${x} trial registration`)});ebAssert(typeof startTrial==='function','startTrial missing')});
  } finally {G=saved.G;choice=saved.choice;diff=saved.diff;uid=saved.uid}
  test('UI','Battlefield rail permits horizontal and vertical pan',()=>{let rule=[...document.styleSheets].flatMap(ss=>{try{return [...ss.cssRules]}catch(e){return[]}}).find(r=>r.selectorText==='#battle .slots'&&String(r.style.touchAction||'').includes('pan-x'));ebAssert(rule&&String(rule.style.touchAction).includes('pan-y'),'field touch-action must permit pan-x and pan-y')});
    test('UI','Chain HUD is contextual',()=>{let el=document.getElementById('chain');ebAssert(el&&el.classList.contains('chainContext'),'contextual Chain indicator missing')});
@@ -1829,7 +1849,7 @@ async function ebBalanceCalibrationRun(){
   </div>
   <div class="small">Calibration games: ${total.toLocaleString()} · stalls ${stalls} · ${(EB_BL_CAL_LAST.elapsedMs/1000).toFixed(1)}s</div>
   <div class="blUtil"><b>Mirror controls:</b><br>${mirror.map(r=>`${r.a}: A ${ebBLPct(r.sideA,r.games-r.stalls)}% / B ${ebBLPct(r.sideB,r.games-r.stalls)}% · symmetric ${r.mirrorSymmetric}/${r.mirrorSymmetric+r.mirrorAsymmetric}`).join('<br>')}</div>
-  <div class="${harnessDetected?'blWarn':'blGood'}" style="margin-top:8px;font-weight:900">${harnessDetected?'BALANCE CONCLUSIONS: HOLD — physical-seat symmetry failed.':roleBias?'HARNESS CALIBRATED — turn/token advantage detected and reported separately.':'CALIBRATION PASSED — crossed matchup analysis is suitable for the next balance pass.'}</div>`;
+  <div class="bl-verdict ${harnessDetected?'blWarn':'blGood'}">${harnessDetected?'BALANCE CONCLUSIONS: HOLD — physical-seat symmetry failed.':roleBias?'HARNESS CALIBRATED — turn/token advantage detected and reported separately.':'CALIBRATION PASSED — crossed matchup analysis is suitable for the next balance pass.'}</div>`;
   copy.disabled=false;
  }catch(e){box.innerHTML=`<b class="devFail">CALIBRATION ERROR</b><div class="small">${esc(e&&e.message?e.message:String(e))}</div>`}
  finally{EB_BL_CAL_RUNNING=false;btn.disabled=false}
@@ -1856,7 +1876,7 @@ async function ebInitiativeAuditRun(){
   let summary={};for(const [mode] of modes){let rr=rows.filter(x=>x.mode===mode),valid=rr.reduce((n,x)=>n+x.games-x.stalls,0),fw=rr.reduce((n,x)=>n+x.firstWins,0);summary[mode]={games:rr.reduce((n,x)=>n+x.games,0),valid,firstPct:valid?+(fw/valid*100).toFixed(1):0,stalls:rr.reduce((n,x)=>n+x.stalls,0)}}
   let before=summary.CURRENT.firstPct,after=summary['SECOND_PLAYER_+1'].firstPct,delta=+(after-before).toFixed(1),diagnosis=after>=58?'ADVANTAGE REMAINS':after<=42?'COMPENSATION OVERSHOOTS':'INITIATIVE WITHIN 42–58% BAND';
   EB_INIT_LAST={build:EB_RELEASE.version,ruleset:ebBalanceRuleset(),depth,total:rows.reduce((n,r)=>n+r.games,0),rows,summary,delta,diagnosis,elapsedMs:Math.round(performance.now()-started)};
-  box.innerHTML=`<b class="${diagnosis==='INITIATIVE WITHIN 42–58% BAND'?'blGood':'blWarn'}">${diagnosis}</b><div class="blStatGrid"><div class="blStat"><small>Current first-player</small><b>${before}%</b></div><div class="blStat"><small>With +1 card</small><b>${after}%</b></div><div class="blStat"><small>Change</small><b>${delta>0?'+':''}${delta} pts</b></div><div class="blStat"><small>Paired seeds / mirror</small><b>${depth}</b></div></div><div class="small">${EB_INIT_LAST.total.toLocaleString()} mirror games · ${(EB_INIT_LAST.elapsedMs/1000).toFixed(1)}s</div><div class="blUtil" style="margin-top:8px"><b>SECOND PLAYER +1:</b><br>${rows.filter(r=>r.mode==='SECOND_PLAYER_+1').map(r=>`${r.deck}: first ${ebBLPct(r.firstWins,r.games-r.stalls)}% / second ${ebBLPct(r.secondWins,r.games-r.stalls)}% · T5 dmg ${r.t5Damage[0]}–${r.t5Damage[1]} · board ${r.t5Board[0]}–${r.t5Board[1]}`).join('<br>')}</div>`;copy.disabled=false;
+  box.innerHTML=`<b class="${diagnosis==='INITIATIVE WITHIN 42–58% BAND'?'blGood':'blWarn'}">${diagnosis}</b><div class="blStatGrid"><div class="blStat"><small>Current first-player</small><b>${before}%</b></div><div class="blStat"><small>With +1 card</small><b>${after}%</b></div><div class="blStat"><small>Change</small><b>${delta>0?'+':''}${delta} pts</b></div><div class="blStat"><small>Paired seeds / mirror</small><b>${depth}</b></div></div><div class="small">${EB_INIT_LAST.total.toLocaleString()} mirror games · ${(EB_INIT_LAST.elapsedMs/1000).toFixed(1)}s</div><div class="blUtil bl-result-spaced"><b>SECOND PLAYER +1:</b><br>${rows.filter(r=>r.mode==='SECOND_PLAYER_+1').map(r=>`${r.deck}: first ${ebBLPct(r.firstWins,r.games-r.stalls)}% / second ${ebBLPct(r.secondWins,r.games-r.stalls)}% · T5 dmg ${r.t5Damage[0]}–${r.t5Damage[1]} · board ${r.t5Board[0]}–${r.t5Board[1]}`).join('<br>')}</div>`;copy.disabled=false;
  }catch(e){box.innerHTML=`<b class="devFail">INITIATIVE AUDIT ERROR</b><div class="small">${esc(e&&e.message?e.message:String(e))}</div>`}finally{EB_BL_RUNNING=false;btn.disabled=false;}
 }
 function ebInitiativeAuditText(){if(!EB_INIT_LAST)return'';let r=EB_INIT_LAST,a=r.summary.CURRENT,b=r.summary['SECOND_PLAYER_+1'],lines=[`ELEMENT BOUND Alpha ${EB_RELEASE.version} INITIATIVE COMPENSATION AUDIT`,`Ruleset: ${r.ruleset}`,`Depth: ${r.depth} paired seeds per mirror`,`Games: ${r.total}`,`Current first-player win rate: ${a.firstPct}%`,`Second-player +1 first-player win rate: ${b.firstPct}%`,`Change: ${r.delta>0?'+':''}${r.delta} percentage points`,`Diagnosis: ${r.diagnosis}`,`Elapsed: ${(r.elapsedMs/1000).toFixed(1)}s`,''];for(const x of r.rows)lines.push(`${x.mode} | ${x.deck} mirror | games ${x.games} | first-player wins ${ebBLPct(x.firstWins,x.games-x.stalls)}% | second-player wins ${ebBLPct(x.secondWins,x.games-x.stalls)}% | T5 damage ${x.t5Damage[0]}-${x.t5Damage[1]} | T5 board ${x.t5Board[0]}-${x.t5Board[1]} | stalls ${x.stalls}`);return lines.join('\n')}
@@ -1899,34 +1919,12 @@ function ebBalanceClear(){if(EB_BL_RUNNING)return;EB_BL_LAST=null;document.getEl
 
 
 setup();
+ebHydrateStaticIcons();
 ebDevInstall();
+window.EB_Trials?.renderMap();
+window.addEventListener('resize',()=>{if(G?.trial?.hintLevel)ebTrialApplyHints()});
 ebSetupMatchmaking();
 ebMpInitializeFromUrl();
-
-// ROOTS TRIAL 0.7.5 — deterministic mobile target hook.
-// When a technique is selected and Root Keeper is the chosen target, resolve Growth once.
-document.addEventListener('click',function(ev){
-  if(!G||!G.trial||G.trial.element!=='NATURE'||G.trial.progress.step!==0)return;
-  let node=ev.target && ev.target.closest ? ev.target.closest('[data-slot],[data-i],[data-index],.unit,.card') : null;
-  if(!node)return;
-  let txt=(node.textContent||'').replace(/\s+/g,' ').trim();
-  if(!txt.includes('Root Keeper'))return;
-
-  // Only accept this click when the UI currently indicates a technique/target action.
-  let body=(document.body.innerText||'');
-  let techniqueContext=/Technique|choose target|select target|Growth/i.test(body);
-  if(!techniqueContext)return;
-
-  // Resolve after the game's own click handler so we don't break normal targeting.
-  setTimeout(function(){
-    if(!G||!G.trial||G.trial.progress.step!==0)return;
-    let keeper=me().slots.find(x=>x&&x.n==='Root Keeper');
-    if(keeper)resolveNatureTrialGrowth(keeper);
-    if(typeof bump==='function')bump();
-  },0);
-},true);
-
-
 
 /* ---- preserved script block ---- */
 console.info(`Element Bound Alpha ${EB_RELEASE.version} · ${EB_RELEASE.label} loaded`);
