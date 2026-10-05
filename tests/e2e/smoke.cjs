@@ -262,11 +262,38 @@ async function run() {
       await foundation('trials');
       assert.equal(await page.locator('.trial-map-node').count(),9,'Trials map shows nine chapters');checks++;
       assert.equal(await page.locator('.trial-map-node.is-hybrid:disabled').count(),3,'all Hybrid chapters start locked');checks++;
-      assert.ok(await page.locator('.trial-river path').count()>=9,'Trials map path is rendered with SVG paths');checks++;
-      const trialNodeXs=await page.locator('.trial-map-node.is-prime').evaluateAll(nodes=>nodes.map(node=>Math.round(node.getBoundingClientRect().x)));
-      assert.ok(new Set(trialNodeXs).size>2,'Prime nodes follow a winding path instead of two fixed columns');checks++;
+      assert.ok(await page.locator('.trial-river path').count()>=8,'Trials map path is rendered with SVG paths');checks++;
+      assert.equal(await page.locator('.trial-river path').evaluateAll(paths=>paths.every(path=>getComputedStyle(path).fill==='none')),true,'every river and branch path has no fill');checks++;
+      assert.equal(await page.locator('.trial-map-node').evaluateAll(nodes=>nodes.every(node=>{const box=node.getBoundingClientRect();return box.width>=56&&box.height>=56})),true,'every Trial node has a visible touch and focus box');checks++;
+      assert.equal(await page.locator('.trial-node-lock').count(),0,'locked medallions do not show duplicate lock icons');checks++;
+      assert.equal(await page.locator('.trial-map-header.codex-header .codex-title').count(),1,'Trials uses the standard plain screen header');checks++;
+      assert.match((await page.locator('#trialStars').textContent()).trim(),/^0 \/ 27 stars$/,'Trials header includes the stars unit');checks++;
+      const trialMapBox=await page.locator('.trial-map').boundingBox();assert.ok(Math.abs(trialMapBox.width-vp.width)<=1&&Math.abs(trialMapBox.x)<=1,'Trials map spans the viewport width');checks++;
+      assert.equal(await page.locator('.callout').count(),3,'all locked Hybrids show completion callouts');checks++;
+      const mapGeometry=await page.evaluate(()=>{
+        const boxes=[...document.querySelectorAll('.trial-node-plate,.callout')].map(node=>({node,rect:node.getBoundingClientRect()}));
+        const medals=[...document.querySelectorAll('.trial-map-node .med')].map(node=>({node,rect:node.getBoundingClientRect()}));
+        const overlap=(a,b)=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
+        const collisions=[];
+        const all=[...boxes,...medals];for(let a=0;a<all.length;a++)for(let b=a+1;b<all.length;b++){if(all[a].node.closest('.trial-map-node')===all[b].node.closest('.trial-map-node')&&all[a].node.closest('.trial-map-node'))continue;if(overlap(all[a].rect,all[b].rect))collisions.push([all[a].node.className,all[b].node.className])}
+        const pathHits=[];for(const path of document.querySelectorAll('.trial-river path')){const length=path.getTotalLength(),matrix=path.getScreenCTM();for(let offset=0;offset<=length;offset+=2){const local=path.getPointAtLength(offset),point=new DOMPoint(local.x,local.y).matrixTransform(matrix);for(const box of boxes)if(point.x>=box.rect.left&&point.x<=box.rect.right&&point.y>=box.rect.top&&point.y<=box.rect.bottom){pathHits.push(path.dataset.segment||path.dataset.branch);offset=length+2;break}}}
+        const inViewport=all.every(({rect})=>rect.left>=-0.5&&rect.right<=innerWidth+0.5);
+        const ys=Object.fromEntries([...document.querySelectorAll('.trial-map-node')].map(node=>[node.dataset.element,node.getBoundingClientRect().top]));
+        const hybridsAfter=Object.entries(EB_Trials.PARENTS).every(([hybrid,parents])=>parents.every(parent=>ys[hybrid]>ys[parent]));
+        return{collisions,pathHits,inViewport,hybridsAfter};
+      });
+      assert.deepEqual(mapGeometry.collisions,[],'no Trial medallion, plate, or callout overlaps another');checks++;
+      assert.deepEqual(mapGeometry.pathHits,[],'no river or branch enters a label plate or callout');checks++;
+      assert.equal(mapGeometry.inViewport,true,'all Trial nodes and plates stay inside the viewport');checks++;
+      assert.equal(mapGeometry.hybridsAfter,true,'every Hybrid follows both parents');checks++;
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'Trials map has no horizontal scroll');checks++;
+      await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await page.locator('.ember').first().evaluate(node=>getComputedStyle(node).display),'none','reduced motion hides ambient embers');checks++;await page.emulateMedia({reducedMotion:'no-preference'});
+      await page.evaluate(()=>{localStorage.setItem(EB_Trials.STORAGE_KEY,JSON.stringify({FIRE:1,WATER:1,EARTH:1,_seen:7,_unlocked:1}));EB_Trials.renderMap();scrollTo(0,0)});
+      assert.equal(await page.locator('.callout[data-element="MAGMA"]').count(),0,'Magma callout is absent after both parents are cleared');checks++;
+      assert.equal(await page.locator('.callout[data-element="BLOOM"] .cchip.done .ccheck').count(),1,'approved map state checks Water in Bloom callout');checks++;
       await shot('16-trials-map');
+      await page.locator('.callout[data-element="BLOOM"]').scrollIntoViewIfNeeded();await shot('21-trials-map-callouts');
+      await page.evaluate(()=>{localStorage.removeItem(EB_Trials.STORAGE_KEY);EB_Trials.renderMap();scrollTo(0,0)});
       await page.locator('.trial-map-node[data-element="FIRE"]').click();await visible('.trial-chapter-sheet','Fire chapter sheet');
       assert.equal(await page.locator('.trial-chapter-step').count(),3,'Fire chapter shows three steps');checks++;
       assert.equal(await page.locator('.trial-chapter-step.is-coming').count(),2,'Set up and Cash in are coming soon');checks++;
@@ -287,6 +314,7 @@ async function run() {
       await page.locator('.trial-recap .primary').click();await visible('#trials.on','Trials map after Continue');
       assert.equal(await page.locator('.trial-map-node[data-element="FIRE"] .trial-star-pips .is-earned').count(),2,'Fire node shows two earned stars');checks++;
       assert.equal(await page.locator('.trial-river-segment[data-segment="0"].is-cleared').count(),1,'Fire completion lights the Fire to Water stretch');checks++;
+      assert.equal(await page.locator('.callout[data-element="MAGMA"] .cchip.done .ccheck').count(),1,'a cleared parent chip shows its gold check');checks++;
 
       await page.evaluate(()=>startTrial('NATURE'));await visible('#battle.on','Nature Full combo trial');
       await page.evaluate(()=>{window.EB_TRIAL_HINT_MS=40;ebTrialScheduleHint()});await page.locator('[data-eb-card="Sproutling"].trial-hint-card').waitFor({state:'visible'});checks++;

@@ -363,8 +363,14 @@ the transition. Hard remains the display label for the existing internal
 
 Trials are a nine-chapter journey map following one winding, S-shaped river:
 six always-open Prime nodes alternate along the main path and three Hybrid
-nodes sit on short side branches. Cleared stretches become solid glowing
-bronze; uncleared stretches remain dim and dotted. The newly cleared stretch
+nodes branch only after their later parent: Magma after Earth, Bloom after
+Nature, and Storm after Air. The exact 390 × 1180 geometry keeps river and
+branch paths outside every medallion label. The map is a long night climb
+through layered moonlit mountains and fog, with restrained element auras,
+rare lightning, embers, fireflies, water ripples, and wind streaks. Locked
+Hybrids show a callout naming both required parents and marking cleared parents.
+Cleared stretches become solid glowing bronze; uncleared stretches remain dim
+and dotted. The newly cleared stretch
 lights once when the player returns to the map (or appears immediately with
 reduced motion). Hybrid branches unlock after both parents earn at least one
 star. Each chapter has Set up, Cash in and Full combo steps; the first two roll out over

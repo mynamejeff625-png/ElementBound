@@ -12,6 +12,21 @@ assert.deepEqual(EB_Trials.litSegments({FIRE:1,WATER:1,EARTH:0}),[true,true,fals
 assert.equal(EB_Trials.completedTokens(EB_Trials.TRIAL_DATA.WATER.strip,{played:['Current Shift'],statuses:['Soaked'],actions:['End Turn'],progress:{soaked:true,survived:true}}),4);
 assert.equal(EB_Trials.completedTokens(EB_Trials.TRIAL_DATA.NATURE.strip,{played:['Sproutling','Verdant Mend','Grove Beast'],statuses:['Seeded','Growth'],progress:{seeded:true,grew:true},hit:3}),6);
 assert.equal(EB_Trials.completedTokens(EB_Trials.TRIAL_DATA.AIR.strip,{played:['Crosswind','Sky Raptor'],statuses:['Momentum'],progress:{momentum:true},hit:4}),4);
+assert.deepEqual(EB_Trials.MAP_POINTS,{FIRE:[108,96],WATER:[282,266],EARTH:[108,436],NATURE:[282,606],LIGHTNING:[108,776],AIR:[282,946],MAGMA:[56,632],BLOOM:[334,802],STORM:[108,1096]});
+for(const [hybrid,parents] of Object.entries(EB_Trials.PARENTS))for(const parent of parents)assert.ok(EB_Trials.MAP_POINTS[hybrid][1]>EB_Trials.MAP_POINTS[parent][1],`${hybrid} follows ${parent}`);
+assert.equal(EB_Trials.PATH_SEGMENTS[0],'M 142.0 96.0 C 238.0 96.0, 152.0 266.0, 248.0 266.0');
+assert.equal(EB_Trials.BRANCHES.MAGMA,'M 197.4 551.0 C 202.5 590.7, 134.0 632.0, 84.0 632.0');
+const trialCss=fs.readFileSync('css/trials.css','utf8'),trialSource=fs.readFileSync('js/trials.js','utf8'),versionSource=fs.readFileSync('js/version.js','utf8');
+assert.match(trialCss,/\.trial-map\{[^}]*background:transparent/);
+assert.match(trialCss,/\.trial-map\{[^}]*width:calc\(100% \+ 24px\)[^}]*margin:8px -12px 0/);
+assert.match(trialCss,/#trials::after\{[^}]*position:fixed/);
+assert.match(trialCss,/mask-image:linear-gradient\(to bottom/);
+assert.match(trialCss,/\.trial-river path\{fill:none\}/);
+assert.match(trialSource,/river-dim branch-dim trial-river-branch/);
+assert.doesNotMatch(trialSource,/trial-node-lock/);
+assert.match(versionSource,/version:'1\.6\.2'/);
+assert.match(versionSource,/A new themed Trials map/);
+assert.match(versionSource,/Locked Hybrids now show which elements to clear first/);
 let source=fs.readFileSync('js/game.js','utf8');
 source=source.slice(0,source.lastIndexOf('\nsetup();'));
 const fake=()=>({textContent:'',innerHTML:'',offsetWidth:0,style:{},classList:{add(){},remove(){},contains(){return false}},appendChild(){}});
@@ -32,7 +47,8 @@ startTrial('FIRE');play(hand('Flame Burst'),null,{bender:true});notWon('Fire pay
 
 startTrial('WATER');play(hand('Current Shift'),null,{enemy:unit(foe(),'Tide Brute')});endTurn();check(comboComplete()&&me().vit===1,'Water Soaked survival wins at 1 Vitality with an honest strip');
 startTrial('WATER');attack(unit(me(),'River Serpent'),unit(foe(),'Tide Brute'));endTurn();check(comboComplete()&&me().vit===1,'Water River Serpent alternative also Soaks the threat');
-startTrial('WATER');endTurn();notWon('Water without Soaked must fail');
+startTrial('WATER');check(unit(foe(),'Tide Brute').text==='Guard.'&&!/Armor/.test(unit(foe(),'Tide Brute').text),'Tide Brute shows only its real Guard ability');endTurn();check(G.winner==='Trial Current'&&!G.trial.completionStored,'Water loss never stores completion progress');
+startTrial('WATER');play(hand('Current Shift'),null,{enemy:unit(foe(),'Tide Brute')});attack(unit(me(),'River Serpent'),unit(foe(),'Tide Brute'));check(G.trial.wrongMoves===1,'redundant River Serpent attack after Current Shift counts as a wrong move');
 
 startTrial('EARTH');play(hand('Fortify'),null,{friend:unit(me(),'Earthen Guard')});check(comboComplete(),'Earth Armor combo wins with an honest strip');
 startTrial('EARTH');attack(unit(me(),'Earthen Guard'),unit(foe(),'Trial Colossus'));notWon('Earth attacking before Armor must fail');
@@ -49,5 +65,5 @@ startTrial('AIR');attack(unit(me(),'Sky Raptor'),null);notWon('Air immediate att
 startTrial('AIR');play(hand('Crosswind'),null,{friend:unit(me(),'Gale Scout')});attack(unit(me(),'Sky Raptor'),null);notWon('Air Momentum on Gale Scout must fail');
 ({checks});
 `,ctx);
-assert.equal(result.checks,15);
-console.log(`Trials polish 1.6.1: 7 unit checks and ${result.checks} real-duel checks passed`);
+assert.equal(result.checks,17);
+console.log(`Trials polish 1.6.2: 25 unit checks and ${result.checks} real-duel checks passed`);
