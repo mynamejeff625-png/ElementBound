@@ -37,3 +37,6 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Browser smoke-test output (screenshots are uploaded by CI)
+test-results/

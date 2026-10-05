@@ -1,0 +1,5 @@
+# Third-party license texts are kept byte-for-byte as published.
+assets/fonts/OFL-*.txt -whitespace
+# Font files are binary.
+*.woff binary
+*.woff2 binary

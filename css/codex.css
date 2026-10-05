@@ -1,0 +1,2 @@
+#codex{padding:0;overflow-x:clip}
+.codex-shell{position:relative;min-height:calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 34px);overflow-x:clip;padding-bottom:var(--eb-space-4)}

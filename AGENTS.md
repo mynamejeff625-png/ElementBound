@@ -55,9 +55,9 @@ Facts:
 - Target duel length: roughly 3–8 minutes depending on deck.
 - Product name in all player-facing text and docs: **Element Bound** (two words).
   Existing code identifiers (`ElementBoundCards`, `EB_*`, repo name) stay as they are.
-  Historical one-word strings ("Elementbound", "ELEMENTBOUND") may remain only
-  where explicitly exempted. All new or modified player-facing text uses
-  "Element Bound". Do not fix exempted strings in unrelated tasks.
+  Code identifiers, developer-only logs and error strings, workflow names, and
+  historical docs/migration files may keep "ElementBound"/"ELEMENTBOUND". All
+  player-facing text uses "Element Bound".
 
 ## 2. Roles *(team policy)*
 
@@ -80,6 +80,8 @@ Facts:
 | `index.html` | All screens, Content-Security-Policy, and script load order |
 | `css/game.css` | All styling, including reduced-motion rules |
 | `assets/` | Logo, background, and other images |
+| `assets/fonts/` | Self-hosted Cinzel and Nunito Sans (SIL OFL; keep the `OFL-*.txt` files beside them) |
+| `assets/medallions/`, `assets/frames/` | Owner-made element/result medallions and the card frames (bronze default, gold special) (usage rules: `docs/DESIGN.md` §5a) |
 | `js/version.js` | Player-facing release record (see §5) |
 | `js/game.js` | Browser game: live duel loop, rival AI, UI and FX, Balance Lab simulator, in-browser dev checks, multiplayer adapter (`EB_MP`) |
 | `js/firebaseBootstrap.js`, `js/multiplayerClient.js`, `js/matchmakingClient.js` | Online play client |
@@ -91,13 +93,14 @@ Facts:
 | `api/submit-move.js`, `api/create-room.js`, `api/join-room.js`, `api/firebase-config.js` | The four Vercel endpoints |
 | `firestore.rules`, `firebase.json` | Firestore security rules and emulator config |
 | `tests/*.cjs` | Regression tests. Only tests listed in the workflow run in CI |
+| `tests/e2e/smoke.cjs` | Browser smoke test (CI job `browser-smoke`): real Chromium at 375×667 and 390×844, fails on page errors; phone screenshots are attached to each CI run |
 | `.github/workflows/verify-candidate-b.yml` | Main CI; runs on every PR to `main` |
 | `.github/pull_request_template.md` | Required PR description format |
 | `.gitignore` | Untracked and generated files Git should ignore (dependencies, secrets, logs) |
 | `package.json`, `package-lock.json` | Server and test dependencies |
 | `README.md` | Multiplayer deployment and environment setup |
 | `VERSIONING.md` | Release procedure (keep consistent with §5) |
-| `docs/DESIGN.md` | UI/UX and game-design decisions (create when the first one is recorded) |
+| `docs/DESIGN.md` | Binding UI/UX design system: tokens, frames, components, icons, layout rules, roadmap. Read before any UI work |
 | `CANDIDATE_B.md`, `MIGRATION.md`, `MIGRATION_MANIFEST.json`, `migration/` | Historical migration records. Do not edit unless asked |
 
 ## 4. Rules parity checklist
@@ -170,24 +173,45 @@ Deleting a branch after merge is the Owner's repository-maintenance task.
 
 ## 7. Checks before requesting review
 
-Code changes (anything touching `.js`, `.cjs`, `.html`, `.css`, rules, or config):
-1. `node --check` on every changed `.js` and `.cjs` file.
-2. The full command list in `.github/workflows/verify-candidate-b.yml`. Run
-   `npm ci` first if dependencies may not be clean. The Firestore rules suite
-   needs Java 21.
-3. Whitespace: `git diff --check` (unstaged) **and** `git diff --cached --check`
+CI (`.github/workflows/verify-candidate-b.yml`) runs the **full** suite on every
+push to a PR: every regression test, the Firestore rules emulator, and the
+phone browser smoke. **CI is the full gate.** Agents check what they changed,
+then let CI run everything else.
+
+Before every push:
+1. **Read what you change.** Read every function or section you change, plus
+   its direct callers and callees. In large files (e.g. `js/game.js`), find the
+   code with search (`rg`/`grep`) and read those sections, not the whole file.
+2. `node --check` on every changed `.js` and `.cjs` file.
+3. **Focused tests:** run every test file that covers code you changed, plus
+   any new test. Find them by searching `tests/` for the changed function or
+   file name.
+4. Whitespace: `git diff --check` (unstaged) **and** `git diff --cached --check`
    (staged). Then review the staged diff and `git status` before committing.
 
-Docs-only, PR-template, and `.gitignore` changes: both whitespace checks, `git status`,
-and confirm any paths or commands the docs mention actually exist. CI is the
-full gate. Run the full workflow locally only if asked, or if the change edits
-workflow or executable config.
-
-By change type:
+Also run locally, by change type:
 - **Gameplay rules:** parity tests (§4), plus the Balance Lab parity tests if the simulator changed.
-- **Multiplayer or server:** endpoint tests; both seats' views; `npm run test:firestore-rules`.
+- **Multiplayer or server:** endpoint tests and the tests covering both seats'
+  views. If `firestore.rules`, auth, or an `/api` endpoint changed, also
+  `npm run test:firestore-rules` (needs Java 21).
 - **Security rules or auth:** everything above, plus Owner approval.
-- **UI:** a screenshot or preview on a phone-sized viewport when a browser is available.
+- **UI:** extend `tests/e2e/smoke.cjs` when a change adds a screen or flow. Run
+  it locally only if you changed it and a browser is available; otherwise CI
+  runs it.
+- **Workflow or executable config** (`.github/workflows/`, `package.json`,
+  `package-lock.json`, `firebase.json`): run the full command list in the
+  workflow locally (`npm ci` first).
+
+After pushing:
+- Wait for CI. Request review only when **every** job passes. If a job fails,
+  read its log, run just the failing test locally, fix, and push again.
+- In the PR's Testing table, mark each check as run **locally** or by **CI**,
+  and link the CI run. For UI changes, link the `browser-smoke` job's
+  `phone-screenshots` artifact in the Screenshots section (the Owner reviews UI
+  changes from those).
+
+Docs-only, PR-template, and `.gitignore` changes: both whitespace checks, `git status`,
+and confirm any paths or commands the docs mention actually exist. CI covers the rest.
 
 New behavior needs focused automated coverage. Extend a relevant existing test
 file when one fits; otherwise add a new file **and** add it to the workflow
@@ -275,6 +299,9 @@ and error-prone. GitHub is the primary channel; manual relay is the fallback.
 - Task specs are **GitHub issues**, written by Claude or the Owner. Codex is
   started with a one-line prompt such as "Implement issue #N per AGENTS.md" and
   reads the spec from GitHub.
+- Each issue is sized to **one focused change** that a single agent task can
+  finish. Claude splits larger features into numbered issues, so no single
+  task has to read, change, and re-test most of the codebase.
 - Work is delivered as **PRs**. Reviews, questions, and review responses go in
   **PR comments**. Ask Codex for a re-review by commenting `@codex review`.
 - Reports meant for the Owner (audits, reviews, balance reports) are posted as
