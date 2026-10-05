@@ -367,8 +367,7 @@ nodes sit on short side branches. Cleared stretches become solid glowing
 bronze; uncleared stretches remain dim and dotted. The newly cleared stretch
 lights once when the player returns to the map (or appears immediately with
 reduced motion). Hybrid branches unlock after both parents earn at least one
-star. Each
-chapter has Set up, Cash in and Full combo steps; the first two roll out over
+star. Each chapter has Set up, Cash in and Full combo steps; the first two roll out over
 time, while each Prime's existing puzzle is its Full combo step.
 
 Trials teach through a symbol strip rather than objective paragraphs. Card
@@ -383,8 +382,7 @@ card after 20 seconds or one wrong card; level 2 connects it to the target after
 another delay or mistake. Reduced motion keeps those guides static. Rewind
 restarts immediately. A completion earns one star, no Rewind earns a second,
 and no wrong moves earns a third; idle hints never reduce stars. The device
-keeps the best chapter result. The recap
-replays the symbols and marks its combo cards as mastered in the Codex and deck
+keeps the best chapter result. The recap replays the symbols and marks its combo cards as mastered in the Codex and deck
 select.
 
 Every trial must fail without its combo. Trial setups use real card rules where
