@@ -18,6 +18,6 @@
     const title=document.createElement('h2');title.textContent="What's New";const release=document.createElement('p');release.className='whats-new-release';release.textContent=`Alpha ${root.EB_RELEASE.version} · ${root.EB_RELEASE.label}`;const list=document.createElement('ul');list.className='whats-new-list';root.EB_RELEASE.notes.forEach(note=>{const item=document.createElement('li');item.textContent=note;list.append(item)});const gotIt=root.EB_UI.button({variant:'primary',text:'Got it',onClick:close});gotIt.classList.add('primary','whats-new-got-it');const sheet=root.EB_UI.sheet({variant:'info',children:[title,release,list,gotIt]});sheet.classList.add('whats-new-sheet');sheet.setAttribute('role','dialog');sheet.setAttribute('aria-modal','true');sheet.setAttribute('aria-labelledby','whatsNewTitle');title.id='whatsNewTitle';overlay.append(sheet);document.body.append(overlay);document.addEventListener('keydown',onKeydown);gotIt.focus();
   }
   function init(){const home=document.getElementById('home'),button=document.getElementById('whatsNewButton');if(!home||!button)return;button.replaceChildren(root.EB_UI.icon('sparkle'));button.addEventListener('click',open);setUnread(isUnseen(storage,root.EB_RELEASE.version));const reduce=root.matchMedia&&root.matchMedia('(prefers-reduced-motion: reduce)').matches;if(reduce)home.classList.add('is-home-calm');else setTimeout(()=>home.classList.add('is-home-calm'),1200)}
-  init();
+  init();root.EB_TomeLessons?.initNudge();
   return{SEEN_KEY,isUnseen,markSeen,open,close};
 });

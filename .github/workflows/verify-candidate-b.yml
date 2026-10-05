@@ -31,6 +31,7 @@ jobs:
       - run: node --check tests/menu-transitions-1.5.1.cjs
       - run: node tests/menu-transitions-1.5.1.cjs
       - run: node --check js/tomeData.js
+      - run: node --check js/tomeLessons.js
       - run: node --check js/tome.js
       - run: node --check tests/tome-1.7.0.cjs
       - run: node tests/tome-1.7.0.cjs
