@@ -398,6 +398,19 @@ step ② Cash in will teach the deferred swap → Weakened lesson. ① Set up an
 ② Cash in steps will be filled with more combos after the UI phases, once cards
 are expanded.
 
+### How to Play · The Bender's Tome *(Phase 2)*
+
+How to Play is one book, the Bender's Tome, narrated by the Archivist. Part One
+holds seven First Lessons with playable demos; Part Two is the Glossary (Core
+Terms & Symbols, Effects at a Glance, then one chapter per element). The cover
+opens with a page turn; pages follow the finger when swiped (one page on a
+phone, a two-page spread on wide screens; reduced motion cross-fades in 150 ms).
+Thumb tabs on the page edge jump between chapters and show the current one by
+position and `aria-current`, not colour alone. Every glossary page uses the same
+anatomy, an effect Quick facts strip, "Don't confuse with" boxes and in-text
+term links with a back trail. All words and page rules live in `docs/TOME.md`.
+The narrator font is Cormorant Garamond italic, self-hosted.
+
 ### Field anchors
 
 Trial overlays are layout-agnostic and may locate duel UI only through these
@@ -478,3 +491,5 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-05 | Every trial must fail without its combo; Water, Nature and Air use clearer real-rule lessons, while Air's swap → Weakened lesson moves to step ② |
 | 2026-10-05 | Trials show the combo strip only (no goal badges) |
 | 2026-10-05 | No mastery stars on Codex or deck select cards |
+| 2026-10-05 | How to Play becomes the Bender's Tome: one flip-page book (First Lessons + Glossary) with an Archivist narrator, element thumb tabs, Quick facts strips, "Don't confuse with" boxes and linked terms (`docs/TOME.md`) |
+| 2026-10-05 | Cormorant Garamond (italic, self-hosted, SIL OFL) is approved as the narrator font |
