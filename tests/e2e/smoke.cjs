@@ -418,8 +418,8 @@ async function run() {
       assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Soaked','element chapter links to its effect');checks++;
       await shot('04b-tome-term');
       await page.locator('.tome-page.is-current .tome-link',{hasText:'Weakened'}).click();await page.waitForTimeout(700);
-      assert.match(await page.locator('.tome-ribbon').textContent(),/Back to Soaked/,'linked term exposes a return ribbon');checks++;
-      await page.locator('.tome-ribbon').click();await page.waitForTimeout(700);
+      assert.match(await page.locator('.tome-page.is-current .tome-ribbon').textContent(),/Back to Soaked/,'linked term exposes a return ribbon');checks++;
+      await page.locator('.tome-page.is-current .tome-ribbon').click();await page.waitForTimeout(700);
       assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Soaked','return ribbon restores the source term');checks++;
       assert.ok((await page.locator('.tome-page:not([hidden])').count())<=5,'Tome keeps only the nearby page window rendered');checks++;
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'Tome causes no horizontal scroll');checks++;
@@ -501,7 +501,7 @@ async function run() {
       assert.equal(await page.locator('.deckselect-grid-stage').evaluate(stage=>getComputedStyle(stage).opacity),'1','Change deck restores cards after the panel leaves');checks++;
       await page.emulateMedia({reducedMotion:'reduce'});
       await page.locator('.deckselect-main').click();
-      await page.waitForTimeout(200);
+      await page.waitForFunction(()=>Number(getComputedStyle(document.querySelector('.deckselect-difficulty')).opacity)>.99,null,{timeout:200});
       assert.ok(Number(await page.locator('.deckselect-difficulty').evaluate(panel=>getComputedStyle(panel).opacity))>.99,'reduced-motion difficulty reveal finishes within 200 ms');checks++;
       await page.locator('.deckselect-option[data-difficulty="Hard"]').click();
       await page.locator('.deckselect-main').click();

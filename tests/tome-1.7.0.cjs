@@ -44,4 +44,6 @@ check(/function goTome\(\)/.test(game),'game exposes Tome navigation');
 check(!/HELP_SECTIONS|showHelpSection|showRules/.test(allJs),'legacy modal help code is removed from js/');
 check(/const GLOSSARY=/.test(game),'card-inspection glossary remains');
 check(/@media\(prefers-reduced-motion:reduce\)/.test(css),'Tome supplies reduced-motion behavior');
+const tomeSource=fs.readFileSync(path.join(ROOT,'js/tome.js'),'utf8');
+check(/Math\.abs\(dx\)>8/.test(tomeSource)&&/if\(!state\.drag\.moved\)return/.test(tomeSource),'Tome preserves taps until a swipe crosses its movement threshold');
 console.log(`Tome 1.7.0: ${checks} checks passed`);
