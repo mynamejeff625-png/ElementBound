@@ -359,6 +359,38 @@ space. The bottom control changes in place to Start Duel. “Change deck” reve
 the transition. Hard remains the display label for the existing internal
 `'Difficult'` key, and the last difficulty choice is remembered locally.
 
+### Element Trials *(Phase 2)*
+
+Trials are a nine-chapter journey map: six always-open Prime nodes and three
+Hybrid branches that unlock after both parents earn at least one star. Each
+chapter has Set up, Cash in and Full combo steps; the first two roll out over
+time, while each Prime's existing puzzle is its Full combo step.
+
+Trials teach through a symbol strip rather than objective paragraphs. Card
+tokens use medallions and names, status tokens use status glyphs, and payoff
+tokens use sword/damage or shield symbols. Hourglass, sword, shield and Essence
+goal badges state constraints with accessible labels. Done, next, later and
+missed states combine shape, check/cross marks, opacity and framing so color is
+never the only signal.
+
+Hints grow only when the player is stuck: level 1 rings and numbers the next
+card after 20 seconds or one wrong card; level 2 connects it to the target after
+another delay or mistake. Reduced motion keeps those guides static. Rewind
+restarts immediately. A completion earns one star, no Rewind earns a second,
+and no hints earns a third; the device keeps the best chapter result. The recap
+replays the symbols and marks its combo cards as mastered in the Codex and deck
+select.
+
+### Field anchors
+
+Trial overlays are layout-agnostic and may locate duel UI only through these
+attributes: hand cards use `data-eb-anchor="hand-card"` plus `data-eb-card`;
+slots use `data-eb-anchor="slot"`, `data-eb-side` and `data-eb-slot`; Bender
+plates use `data-eb-anchor="bender"` and `data-eb-side`. Positions come from the
+anchor's `getBoundingClientRect()` and update when the viewport changes. The
+Phase 3 field redesign must preserve this contract so the journey-map trials,
+hints and outcome overlays run unchanged on the new field.
+
 ### Cards: fewer words
 
 | Size | Shows |
@@ -389,7 +421,7 @@ license that allows use in the game (e.g. CC0), recorded in an
 |---|---|---|
 | 1 · Foundation | Tokens, components CSS, `EB_UI`, SVG icons replace emoji, fonts applied, inline styles removed | Every screen still works; only icons, fonts and spacing look different |
 | 2 · Menus and sheets | Home, Trials, Codex (deck dial + zoom, §7), Help rebuilt from components; medallions replace the element glyphs at ≥ 32 px; sheets and dialogs replace `modal()` | All High-severity menu audit items closed |
-| 3 · New duel screen (behind a toggle) | Slate, fanned hand, Bender plates, tap-to-target, Inspect sheet, framed cards with the `short` effect line, 60 s turn timer online | Zero scroll at 375×667; playtest on both layouts |
+| 3 · New duel screen (behind a toggle) | Slate, fanned hand, Bender plates, tap-to-target, Inspect sheet, framed cards with the `short` effect line, 60 s turn timer online; host Trials exclusively through the field-anchor contract | Zero scroll at 375×667; playtest on both layouts; all Trial overlays still work without layout-specific selectors |
 | 4 · Feel | Motion, sound (§8), coin flip, result screen; old duel screen removed | First summon within 60 s for new players |
 | 5 · Profiles and cosmetics | Accounts, gems, Bender cosmetics, App Check | — |
 
@@ -421,3 +453,6 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-03 | Developer tools open from either a long-press or five taps on the version stamp |
 | 2026-10-04 | Every menu screen uses one symmetric 380 ms push; reduced motion uses a 150 ms cross-fade |
 | 2026-10-04 | The online deck picker uses medallions and a keyboard-accessible listbox while the hidden native select remains authoritative |
+| 2026-10-04 | Trials teach combos through symbols; each chapter has three steps that can roll out over time |
+| 2026-10-04 | Trial stars mean complete / no Rewind / no hints, with the best result kept locally |
+| 2026-10-04 | The Phase 3 field must support Trial overlays through stable hand-card, slot and Bender anchors |

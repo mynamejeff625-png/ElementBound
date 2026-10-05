@@ -1,15 +1,16 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.5.1',
-  label:'Menu polish',
+  version:'1.6.0',
+  label:'Element Trials',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Symmetric screen transitions · Medallion deck picker',
+  focus:'Journey map · Symbol-guided combos · Stars',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Smoother movement between menus',
-    'Pick your online deck by its medallion'
+    'Element Trials now has a journey map',
+    'Learn each combo by its symbols',
+    'Earn up to 3 stars per trial'
   ])
 });
 

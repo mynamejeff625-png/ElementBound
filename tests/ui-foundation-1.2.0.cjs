@@ -30,12 +30,13 @@ check(!/<(?:style|script|image|foreignObject)\b/i.test(sprite),'icon sprite cont
 
 const html=fs.readFileSync('index.html','utf8');
 const game=fs.readFileSync('js/game.js','utf8');
+const trials=fs.readFileSync('js/trials.js','utf8');
 check(!/style\s*=\s*["']/.test(html),'index.html contains no inline style attributes');
 check(!/style\s*=\s*["']/.test(game),'game templates contain no inline style attributes');
 check(!/\p{Extended_Pictographic}/u.test((html+game).replace(/[✓✕⚠]/gu,'')),'rendering sources contain no emoji');
 check(html.indexOf('css/tokens.css')<html.indexOf('css/components.css')&&html.indexOf('css/components.css')<html.indexOf('css/game.css'),'stylesheets load tokens, components, then game CSS');
 check(html.indexOf('js/ui.js')<html.indexOf('js/game.js'),'EB_UI loads before game.js');
-check(/data-eb-element-icon="fire"/.test(html)&&/ebHydrateStaticIcons\(\)/.test(game),'static Trial icons are created through EB_UI');
+check(/assets\/medallions\/\$\{element\.toLowerCase\(\)\}\.webp/.test(trials)&&/ebHydrateStaticIcons\(\)/.test(game),'Trial medallions and static icons use shared UI assets');
 check(/class="eb-stat-number"/.test(game),'card ATK and HP numbers use the display-font hook');
 
 const expected={FIRE:'#ff704d',WATER:'#55c7ff',NATURE:'#67d77a',EARTH:'#d0a25c',LIGHTNING:'#ffe45d',AIR:'#bdeaff',MAGMA:'#ff633f',STORM:'#aa91ff',BLOOM:'#6be8ae'};

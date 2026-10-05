@@ -35,4 +35,10 @@
   <symbol id="book" viewBox="0 0 24 24"><path d="M4 4h6c2 0 3 1 3 3v13c0-2-1-3-3-3H4V4Zm16 0h-6c-1 0-1 1-1 3v13c0-2 1-3 3-3h4V4Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="help" viewBox="0 0 24 24"><path d="M9 9a3 3 0 1 1 5 2c-2 1-2 2-2 4m0 4h.01M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="sparkle" viewBox="0 0 24 24"><path d="M12 2c1 5 3 7 8 8-5 1-7 3-8 8-1-5-3-7-8-8 5-1 7-3 8-8Zm7 14c.5 2 1.5 3 3 3-1.5.5-2.5 1.5-3 3-.5-1.5-1.5-2.5-3-3 1.5-.5 2.5-1.5 3-3Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="lock" viewBox="0 0 24 24"><path d="M6 10h12v11H6V10Zm3 0V7a3 3 0 0 1 6 0v3m-3 4v3" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="hourglass" viewBox="0 0 24 24"><path d="M6 3h12M6 21h12M8 3c0 5 1 6 4 9-3 3-4 4-4 9m8-18c0 5-1 6-4 9 3 3 4 4 4 9" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="shield" viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3 9 8 11 5-2 8-6 8-11V5l-8-3Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/></symbol>
+  <symbol id="rewind" viewBox="0 0 24 24"><path d="M8 8H3V3m1 5a9 9 0 1 1-1 8" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></symbol>
+  <symbol id="essence" viewBox="0 0 24 24"><path d="m12 2 7 10-7 10-7-10 7-10Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/></symbol>
 </svg>

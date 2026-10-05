@@ -21,5 +21,6 @@ ok(html.includes('id="mpDeck" aria-hidden="true" tabindex="-1"'),'authoritative 
 ok(html.includes('id="mpDeckPicker"')&&html.includes('aria-haspopup="listbox"'),'custom deck trigger exposes its listbox relationship');
 ok(game.includes("sheet.setAttribute('role','listbox')")&&game.includes("option.setAttribute('role','option')"),'deck sheet has listbox and option semantics');
 ok(game.includes("select.dispatchEvent(new Event('change',{bubbles:true}))"),'custom selection dispatches change on the authoritative select');
-equal((version.match(/version:'1\.5\.1'/g)||[]).length,1,'release metadata is 1.5.1');
+const release=version.match(/version:'(\d+)\.(\d+)\.(\d+)'/);ok(release,'release metadata contains a semantic version');
+ok(release.slice(1).map(Number).some((part,index,parts)=>part>[1,5,1][index]&&parts.slice(0,index).every((value,prior)=>value===[1,5,1][prior]))||release.slice(1).map(Number).every((part,index)=>part===[1,5,1][index]),'release metadata remains at least 1.5.1');
 console.log(`Menu transitions 1.5.1: ${checks} checks passed`);
