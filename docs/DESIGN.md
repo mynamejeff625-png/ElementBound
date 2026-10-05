@@ -378,25 +378,25 @@ time, while each Prime's existing puzzle is its Full combo step.
 
 Trials teach through a symbol strip rather than objective paragraphs. Card
 tokens use medallions and names, status tokens use status glyphs, and payoff
-tokens use sword/damage or shield symbols. Hourglass, sword, shield and Essence
-goal badges state constraints with accessible labels. Done, next, later and
-missed states combine shape, check/cross marks, opacity and framing so color is
-never the only signal.
+tokens use sword/damage or shield symbols. Trials show this combo strip without
+separate goal badges. Done, next, later and missed states combine shape,
+check/cross marks, opacity and framing so color is never the only signal.
 
 Hints grow only when the player is stuck: level 1 rings and numbers the next
 card after 20 seconds or one wrong card; level 2 connects it to the target after
 another delay or mistake. Reduced motion keeps those guides static. Rewind
 restarts immediately. A completion earns one star, no Rewind earns a second,
 and no wrong moves earns a third; idle hints never reduce stars. The device
-keeps the best chapter result. The recap replays the symbols and marks its combo cards as mastered in the Codex and deck
-select.
+keeps the best chapter result. The recap replays the symbols and earned stars.
 
 Every trial must fail without its combo. Trial setups use real card rules where
 possible and a naive attack or wrong ordering cannot accidentally complete the
 lesson. Water now Soaks Tide Brute before its scripted strike, visibly reducing
 4 damage to 2; Nature Seeds Grove Beast with Sproutling before Verdant Mend adds
 Growth; Air gives Sky Raptor Momentum so its printed rule can bypass Guard. Air
-step ② Cash in will teach the deferred swap → Weakened lesson.
+step ② Cash in will teach the deferred swap → Weakened lesson. ① Set up and
+② Cash in steps will be filled with more combos after the UI phases, once cards
+are expanded.
 
 ### Field anchors
 
@@ -476,3 +476,5 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-05 | The Trials map follows one winding river; cleared stretches glow and newly cleared progress lights once |
 | 2026-10-05 | Trial stars mean complete / no Rewind / no wrong moves; idle reading time and automatic hints are free |
 | 2026-10-05 | Every trial must fail without its combo; Water, Nature and Air use clearer real-rule lessons, while Air's swap → Weakened lesson moves to step ② |
+| 2026-10-05 | Trials show the combo strip only (no goal badges) |
+| 2026-10-05 | No mastery stars on Codex or deck select cards |

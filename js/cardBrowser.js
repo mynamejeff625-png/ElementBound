@@ -73,13 +73,11 @@
     const button=node('button',`codex-card codex-card--s ${options.smallCardClass||''} eb-card eb-element--${key.toLowerCase()}`);button.type='button';button.dataset.deck=key;button.dataset.cardIndex=String(index);button.dataset.cardName=card.n;button.setAttribute('aria-label',`${card.n}, ${typeLabel(card)}, ${shortFor(card)}`);
     const top=node('span','codex-card-top');top.append(costGem(card));top.append(node('span',`codex-card-type codex-card-type--${card.type.toLowerCase()}`,typeLabel(card,true)));button.append(top);
     button.append(medallion(key,'codex-card-medallion--s'));
-    const trials=globalThis.EB_Trials,mastered=trials&&trials.masteredCards(trials.loadProgress(globalThis.localStorage));if(mastered&&mastered.has(card.n)){const pip=UI.icon('star',{label:'mastered'});pip.classList.add('codex-mastery');button.append(pip)}
     button.append(node('span','codex-card-name',card.n));button.append(node('span','codex-card-short',shortFor(card)));
     if(card.type==='MANIFESTATION'){const stats=node('span','codex-card-stats');stats.append(stat('sword',card.a,'Attack'));stats.append(stat('heart',card.h,'Health'));button.append(stats)}
     button.addEventListener('click',()=>openZoom(key,index,button));
     return button;
   }
-  function refreshMastery(){const trials=globalThis.EB_Trials;if(!state.root||!trials)return;const mastered=trials.masteredCards(trials.loadProgress(globalThis.localStorage));state.root.querySelectorAll('.codex-card--s').forEach(card=>{card.querySelector('.codex-mastery')?.remove();if(mastered.has(card.dataset.cardName)){const pip=UI.icon('star',{label:'mastered'});pip.classList.add('codex-mastery');card.append(pip)}})}
   function makeGrid(key,deckIndex){
     const wrap=node('div','codex-grid-wrap');wrap.dataset.deck=key;const grid=node('div','codex-card-grid');
     const cards=deckCards(key);cards.forEach((card,index)=>grid.append(smallCard(card,index,key)));wrap.append(grid);state.grids[deckIndex]=wrap;return wrap;
@@ -155,7 +153,7 @@
     const sourceRect=source.getBoundingClientRect(),cardRect=slides[index].querySelector('.codex-card--l').getBoundingClientRect();if(!state.reduce){const dx=sourceRect.left+sourceRect.width/2-(cardRect.left+cardRect.width/2),dy=sourceRect.top+sourceRect.height/2-(cardRect.top+cardRect.height/2);stage.style.transform=`translate(${dx}px,${dy}px) scale(${sourceRect.width/280})`}
     requestAnimationFrame(()=>requestAnimationFrame(()=>{root.classList.add('is-open');stage.style.transform='none';close.focus()}));
   }
-  function open(){build();refreshMastery();settle(state.current,false);return api}
+  function open(){build();settle(state.current,false);return api}
   function setLocked(locked){state.locked=!!locked;if(state.root)state.root.classList.toggle('is-deck-locked',state.locked);if(state.dial)state.dial.inert=state.locked}
   const api={open,closeZoom,setLocked,get current(){return state.current},get key(){return DECKS[state.current]},get root(){return state.root},get grids(){return state.grids},get dial(){return state.dial}};
   return api;
