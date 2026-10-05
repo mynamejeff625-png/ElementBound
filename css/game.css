@@ -84,7 +84,6 @@
 .slot.drop-ready{outline:2px solid #8bd3ff;outline-offset:-3px;background:rgba(100,190,255,.10)}
 .slot.drop-hover{outline:3px solid #fff;transform:scale(1.015);background:rgba(100,190,255,.20)}
 .stathelp{font-size:11px;color:#aab7d4;margin-top:5px}
-.helpIntro{color:#dbe4fb;line-height:1.5;margin:4px 0 12px}.helpGrid{display:grid;gap:8px}.helpCard{width:100%;text-align:left!important;padding:12px!important}.helpCard b{display:block;font-size:14px;margin-bottom:4px}.helpCard span{display:block;color:#aab5d1;font-size:12px;line-height:1.4}.helpTerm{padding:10px 0;border-bottom:1px solid #35415f}.helpTerm:last-child{border-bottom:0}.helpTerm b{display:block;margin-bottom:3px}.helpWhy{color:#9fd2ff;font-size:12px;line-height:1.4}.helpBack{margin-top:10px!important}
 
 
 /* ---- preserved style block ---- */

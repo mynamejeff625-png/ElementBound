@@ -30,6 +30,10 @@ jobs:
       - run: node tests/main-menu-1.5.0.cjs
       - run: node --check tests/menu-transitions-1.5.1.cjs
       - run: node tests/menu-transitions-1.5.1.cjs
+      - run: node --check js/tomeData.js
+      - run: node --check js/tome.js
+      - run: node --check tests/tome-1.7.0.cjs
+      - run: node tests/tome-1.7.0.cjs
       - run: node --check js/trials.js
       - run: node --check tests/trials-map-1.6.0.cjs
       - run: node tests/trials-map-1.6.0.cjs
