@@ -48,12 +48,13 @@ If anything changed:
 
 ## Testing
 
-| Suite | Result |
-|---|---|
-| Focused suite for this change | ___ checks passed / N/A — reason |
-| Full workflow command list | Pass / Fail / Not run — reason |
-| Firestore rules emulator | ___ checks passed / Not run — reason |
-| Single-player without `roomId` | Checked / Not run — reason |
+| Check | Where | Result |
+|---|---|---|
+| Focused tests for this change | Local | ___ checks passed / N/A — reason |
+| Full suite (`regression` job) | CI | Pass / Fail — link to run |
+| Browser smoke (`browser-smoke` job) | CI | Pass / Fail — link to run |
+| Firestore rules emulator | CI (also local if rules, auth, or `/api` changed) | Pass / Fail / N/A — reason |
+| Single-player without `roomId` | CI smoke / Local | Checked / Not run — reason |
 
 **Could not run:** Nothing / reason
 
