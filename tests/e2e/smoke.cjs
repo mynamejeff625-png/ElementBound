@@ -403,7 +403,7 @@ async function run() {
       assert.equal(tomeTabs.length,11,'Tome has eleven chapter tabs');checks++;
       assert.ok(tomeTabs.every(tab=>tab.width>=44&&tab.height>=44),'Tome tabs meet the touch-target minimum');checks++;
       const tomeTabLayout=await page.locator('.tome-tab').evaluateAll(tabs=>tabs.map(tab=>tab.getBoundingClientRect()).map(({left,top,right,bottom})=>({left,top,right,bottom})));
-      assert.ok(tomeTabLayout.every((tab,index)=>tab.left>=0&&tab.right<=innerWidth&&tab.top>=0&&tab.bottom<=innerHeight&&(index===0||tab.top>=tomeTabLayout[index-1].bottom)),'Tome tabs do not overlap and stay inside the viewport');checks++;
+      assert.ok(tomeTabLayout.every((tab,index)=>tab.left>=0&&tab.right<=vp.width&&tab.top>=0&&tab.bottom<=vp.height&&(index===0||tab.top>=tomeTabLayout[index-1].bottom)),'Tome tabs do not overlap and stay inside the viewport');checks++;
       const tomeStage=await page.locator('.tome-stage').boundingBox();
       await swipe(tomeStage.x+tomeStage.width*.8,tomeStage.y+tomeStage.height*.55,tomeStage.x+tomeStage.width*.15,tomeStage.y+tomeStage.height*.55);
       await page.waitForTimeout(700);
