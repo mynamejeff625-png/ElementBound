@@ -173,24 +173,45 @@ Deleting a branch after merge is the Owner's repository-maintenance task.
 
 ## 7. Checks before requesting review
 
-Code changes (anything touching `.js`, `.cjs`, `.html`, `.css`, rules, or config):
-1. `node --check` on every changed `.js` and `.cjs` file.
-2. The full command list in `.github/workflows/verify-candidate-b.yml`. Run
-   `npm ci` first if dependencies may not be clean. The Firestore rules suite
-   needs Java 21.
-3. Whitespace: `git diff --check` (unstaged) **and** `git diff --cached --check`
+CI (`.github/workflows/verify-candidate-b.yml`) runs the **full** suite on every
+push to a PR: every regression test, the Firestore rules emulator, and the
+phone browser smoke. **CI is the full gate.** Agents check what they changed,
+then let CI run everything else.
+
+Before every push:
+1. **Read what you change.** Read every function or section you change, plus
+   its direct callers and callees. In large files (e.g. `js/game.js`), find the
+   code with search (`rg`/`grep`) and read those sections, not the whole file.
+2. `node --check` on every changed `.js` and `.cjs` file.
+3. **Focused tests:** run every test file that covers code you changed, plus
+   any new test. Find them by searching `tests/` for the changed function or
+   file name.
+4. Whitespace: `git diff --check` (unstaged) **and** `git diff --cached --check`
    (staged). Then review the staged diff and `git status` before committing.
 
-Docs-only, PR-template, and `.gitignore` changes: both whitespace checks, `git status`,
-and confirm any paths or commands the docs mention actually exist. CI is the
-full gate. Run the full workflow locally only if asked, or if the change edits
-workflow or executable config.
-
-By change type:
+Also run locally, by change type:
 - **Gameplay rules:** parity tests (§4), plus the Balance Lab parity tests if the simulator changed.
-- **Multiplayer or server:** endpoint tests; both seats' views; `npm run test:firestore-rules`.
+- **Multiplayer or server:** endpoint tests and the tests covering both seats'
+  views. If `firestore.rules`, auth, or an `/api` endpoint changed, also
+  `npm run test:firestore-rules` (needs Java 21).
 - **Security rules or auth:** everything above, plus Owner approval.
-- **UI:** the `browser-smoke` CI job must pass. Link its `phone-screenshots` artifact in the PR's Screenshots section (the Owner reviews UI changes from those). Extend `tests/e2e/smoke.cjs` when a change adds a screen or flow.
+- **UI:** extend `tests/e2e/smoke.cjs` when a change adds a screen or flow. Run
+  it locally only if you changed it and a browser is available; otherwise CI
+  runs it.
+- **Workflow or executable config** (`.github/workflows/`, `package.json`,
+  `package-lock.json`, `firebase.json`): run the full command list in the
+  workflow locally (`npm ci` first).
+
+After pushing:
+- Wait for CI. Request review only when **every** job passes. If a job fails,
+  read its log, run just the failing test locally, fix, and push again.
+- In the PR's Testing table, mark each check as run **locally** or by **CI**,
+  and link the CI run. For UI changes, link the `browser-smoke` job's
+  `phone-screenshots` artifact in the Screenshots section (the Owner reviews UI
+  changes from those).
+
+Docs-only, PR-template, and `.gitignore` changes: both whitespace checks, `git status`,
+and confirm any paths or commands the docs mention actually exist. CI covers the rest.
 
 New behavior needs focused automated coverage. Extend a relevant existing test
 file when one fits; otherwise add a new file **and** add it to the workflow
@@ -278,6 +299,9 @@ and error-prone. GitHub is the primary channel; manual relay is the fallback.
 - Task specs are **GitHub issues**, written by Claude or the Owner. Codex is
   started with a one-line prompt such as "Implement issue #N per AGENTS.md" and
   reads the spec from GitHub.
+- Each issue is sized to **one focused change** that a single agent task can
+  finish. Claude splits larger features into numbered issues, so no single
+  task has to read, change, and re-test most of the codebase.
 - Work is delivered as **PRs**. Reviews, questions, and review responses go in
   **PR comments**. Ask Codex for a re-review by commenting `@codex review`.
 - Reports meant for the Owner (audits, reviews, balance reports) are posted as
