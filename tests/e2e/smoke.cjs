@@ -395,10 +395,9 @@ async function run() {
       await assertCardChrome('.codex-zoom-slide[aria-hidden="false"] .codex-card--l',30,'Codex L card');
       await shot('08-codex-zoom');
       const zoomKeyword=page.locator('.codex-zoom-slide[aria-hidden="false"] .codex-keyword').first();const zoomKeywordText=(await zoomKeyword.textContent()).trim();
-      await zoomKeyword.click();
-      try{await page.locator('.tome-peek-backdrop.is-open').waitFor({timeout:5000})}catch(error){
-        const state=await page.evaluate(()=>{const chip=document.querySelector('.codex-zoom-slide[aria-hidden="false"] .codex-keyword'),rect=chip?.getBoundingClientRect(),top=rect?document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2):null,stage=document.querySelector('.codex-zoom-stage');return{backdrop:document.querySelector('.tome-peek-backdrop')?.className||null,suppress:!!stage?._ebSuppressClick,tome:typeof window.EB_Tome?.peek,has:window.EB_Tome?.has?.(chip?.dataset.tomeTerm),term:chip?.dataset.tomeTerm,top:top?`${top.tagName}.${top.className}`:null,rect:rect&&{x:Math.round(rect.x),y:Math.round(rect.y),w:Math.round(rect.width),h:Math.round(rect.height)},vh:innerHeight}});
-        throw new Error(`Codex keyword chip did not open the Tome peek: ${JSON.stringify(state)}`)}
+      // A swipe suppresses the next tap for 350 ms (so the swipe itself is not read as a tap); wait for that to clear.
+      await page.waitForFunction(()=>!document.querySelector('.codex-zoom-stage')?._ebSuppressClick,null,{timeout:5000});
+      await zoomKeyword.click();await page.locator('.tome-peek-backdrop.is-open').waitFor({timeout:5000});
       await page.waitForTimeout(400);
       assert.equal((await page.locator('.tome-peek .tome-title').textContent()).trim(),zoomKeywordText,'Codex keyword chip opens its Tome page in a peek sheet');checks++;
       await page.keyboard.press('Escape');await page.locator('.tome-peek-backdrop').waitFor({state:'detached',timeout:5000});
