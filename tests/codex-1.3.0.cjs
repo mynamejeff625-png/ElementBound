@@ -39,4 +39,7 @@ check(resolveSwipe({dx:100,velocity:0,unit:74,current:0,count:9,wrap:true})===8,
 check(resolveSwipe({dx:-500,velocity:0,unit:300,current:3,count:5,clamp:true})===4,'carousel clamps at its last card');
 check(resolveSwipe({dx:500,velocity:0,unit:300,current:0,count:5,clamp:true})===0,'carousel clamps at its first card');
 
+const browserSource=require('node:fs').readFileSync(require('node:path').join(__dirname,'..','js/cardBrowser.js'),'utf8');
+check(/zoomTo,openFinder/.test(browserSource)&&/search:true/.test(require('node:fs').readFileSync(require('node:path').join(__dirname,'..','js/codex.js'),'utf8')),'Codex exposes the card finder and zoomTo');
+check(/window\.EB_Tome\?\.sheet/.test(browserSource),'card finder reuses the shared Tome sheet');
 console.log(`Codex 1.3.0: ${checks} checks passed`);

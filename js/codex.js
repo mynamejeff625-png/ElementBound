@@ -8,9 +8,10 @@
   if(!shared)return{};
   let browser=null;
   function open(){
-    if(!browser)browser=shared.create({hostId:'codex',rootClass:'codex-shell',title:'Codex',showCount:true,onBack:()=>root.ebNavigate('home',{direction:'back'}),hint:'Swipe to change deck · tap a card to zoom'});
+    if(!browser)browser=shared.create({hostId:'codex',rootClass:'codex-shell',title:'Codex',showCount:true,search:true,onBack:()=>root.ebNavigate('home',{direction:'back'}),hint:'Swipe to change deck · tap a card to zoom'});
     return browser.open();
   }
   function closeZoom(){if(browser)browser.closeZoom()}
-  return{...shared,open,closeZoom};
+  function zoomTo(name){return browser?browser.zoomTo(name):false}
+  return{...shared,open,closeZoom,zoomTo};
 });

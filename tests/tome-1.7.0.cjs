@@ -56,7 +56,7 @@ check(html.includes('js/tomeLessons.js')&&/lessons\.mount\(page\.id,api\)/.test(
 check(/STORAGE_KEY='ebTomeOpened'/.test(lessonSource),'new-player nudge uses the approved storage key');
 check(/Math\.abs\(dx\)>8/.test(tomeSource)&&/if\(!state\.drag\.moved\)return/.test(tomeSource),'Tome preserves taps until a swipe crosses its movement threshold');
 const browserSource=fs.readFileSync(path.join(ROOT,'js/cardBrowser.js'),'utf8');
-check(/peek,peekCard,closePeek,[^}]*has:/.test(tomeSource),'Tome exposes peek, peekCard and has');
+check(['peek','peekCard','closePeek','openSearch','sheet:','has:'].every(name=>new RegExp(`const api=\\{[^\\n]*\\b${name}`).test(tomeSource)),'Tome exposes peek, peekCard, closePeek, openSearch, sheet and has');
 check(/\[data-tome-term\]/.test(tomeSource),'any element with data-tome-term opens a Tome peek');
 check(/chip\.dataset\.tomeTerm=word/.test(browserSource)&&/cardDetail/.test(browserSource),'card keywords link to the Tome and cards can render alone');
 check(/data-tome-term=/.test(game)&&/GLOSSARY\[k\]/.test(game),'duel card inspect links its terms while keeping the short glossary text');
@@ -64,5 +64,5 @@ for(const keyword of ['Burning','Guard','Flow','Soaked','Seeded','Growth','Armor
 const synonymTable=source.slice(source.indexOf('### 0.6 Search words from other games'),source.indexOf('## Part One')).split('\n').filter(line=>/^\| [^-|][^|]* \| [^|]+ \|$/.test(line)&&!line.startsWith('| Page |')).map(line=>line.split('|').slice(1,3).map(cell=>cell.trim()));
 equal(Object.fromEntries(synonymTable.map(([title,words])=>[title,words.split(', ')])),JSON.parse(JSON.stringify(tome.synonyms)),'search synonyms in tomeData.js match TOME.md §0.6 exactly');
 for(const title of Object.keys(tome.synonyms))check(tome.pages.some(page=>page.title===title),`search synonym target ${title} is a Tome page`);
-check(/openSearch,search:searchTome/.test(tomeSource)&&/icon:'search'/.test(tomeSource),'Tome header exposes search');
+check(/search:searchTome/.test(tomeSource)&&/icon:'search'/.test(tomeSource),'Tome header exposes search');
 console.log(`Tome 1.7.0: ${checks} checks passed`);
