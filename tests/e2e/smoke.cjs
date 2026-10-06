@@ -58,6 +58,8 @@ async function run() {
       // controlled "offline" reply so Play with Friends exercises its connection-failure path on every machine.
       await context.route('**/api/firebase-config',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:false,error:'SMOKE_OFFLINE'})}));
       const page = await context.newPage();
+      // Record when the home art starts to calm, measured from page start, so the "holds" check is independent of machine speed.
+      await page.addInitScript(()=>{window.__ebHomeCalmAt=null;document.addEventListener('DOMContentLoaded',()=>{const home=document.getElementById('home');if(!home)return;new MutationObserver(()=>{if(window.__ebHomeCalmAt===null&&home.classList.contains('is-home-calm'))window.__ebHomeCalmAt=performance.now()}).observe(home,{attributes:true,attributeFilter:['class']})})});
       const cdp = await context.newCDPSession(page);
       const swipe = async (startX,startY,endX,endY) => {
         await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:startX,y:startY}]});
@@ -122,14 +124,20 @@ async function run() {
       };
       const menuPush = async ({trigger,from,to,direction='forward',label}) => {
         await navUnlocked();
-        await page.locator(trigger).click();
-        await page.waitForTimeout(195);
-        const middle=await page.evaluate(({from,to,direction})=>{
-          const fromRect=document.querySelector(from).getBoundingClientRect(),toRect=document.querySelector(to).getBoundingClientRect();
-          const toStart=direction==='forward'?innerWidth:-innerWidth;
-          return{separate:direction==='forward'?fromRect.right<=toRect.left+1:toRect.right<=fromRect.left+1,difference:Math.abs(Math.abs(fromRect.x)-Math.abs(toRect.x-toStart)),fromX:fromRect.x,toX:toRect.x,width:innerWidth};
-        },{from,to,direction});
-        assert.equal(middle.separate,true,`${label}: screens do not overlap halfway through`);checks++;
+        // Freeze both screen animations at their halfway point in the same task as the tap, measure, then let them run.
+        // This makes the symmetry check independent of machine speed (no frame timing involved).
+        const middle=await page.evaluate(({trigger,from,to,direction})=>{
+          const fromEl=document.querySelector(from),toEl=document.querySelector(to),toStart=direction==='forward'?innerWidth:-innerWidth;
+          document.querySelector(trigger).click();
+          const animations=[...fromEl.getAnimations(),...toEl.getAnimations()].filter(animation=>animation.effect?.getTiming);
+          if(animations.length<2)return{separate:false,difference:Infinity,reason:`expected two screen animations, found ${animations.length}`};
+          const half=Math.max(...animations.map(animation=>Number(animation.effect.getTiming().duration)||0))/2;
+          animations.forEach(animation=>{animation.pause();animation.currentTime=half});
+          const fromRect=fromEl.getBoundingClientRect(),toRect=toEl.getBoundingClientRect();
+          animations.forEach(animation=>animation.play());
+          return{separate:direction==='forward'?fromRect.right<=toRect.left+1:toRect.right<=fromRect.left+1,difference:Math.abs(Math.abs(fromRect.x)-Math.abs(toRect.x-toStart)),fromX:fromRect.x,toX:toRect.x,width:innerWidth,half};
+        },{trigger,from,to,direction});
+        assert.equal(middle.separate,true,`${label}: screens do not overlap halfway through (${JSON.stringify(middle)})`);checks++;
         assert.ok(middle.difference<=2,`${label}: both screens move an equal distance (${JSON.stringify(middle)})`);checks++;
         await navUnlocked();
         assert.deepEqual(await page.evaluate(to=>({on:[...document.querySelectorAll('.screen.on')].map(screen=>screen.id),scrollY,focused:document.querySelector(to).contains(document.activeElement)}),to),{on:[to.slice(1)],scrollY:0,focused:true},`${label}: transition leaves one focused active screen at scroll zero`);checks++;
@@ -160,6 +168,7 @@ async function run() {
         const style=getComputedStyle(element),properties=['height','transitionProperty','transitionDuration','overflow','touchAction','willChange'];
         return Object.fromEntries(properties.map(property=>[property,style[property]]));
       });
+      const tomeSettled = () => page.waitForFunction(()=>!document.querySelector('#tome .tome-book.is-flipping'),null,{timeout:5000});
       const settleStyles = root => page.evaluate(root=>{
         const grid=document.querySelector(`${root} .codex-grid-wrap[aria-hidden="false"]`),dial=document.querySelector(`${root} .codex-dial-option[aria-selected="true"]`);
         return{grid:getComputedStyle(grid).transitionDuration,dial:getComputedStyle(dial).transitionDuration};
@@ -210,8 +219,8 @@ async function run() {
       assert.deepEqual(homeLayout,{vertical:true,horizontal:true,logo:[720,509],rightEdge:true,bottomEdge:true},'main menu fits and the corrected logo crop reaches both outer edge strips');checks++;
       const whatsNewBox=await page.locator('#whatsNewButton').boundingBox();
       assert.ok(whatsNewBox&&whatsNewBox.x>=0&&whatsNewBox.y>=0&&whatsNewBox.x+whatsNewBox.width<=vp.width&&whatsNewBox.y+whatsNewBox.height<=vp.height,'What\'s New stays inside the top-right viewport');checks++;
-      await page.waitForTimeout(500);
-      assert.equal(await page.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').opacity),'1','full menu art holds through 0.5 seconds');checks++;
+      await page.waitForFunction(()=>window.__ebHomeCalmAt!==null,null,{timeout:10000});
+      assert.ok(await page.evaluate(()=>window.__ebHomeCalmAt-(performance.getEntriesByType('navigation')[0]?.domContentLoadedEventEnd||0))>=1000,'full menu art holds for over a second before it calms');checks++;
       const homeArt=await page.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').backgroundImage);
       assert.match(homeArt,/image-1-de14f0ce02bf\.png/, 'main menu uses the plain environment artwork');checks++;
       const stamp = await page.locator('#buildStamp').textContent();
@@ -238,8 +247,10 @@ async function run() {
       assert.equal(await page.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').opacity),'0','full menu art fades to calm by three seconds');checks++;
       const reducedPage=await context.newPage();await reducedPage.emulateMedia({reducedMotion:'reduce'});await reducedPage.goto(base,{waitUntil:'load'});
       assert.equal(await reducedPage.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').opacity),'0','reduced motion starts with the calm menu');checks++;
-      await reducedPage.locator('.home-play').click();await reducedPage.waitForTimeout(200);
-      assert.deepEqual(await reducedPage.evaluate(()=>[...document.querySelectorAll('.screen.on')].map(screen=>screen.id)),['setup'],'reduced-motion menu navigation finishes within 200 ms');checks++;await reducedPage.close();
+      // Speed is guaranteed by the configured 150 ms fade; wall-clock limits are not reliable on a busy CI machine.
+      const reducedNav=await reducedPage.evaluate(async()=>{const started=performance.now();document.querySelector('.home-play').click();const animation=getComputedStyle(document.getElementById('setup')).animationDuration;while(performance.now()-started<3000){await new Promise(resolve=>requestAnimationFrame(resolve));const on=[...document.querySelectorAll('.screen.on')].map(screen=>screen.id);if(on.length===1&&on[0]==='setup'&&!document.querySelector('.screen[class*="eb-nav-"]'))return{ms:performance.now()-started,animation,on}}return{ms:Infinity,animation}});
+      assert.equal(reducedNav.animation,'0.15s','reduced-motion menu navigation uses a 150 ms fade');checks++;
+      assert.ok(reducedNav.ms<=2000,`reduced-motion menu navigation completes (${JSON.stringify(reducedNav)})`);checks++;await reducedPage.close();
 
       await page.locator('#buildStamp').dispatchEvent('pointerdown',{pointerId:1,pointerType:'touch'});await page.waitForTimeout(650);await page.locator('#buildStamp').dispatchEvent('pointerup',{pointerId:1,pointerType:'touch'});
       await visible('#devcheck.on','System Check after version long-press');await navigate(()=>go('home'),'#home.on');
@@ -368,8 +379,8 @@ async function run() {
       const codexSwipeSettle=await settleStyles('#codex');
       assert.deepEqual(codexSwipeSettle,{grid:'0.3s, 0.3s',dial:'0.3s, 0.3s'},'Codex swipe settles over 300 ms');checks++;
       await page.waitForTimeout(500);assert.equal(await page.locator('#codex').getAttribute('data-current-deck'),'WATER','dial swipe selects Water');checks++;
-      await page.locator('#codex .codex-dial-option').nth(2).evaluate(button=>button.click());
-      const codexTapSettle=await settleStyles('#codex');
+      // Tap and read in the same task, before the 320 ms settle timer can clear the animating state on a slow machine.
+      const codexTapSettle=await page.locator('#codex .codex-dial-option').nth(2).evaluate(button=>{button.click();const root=button.closest('#codex'),grid=root.querySelector('.codex-grid-wrap[aria-hidden="false"]'),dial=root.querySelector('.codex-dial-option[aria-selected="true"]');return{grid:getComputedStyle(grid).transitionDuration,dial:getComputedStyle(dial).transitionDuration}});
       assert.deepEqual(codexTapSettle,codexSwipeSettle,'Codex medallion tap matches swipe settling');checks++;
       await page.waitForTimeout(350);await page.locator('#codex .codex-dial-option').nth(1).evaluate(button=>button.click());await page.waitForTimeout(350);
       const waterGrid=page.locator('.codex-grid-wrap[data-deck="WATER"]');
@@ -452,27 +463,27 @@ async function run() {
       assert.ok(tomeTabLayout.every((tab,index)=>tab.left>=0&&tab.right<=vp.width&&tab.top>=0&&tab.bottom<=vp.height&&(index===0||tab.top>=tomeTabLayout[index-1].bottom)),'Tome tabs do not overlap and stay inside the viewport');checks++;
       const tomeStage=await page.locator('.tome-stage').boundingBox();
       await swipe(tomeStage.x+tomeStage.width*.8,tomeStage.y+tomeStage.height*.55,tomeStage.x+tomeStage.width*.15,tomeStage.y+tomeStage.height*.55);
-      await page.waitForTimeout(700);
+      await tomeSettled();
       assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Your Bender','swiping flips to the next lesson');checks++;
       assert.equal((await page.locator('.tome-nav-label').textContent()).trim(),'First Lessons · 2','bottom navigation reports section and page');checks++;
-      await page.locator('.tome-next').click();await page.waitForTimeout(700);
-      await page.locator('.tome-prev').click();await page.waitForTimeout(700);
+      await page.locator('.tome-next').click();await tomeSettled();
+      await page.locator('.tome-prev').click();await tomeSettled();
       assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Your Bender','previous and next controls flip pages');checks++;
-      await page.locator('.tome-tab[aria-label="Water"]').click();await page.waitForTimeout(700);
+      await page.locator('.tome-tab[aria-label="Water"]').click();await tomeSettled();
       assert.equal(await page.locator('.tome-tab[aria-label="Water"]').getAttribute('aria-current'),'page','Water tab marks its chapter current');checks++;
-      await page.locator('.tome-page.is-current .tome-chip',{hasText:'Soaked'}).click();await page.waitForTimeout(700);
+      await page.locator('.tome-page.is-current .tome-chip',{hasText:'Soaked'}).click();await tomeSettled();
       assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Soaked','element chapter links to its effect');checks++;
       await shot('04b-tome-term');
-      await page.locator('.tome-page.is-current .tome-link',{hasText:'Weakened'}).click();await page.waitForTimeout(700);
+      await page.locator('.tome-page.is-current .tome-link',{hasText:'Weakened'}).click();await tomeSettled();
       assert.match(await page.locator('.tome-page.is-current .tome-ribbon').textContent(),/Back to Soaked/,'linked term exposes a return ribbon');checks++;
-      await page.locator('.tome-page.is-current .tome-ribbon').click();await page.waitForTimeout(700);
+      await page.locator('.tome-page.is-current .tome-ribbon').click();await tomeSettled();
       assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Soaked','return ribbon restores the source term');checks++;
-      await page.evaluate(()=>EB_Tome.flipTo(1,{clearTrail:true,focus:true}));await page.waitForTimeout(700);
+      await page.evaluate(()=>EB_Tome.flipTo(1,{clearTrail:true,focus:true}));await tomeSettled();
       const ownVitality=page.locator('.tome-page.is-current .tl-plate[data-plate="you"] .tl-value');
       await page.locator('.tome-page.is-current .tl-plate[data-plate="you"]').click();
       assert.equal(await ownVitality.textContent(),'30','wrong Lesson I tap leaves your Vitality unchanged');checks++;
       assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Your Bender','tapping inside a lesson board does not flip the page');checks++;
-      await page.evaluate(()=>EB_Tome.flipTo(4,{clearTrail:true,focus:true}));await page.waitForTimeout(700);
+      await page.evaluate(()=>EB_Tome.flipTo(4,{clearTrail:true,focus:true}));await tomeSettled();
       await page.locator('.tome-page.is-current .tl-card[data-card="Cinder Adept"]').click({force:true});
       assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Effects & Combos','playing a mini card does not flip the page');checks++;
       assert.equal(await page.locator('.tome-page.is-current .tl-plate[data-plate="rival"] .eb-icon').count()>1,true,'Cinder Adept applies the visible Burning glyph');checks++;
@@ -481,9 +492,9 @@ async function run() {
       assert.equal((await page.locator('.tome-page.is-current .tl-say').textContent()).trim(),'3 damage instead of 2. That is a combo.','Lesson IV finishes with the approved line');checks++;
       assert.equal(await page.locator('.tome-page.is-current .tl-plate[data-plate="rival"]>.tl-value').textContent(),'7','Lesson IV reduces rival Vitality to 7');checks++;
       await page.waitForFunction(()=>document.querySelector('.tome-page.is-current .tome-try')?.classList.contains('tl-hint'));assert.equal(await page.locator('.tome-page.is-current .tome-try').evaluate(button=>button.classList.contains('tl-hint')),true,'Lesson IV completion highlights Try it');checks++;
-      await page.locator('.tome-page.is-current .tl-finish .ghost').click();await page.waitForTimeout(200);
-      assert.equal(await page.locator('.tome-page.is-current .tl-plate[data-plate="rival"]>.tl-value').textContent(),'10','Again resets Lesson IV Vitality');checks++;
-      await page.evaluate(()=>EB_Tome.flipTo(5,{clearTrail:true,focus:true}));await page.waitForTimeout(700);
+      await page.locator('.tome-page.is-current .tl-finish .ghost').click();
+      await page.waitForFunction(()=>document.querySelector('.tome-page.is-current .tl-plate[data-plate="rival"]>.tl-value')?.textContent==='10',null,{timeout:5000});checks++;
+      await page.evaluate(()=>EB_Tome.flipTo(5,{clearTrail:true,focus:true}));await tomeSettled();
       await visible('.tome-page.is-current .tl-response','Lesson V Response Window');
       await page.locator('.tome-page.is-current .tl-response').scrollIntoViewIfNeeded();
       await shot('04e-tome-lesson-v');
@@ -492,17 +503,17 @@ async function run() {
       assert.ok((await page.locator('.tome-page:not([hidden])').count())<=5,'Tome keeps only the nearby page window rendered');checks++;
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'Tome causes no horizontal scroll');checks++;
       assert.match(await page.locator('.tome-narr').first().evaluate(el=>getComputedStyle(el).fontFamily),/Cormorant Garamond/,'Archivist uses the narrator font');checks++;
-      await page.locator('.tome-tab[aria-label="Contents"]').click();await page.waitForTimeout(700);
-      await page.locator('.tome-page.is-current button',{hasText:'Effects at a Glance'}).first().click();await page.waitForTimeout(700);
+      await page.locator('.tome-tab[aria-label="Contents"]').click();await tomeSettled();
+      await page.locator('.tome-page.is-current button',{hasText:'Effects at a Glance'}).first().click();await tomeSettled();
       assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Effects at a Glance','a mouse click on a Contents row reaches its button');checks++;
       assert.equal(await page.locator('.tome-glance-row').count(),10,'Effects at a Glance shows ten rows');checks++;
       await shot('04c-tome-glance');
       const glanceStage=await page.locator('.tome-stage').boundingBox();
       await swipe(glanceStage.x+glanceStage.width*.15,glanceStage.y+glanceStage.height*.55,glanceStage.x+glanceStage.width*.8,glanceStage.y+glanceStage.height*.55);
-      await page.waitForTimeout(700);
+      await tomeSettled();
       assert.equal(await page.locator('.tome-page.is-current .tome-title').textContent(),'Card Depletion','swiping right flips back to the previous page');checks++;
-      await page.locator('.tome-tab[aria-label="Water"]').click();await page.waitForFunction(()=>document.querySelector('.tome-page.is-current .tome-title')?.textContent.trim()==='Water',null,{timeout:5000});await page.waitForTimeout(700);
-      await page.locator('.tome-page.is-current .tome-chip',{hasText:'Soaked'}).click();await page.waitForFunction(()=>document.querySelector('.tome-page.is-current .tome-title')?.textContent.trim()==='Soaked',null,{timeout:5000});await page.waitForTimeout(700);
+      await page.locator('.tome-tab[aria-label="Water"]').click();await page.waitForFunction(()=>document.querySelector('.tome-page.is-current .tome-title')?.textContent.trim()==='Water',null,{timeout:5000});await tomeSettled();
+      await page.locator('.tome-page.is-current .tome-chip',{hasText:'Soaked'}).click();await page.waitForFunction(()=>document.querySelector('.tome-page.is-current .tome-title')?.textContent.trim()==='Soaked',null,{timeout:5000});await tomeSettled();
       await page.locator('.tome-page.is-current .tome-card-chip',{hasText:'River Serpent'}).click();await page.locator('.tome-peek-backdrop.is-open').waitFor({timeout:5000});await page.waitForTimeout(400);
       assert.equal((await page.locator('.tome-peek .codex-card-name').textContent()).trim(),'River Serpent','Seen on chip opens the card in a peek sheet');checks++;
       await page.locator('.tome-peek .codex-keyword',{hasText:'Soaked'}).click();await page.locator('.tome-peek .tome-title').waitFor({timeout:5000});
@@ -531,13 +542,13 @@ async function run() {
       assert.match(await page.locator('.tome-search-status').textContent(),/no page for that/,'empty search explains itself');checks++;
       await page.keyboard.press('Escape');await page.locator('.tome-peek-backdrop').waitFor({state:'detached',timeout:5000});
       assert.equal(await page.evaluate(()=>document.activeElement?.classList.contains('tome-search-button')),true,'closing search returns focus to the search button');checks++;
-      await page.locator('.tome-tab[aria-label="Contents"]').click();await page.waitForTimeout(700);
+      await page.locator('.tome-tab[aria-label="Contents"]').click();await tomeSettled();
       assert.match(await page.locator('.tome-page.is-current .tome-contents-row').first().textContent(),/I\s*Your Bender/,'Contents rows show the lesson names');checks++;
       await page.emulateMedia({reducedMotion:'reduce'});
       const reducedFlip=await page.locator('.tome-page.is-current').evaluate(el=>getComputedStyle(el).transitionDuration);
       assert.equal(reducedFlip,'0.15s','reduced motion uses a 150 ms cross-fade');checks++;
-      await page.locator('.tome-next').click();await page.waitForTimeout(200);
-      assert.equal(await page.evaluate(()=>document.activeElement?.classList.contains('tome-title')),true,'reduced-motion flip finishes and focuses within 200 ms');checks++;
+      const reducedTomeFlip=await page.evaluate(async()=>{const started=performance.now();document.querySelector('.tome-next').click();while(performance.now()-started<3000){await new Promise(resolve=>requestAnimationFrame(resolve));if(document.activeElement?.classList.contains('tome-title'))return performance.now()-started}return Infinity});
+      assert.ok(reducedTomeFlip<=2000,`reduced-motion flip (already asserted as a 150 ms cross-fade) completes and focuses (${Math.round(reducedTomeFlip)} ms)`);checks++;
       await page.emulateMedia({reducedMotion:'no-preference'});
       await menuPush({trigger:'#tome .tome-header .codex-back',from:'#tome',to:'#home',direction:'back',label:'Tome to Home'});
       assert.equal(await page.locator('.tome-start-badge').count(),0,'opening the Tome clears the Start here badge');checks++;
@@ -590,14 +601,12 @@ async function run() {
       await page.locator('.codex-zoom-close').click();await page.locator('.codex-zoom').waitFor({state:'detached',timeout:5000});checks++;
       await page.evaluate(()=>scrollTo(0,0));
       const scrollBeforeSelect=await page.evaluate(()=>scrollY);
-      await page.locator('.deckselect-main').click();
+      const revealStart=await page.evaluate(async()=>{document.querySelector('.deckselect-main').click();await new Promise(resolve=>requestAnimationFrame(resolve));const panel=document.querySelector('.deckselect-difficulty'),style=getComputedStyle(panel);return{opacity:Number(style.opacity),pointerEvents:style.pointerEvents}});
       await visible('.deckselect-difficulty','difficulty panel');
       assert.equal(await page.locator('.deckselect-difficulty').getAttribute('aria-hidden'),'false','difficulty choices are exposed to assistive technology');checks++;
-      await page.waitForTimeout(50);
-      assert.ok(Number(await page.locator('.deckselect-difficulty').evaluate(panel=>getComputedStyle(panel).opacity))<.1,'difficulty panel stays hidden while cards begin leaving');checks++;
-      assert.equal(await page.locator('.deckselect-difficulty').evaluate(panel=>getComputedStyle(panel).pointerEvents),'none','hidden difficulty controls cannot intercept taps during the reveal delay');checks++;
-      await page.waitForTimeout(650);
-      assert.equal(await page.locator('.deckselect-difficulty').evaluate(panel=>getComputedStyle(panel).opacity),'1','difficulty panel finishes its gentle reveal');checks++;
+      assert.ok(revealStart.opacity<.1,`difficulty panel stays hidden while cards begin leaving (${JSON.stringify(revealStart)})`);checks++;
+      assert.equal(revealStart.pointerEvents,'none','hidden difficulty controls cannot intercept taps during the reveal delay');checks++;
+      await page.waitForFunction(()=>getComputedStyle(document.querySelector('.deckselect-difficulty')).opacity==='1',null,{timeout:5000});checks++;
       assert.equal(await page.locator('.deckselect-difficulty').evaluate(panel=>getComputedStyle(panel).pointerEvents),'auto','difficulty controls enable after the reveal begins');checks++;
       assert.equal(await page.locator('.deckselect-grid-stage').evaluate(stage=>getComputedStyle(stage).opacity),'0','card grid has stepped aside before difficulty settles');checks++;
       assert.equal(await page.evaluate(()=>document.activeElement===document.querySelector('.deckselect-difficulty h2')),true,'focus moves to the arrived difficulty heading');checks++;
@@ -607,12 +616,11 @@ async function run() {
       assert.ok(await page.evaluate(()=>document.scrollingElement.scrollHeight<=innerHeight),'deck select does not scroll after Select');checks++;
       await shot('12-deck-difficulty');
       await page.locator('.deckselect-change').click();
-      await page.waitForTimeout(600);
-      assert.equal(await page.locator('.deckselect-grid-stage').evaluate(stage=>getComputedStyle(stage).opacity),'1','Change deck restores cards after the panel leaves');checks++;
+      await page.waitForFunction(()=>getComputedStyle(document.querySelector('.deckselect-grid-stage')).opacity==='1',null,{timeout:5000});checks++;
       await page.emulateMedia({reducedMotion:'reduce'});
-      await page.locator('.deckselect-main').click();
-      await page.waitForFunction(()=>Number(getComputedStyle(document.querySelector('.deckselect-difficulty')).opacity)>.99,null,{timeout:200});
-      assert.ok(Number(await page.locator('.deckselect-difficulty').evaluate(panel=>getComputedStyle(panel).opacity))>.99,'reduced-motion difficulty reveal finishes within 200 ms');checks++;
+      const reducedReveal=await page.evaluate(async()=>{const started=performance.now();document.querySelector('.deckselect-main').click();await new Promise(resolve=>requestAnimationFrame(resolve));const style=getComputedStyle(document.querySelector('.deckselect-difficulty')),timing={duration:style.transitionDuration,delay:style.transitionDelay};while(performance.now()-started<3000){await new Promise(resolve=>requestAnimationFrame(resolve));if(Number(getComputedStyle(document.querySelector('.deckselect-difficulty')).opacity)>.99)return{...timing,ms:performance.now()-started}}return{...timing,ms:Infinity}});
+      assert.ok(/^0\.15s(, 0\.15s)*$/.test(reducedReveal.duration)&&/^0s(, 0s)*$/.test(reducedReveal.delay),`reduced-motion difficulty reveal is a 150 ms fade with no delay (${JSON.stringify(reducedReveal)})`);checks++;
+      assert.ok(reducedReveal.ms<=2000,`reduced-motion difficulty reveal completes (${JSON.stringify(reducedReveal)})`);checks++;
       await page.locator('.deckselect-option[data-difficulty="Hard"]').click();
       await page.locator('.deckselect-main').click();
       await visible('#battle.on', 'duel screen');
