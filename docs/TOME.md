@@ -69,6 +69,37 @@ value, so the meaning never relies on colour.
 - One image is allowed when it is concrete ("the wind takes it back").
   Abstractions are not ("destiny", "the flame within").
 
+
+### 0.6 Search words from other games
+The search in the Tome header matches titles first, then these words players bring from other card games, then words inside the Archivist lines and rules. A word may point to more than one page.
+
+| Page | Also found by |
+|---|---|
+| Essence | mana, energy, gold |
+| Vitality | life, life total, hit points |
+| Health ♡ | hp, health, toughness |
+| Wake | graveyard, grave, discard pile, discard |
+| Deck | library, draw pile |
+| Guard | taunt, tank, wall, shield, protect |
+| Armor | block, shield, damage reduction |
+| Manifestation | creature, minion, unit, monster, summon |
+| Technique | spell, sorcery, action card |
+| Response | counter, trap, reaction, instant, interrupt |
+| Burning | burn, poison, damage over time, dot |
+| Soaked | slow, wet, freeze |
+| Growth | buff, pump, grow |
+| Momentum | buff, haste, speed |
+| Weakened | debuff, weaken |
+| Flow | scry, look at top, draw filter |
+| Exhaustion | fatigue, deck out, empty deck |
+| Card Depletion | mill, decked, lose by cards |
+| Card Re-cycle | mulligan, redraw, swap card |
+| Summoning sickness | summon sick, sick, cannot attack |
+| Attack ⚔ | atk, attack, power, damage |
+| Initiative | coin flip, who goes first, first player |
+| Chain | combo, sequence, storm count |
+| Resonance | combo, hybrid bonus, dual element |
+
 ---
 
 ## Part One · First Lessons

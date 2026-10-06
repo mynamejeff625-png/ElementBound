@@ -24,7 +24,7 @@ for(const name of ['btn','icon-btn','chip','coin','tile','sheet','dialog','toast
 check(components.includes(':focus-visible'),'interactive components define a visible keyboard-focus state');
 
 const sprite=fs.readFileSync('assets/icons.svg','utf8');
-const icons=['fire','water','nature','earth','lightning','air','magma','storm','bloom','burning','charged','guard','soaked','seeded','momentum','armor','growth','weakened','token','back','close','log','settings','hand','deck','wake','recycle','trophy','heart'];
+const icons=['fire','water','nature','earth','lightning','air','magma','storm','bloom','burning','charged','guard','soaked','seeded','momentum','armor','growth','weakened','token','back','close','search','log','settings','hand','deck','wake','recycle','trophy','heart'];
 for(const name of icons)check(new RegExp(`<symbol\\s+id=["']${name}["']`).test(sprite),`icon sprite defines ${name}`);
 check(!/<(?:style|script|image|foreignObject)\b/i.test(sprite),'icon sprite contains no active or external content');
 
