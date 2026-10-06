@@ -404,6 +404,8 @@ async function run() {
       await shot('10-deck-guide');
       await page.locator('.deck-guide .tome-card-chip').first().click();await page.locator('.tome-peek .codex-card-name').waitFor({timeout:5000});
       assert.match(await page.locator('.tome-peek .tome-ribbon').textContent(),/Back to How .+ wins/,'a key card opens inside the guide with a way back');checks++;
+      const cardFit=await page.evaluate(()=>{const body=document.querySelector('.tome-peek-body'),card=document.querySelector('.tome-peek .codex-card--l').getBoundingClientRect(),sheet=document.querySelector('.tome-peek').getBoundingClientRect();return{scroll:body.scrollHeight-body.clientHeight,offset:Math.abs((card.left+card.width/2)-(sheet.left+sheet.width/2))}});
+      assert.ok(cardFit.scroll<=1&&cardFit.offset<=2,`a card opened in a sheet is centred and fits without scrolling (${JSON.stringify(cardFit)})`);checks++;
       await page.locator('.tome-peek .tome-ribbon').click();await page.locator('.deck-guide-title').waitFor({timeout:5000});checks++;
       await page.keyboard.press('Escape');await page.locator('.tome-peek-backdrop').waitFor({state:'detached',timeout:5000});
       assert.equal(await page.evaluate(()=>document.activeElement?.classList.contains('codex-guide-button')),true,'closing the guide returns focus to its button');checks++;
