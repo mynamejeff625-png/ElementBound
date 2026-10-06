@@ -54,6 +54,9 @@ async function run() {
         viewport: { width: vp.width, height: vp.height }, deviceScaleFactor: 2,
         isMobile: true, hasTouch: true, reducedMotion: 'no-preference'
       });
+      // The static smoke server has no /api endpoints. Answer the public Firebase config request with a
+      // controlled "offline" reply so Play with Friends exercises its connection-failure path on every machine.
+      await context.route('**/api/firebase-config',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:false,error:'SMOKE_OFFLINE'})}));
       const page = await context.newPage();
       const cdp = await context.newCDPSession(page);
       const swipe = async (startX,startY,endX,endY) => {
@@ -242,7 +245,11 @@ async function run() {
       await visible('#devcheck.on','System Check after version long-press');await navigate(()=>go('home'),'#home.on');
       for(let tap=0;tap<5;tap++)await page.locator('#buildStamp').click();await visible('#devcheck.on','System Check after five version taps');await navigate(()=>go('home'),'#home.on');
       await menuPush({trigger:'.home-secondary .ghost:first-child',from:'#home',to:'#friends',label:'Home to Friends'});
-      await visible('#friends #mpConnectOnline','Friends connect control');assert.ok(await page.locator('#friends #mpRoomCode').count(),'Friends room-code control is present');checks++;
+      await page.waitForFunction(()=>/Connecting to online services|Couldn't connect|Ready to create/.test(document.getElementById('mpMatchmakingResult')?.textContent||''),null,{timeout:8000});checks++;
+      await page.waitForFunction(()=>!/Connecting to online services/.test(document.getElementById('mpMatchmakingResult')?.textContent||''),null,{timeout:15000});
+      const friendsState=await page.evaluate(()=>({text:document.getElementById('mpMatchmakingResult').textContent,retry:!document.getElementById('mpConnectOnline').hidden,create:!document.getElementById('mpCreateMatch').disabled}));
+      assert.ok(friendsState.create?!friendsState.retry:(friendsState.retry&&/Try again/.test(friendsState.text)),`Play with Friends connects by itself and only offers Try again after a failure (${JSON.stringify(friendsState)})`);checks++;
+      assert.ok(await page.locator('#friends #mpRoomCode').count(),'Friends room-code control is present');checks++;
       assert.equal(await page.locator('#mpDeckPicker img').count(),1,'Friends deck trigger shows a medallion');checks++;
       assert.ok((await page.locator('#mpDeckPicker strong').textContent()).trim(),'Friends deck trigger shows a deck name');checks++;
       await page.locator('#mpDeckPicker').click();await visible('.mp-deck-sheet','online deck picker');
@@ -388,7 +395,10 @@ async function run() {
       await assertCardChrome('.codex-zoom-slide[aria-hidden="false"] .codex-card--l',30,'Codex L card');
       await shot('08-codex-zoom');
       const zoomKeyword=page.locator('.codex-zoom-slide[aria-hidden="false"] .codex-keyword').first();const zoomKeywordText=(await zoomKeyword.textContent()).trim();
-      await zoomKeyword.click();await page.locator('.tome-peek-backdrop.is-open').waitFor({timeout:5000});await page.waitForTimeout(400);
+      // A swipe suppresses the next tap for 350 ms (so the swipe itself is not read as a tap); wait for that to clear.
+      await page.waitForFunction(()=>!document.querySelector('.codex-zoom-stage')?._ebSuppressClick,null,{timeout:5000});
+      await zoomKeyword.click();await page.locator('.tome-peek-backdrop.is-open').waitFor({timeout:5000});
+      await page.waitForTimeout(400);
       assert.equal((await page.locator('.tome-peek .tome-title').textContent()).trim(),zoomKeywordText,'Codex keyword chip opens its Tome page in a peek sheet');checks++;
       await page.keyboard.press('Escape');await page.locator('.tome-peek-backdrop').waitFor({state:'detached',timeout:5000});
       assert.equal(await page.locator('.codex-zoom.is-open').count(),1,'closing the Tome peek leaves the card zoom open');checks++;
@@ -650,4 +660,9 @@ async function run() {
   console.log(`Browser smoke test: ${checks} checks passed; screenshots in test-results/screenshots/`);
 }
 
-run().catch(err => { console.error(err); process.exit(1); });
+run().catch(err => {
+  console.error(err);
+  // On GitHub Actions, surface the failure as an annotation so it can be read without downloading the log.
+  if (process.env.GITHUB_ACTIONS) console.log(`::error title=browser-smoke::${(String(err && (err.message || err))+' @ '+String(err&&err.stack||'').split('\n').filter(line=>line.includes('smoke.cjs')).slice(0,2).join(' | ')).replace(/%/g,'%25').replace(/\r?\n/g,'%0A').slice(0,1800)}`);
+  process.exit(1);
+});
