@@ -428,7 +428,7 @@ Top to bottom, mirrored, with no page scroll:
 | The Rift | Chronicle button · whose turn ("Your turn" / "Rival's turn") and the turn number · the latest action for about 2 s · Chain pips (Lightning, Storm) · Resonance half-rings (Hybrids). Its light leans toward the side whose turn it is; faint dashed lanes join facing slots |
 | Your pedestals | 3 slots; mirrors the rival row |
 | Your plate | Same as the rival's, with Card Re-cycle at the right |
-| Hand | Compact cards: cost, name, ⚔/♡, the `short` line (3-2 replaces this with the fanned hand) |
+| Hand | A fan of mini Codex cards (see Cards and hand below) |
 | Actions | Attack (left) · End Turn (right thumb) |
 
 - **Vitality ring:** drains with damage; at 10 or less it turns to the danger
@@ -438,6 +438,25 @@ Top to bottom, mirrored, with no page scroll:
   with the hourglass; a ready one stands at the edge with the lift shadow.
 - **Chronicle:** the full duel log in the shared top sheet (`EB_Tome.sheet`),
   newest at the bottom; Escape or ✕ closes and focus returns to the button.
+- **Cards and hand (3-2):** hand and field cards are the Codex S card in miniature
+  (bronze frame, cost gem, type, element medallion, name, `short` line, ⚔/♡
+  plates; field cards drop the `short` line and show status glyphs). The hand
+  is an arc fan: sliding sideways scrubs (the card under the thumb rises and
+  grows), sliding up more than 24 px pulls a playable card out, and lifting
+  selects it. A Manifestation dropped on an empty pedestal is summoned; a
+  Technique released above the hand is cast (same path as ACTIVATE). The
+  dragged card keeps its mini-card size. Arrow keys move along the fan and
+  Enter selects; empty pedestals become buttons while a Manifestation is
+  selected. Short pedestals hide the medallion and type so name and numbers fit.
+- **Attacking (3-3):** tap a ready Manifestation, or drag from it and an
+  element-coloured arc follows the finger. Legal targets (exactly the old
+  Choose Target list) get a target ring and a damage preview (`−3`, with the
+  printed ⚔ struck through when a bonus or Soaked changes it); the preview runs
+  the live bonus code on a throwaway copy of the duel and is hidden in Trials.
+  Tap a target to strike; tap anywhere else or Escape to cancel. Attack with
+  several ready units highlights them to choose from. A rival Guard shows a
+  shield on the rival plate; while it blocks the Bender the shield grows and
+  the Bender is not a target.
 - **Anchors:** in the Arena the Bender anchors sit on the plates (`#eplate`,
   `#pplate`), one per side; slot and hand-card anchors are unchanged.
 
@@ -538,3 +557,5 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-06 | Phase 3 builds the whole issue #81 field (A1–A9, B1–B5, C1–C6, D0) with rules unchanged; new mechanics come after (3c) |
 | 2026-10-06 | D2 Ascension and D1 Bender Arts are prototyped first as simulator-only Balance Lab experiments |
 | 2026-10-06 | The Arena is mirrored around the Rift: Bender plates top and bottom with Vitality rings, pedestals facing the Rift, the duel log in a Chronicle sheet; toggle `?arena=1` until the 3-6 exit audit |
+| 2026-10-06 | Arena hand and field use mini Codex cards; the hand is an arc fan with scrub, pull-up drag and lift-to-select (Owner playtest feedback on PR #82) |
+| 2026-10-06 | Arena attacks use a drag arc or tap-then-tap with target rings, damage preview and a Guard shield on the rival plate, replacing Choose Attacker / Choose Target |

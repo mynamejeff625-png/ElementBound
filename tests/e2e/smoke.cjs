@@ -721,8 +721,35 @@ async function run() {
       const summon=await page.evaluate(()=>{const c=me().hand.find(card=>card.type==='MANIFESTATION'&&playable(card));if(!c)return null;const i=me().slots.findIndex(slot=>!slot);play(c,i);return {id:c.id,i}});
       if(summon){
         await page.waitForFunction(({id,i})=>!!document.querySelector(`#pslots .slot[data-slot="${i}"] .card[data-id="${id}"]`),summon,{timeout:5000});
-        const fieldCard=await page.evaluate(({id,i})=>{const slot=document.querySelector(`#pslots .slot[data-slot="${i}"]`).getBoundingClientRect(),card=document.querySelector(`#pslots .card[data-id="${id}"]`),r=card.getBoundingClientRect();return {inside:r.left>=slot.left-1&&r.right<=slot.right+1&&r.top>=slot.top-8&&r.bottom<=slot.bottom+8,sick:card.classList.contains('is-sick'),stats:!!card.querySelector('.arena-stats [aria-label="Attack"]')}},summon);
+        const fieldCard=await page.evaluate(({id,i})=>{const slot=document.querySelector(`#pslots .slot[data-slot="${i}"]`).getBoundingClientRect(),card=document.querySelector(`#pslots .card[data-id="${id}"]`),r=card.getBoundingClientRect();return {inside:r.left>=slot.left-1&&r.right<=slot.right+1&&r.top>=slot.top-8&&r.bottom<=slot.bottom+8,sick:card.classList.contains('is-sick'),stats:!!card.querySelector('.codex-card-stats [aria-label="Attack"]')}},summon);
         assert.deepEqual(fieldCard,{inside:true,sick:true,stats:true},'a summoned card stands inside its pedestal, shows ⚔/♡ and waits (summoning sickness)');checks++;
+      }
+      // 3-2 · the fanned hand: mini Codex cards; dragging one up onto an empty pedestal summons it.
+      const fan=await page.evaluate(()=>{const cards=[...document.querySelectorAll('#hand .arena-card')];const rot=cards.map(c=>parseFloat(getComputedStyle(c).rotate)||0);return {n:cards.length,codex:cards.every(c=>c.classList.contains('codex-card--s')&&!!c.querySelector('.codex-card-medallion--s')),fanned:cards.length<2||rot[0]<0&&rot.at(-1)>0}});
+      assert.ok(fan.codex&&fan.fanned,`the hand is a fan of mini Codex cards (${JSON.stringify(fan)})`);checks++;
+      await page.evaluate(()=>{G.p[0].e=Math.max(G.p[0].e,3);let free=G.p[0].hand.find(c=>c.type==='MANIFESTATION'&&c.c<=G.p[0].e);if(!free){let unit=G.p[0].deck.find(c=>c.type==='MANIFESTATION'&&c.c<=3);if(unit){G.p[0].deck.splice(G.p[0].deck.indexOf(unit),1);G.p[0].hand.push(unit)}}render()});
+      const dragPlan=await page.evaluate(()=>{const hand=document.getElementById('hand'),r=hand.getBoundingClientRect(),cards=[...hand.querySelectorAll('.arena-card')];const i=cards.findIndex(el=>{const c=me().hand.find(h=>h.id==el.dataset.id);return c&&c.type==='MANIFESTATION'&&playable(c)});const slot=[...document.querySelectorAll('#pslots .slot')].find(el=>!el.querySelector('.card'));if(i<0||!slot)return null;const s=slot.getBoundingClientRect();return {id:Number(cards[i].dataset.id),x:r.left+r.width/2+Number(cards[i].dataset.fanX),y:r.top+r.height*.7,tx:s.left+s.width/2,ty:s.top+s.height/2,slot:Number(slot.dataset.slot),w:cards[i].offsetWidth,h:cards[i].offsetHeight}});
+      if(dragPlan){
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:dragPlan.x,y:dragPlan.y}]});
+        for(let step=1;step<=10;step++){const t=step/10;await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:dragPlan.x+(dragPlan.tx-dragPlan.x)*t,y:dragPlan.y+(dragPlan.ty-dragPlan.y)*t}]})}
+        const ghost=await page.evaluate(()=>{const g=document.querySelector('.arena-ghost');return g?{w:g.offsetWidth,h:g.offsetHeight,text:!!g.querySelector('.rules,.card-summary,.card-inspect-hint'),hover:!!document.querySelector('#pslots .slot.drop-hover')}:null});
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+        assert.ok(ghost&&ghost.w===dragPlan.w&&ghost.h===dragPlan.h&&!ghost.text&&ghost.hover,`the dragged card keeps its mini-card size with no description and lights the pedestal (${JSON.stringify(ghost)})`);checks++;
+        await page.waitForFunction(({id,slot})=>me().slots[slot]?.id===id,dragPlan,{timeout:5000});checks++;
+        assert.equal(await page.locator('.arena-ghost').count(),0,'the drag ghost is removed after the drop');checks++;
+      }
+      // 3-3 · attacking: a ready Manifestation aims at targets with a damage preview; tapping a target attacks.
+      await page.evaluate(()=>{const unit=me().slots.find(Boolean);if(unit){unit.sick=false;unit.ready=true}render()});
+      const aimPlan=await page.evaluate(()=>{const el=document.querySelector('#pslots .arena-card');if(!el)return null;const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}});
+      if(aimPlan){
+        await page.touchscreen.tap(aimPlan.x,aimPlan.y);
+        const aimState=await page.evaluate(()=>({aiming:EB_Arena.aiming,targets:[...document.querySelectorAll('[data-arena-target]')].map(el=>({key:el.dataset.arenaTarget,label:el.getAttribute('aria-label')})),modal:!document.getElementById('mw').classList.contains('hide')}));
+        assert.ok(aimState.aiming!=null&&aimState.targets.length>0&&aimState.targets.every(t=>/^Attack (the rival Bender( past Guard)?|.+), \d+ damage$/.test(t.label))&&!aimState.modal,`tapping a ready Manifestation aims it with labelled targets and damage, no pop-up (${JSON.stringify(aimState)})`);checks++;
+        const rev=await page.evaluate(()=>G.rev);
+        const targetBox=await page.locator('[data-arena-target]').last().boundingBox();
+        await page.touchscreen.tap(targetBox.x+targetBox.width*.5,targetBox.y+targetBox.height*.4);
+        await page.waitForFunction(r=>G.rev>r||!!G.pendingResponse,rev,{timeout:5000});checks++;
+        assert.equal(await page.evaluate(()=>EB_Arena.aiming),null,'aiming ends after the attack');checks++;
       }
       await shot('06b-duel-arena');
       await page.locator('.arena-chronicle').click();

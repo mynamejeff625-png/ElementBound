@@ -11,7 +11,9 @@ window.EB_RELEASE=Object.freeze({
     'Preview the Arena: the whole duel on one screen, no scrolling',
     'Benders show Vitality as a ring, with Essence gems beside it',
     'The Rift between the fields shows whose turn it is, Chain and Resonance',
-    'The duel log moves into the Chronicle'
+    'The duel log moves into the Chronicle',
+    'Your hand is a fan of mini cards: slide to browse, pull a card up to play it',
+    'Attack by dragging an arc to a target, with the damage shown before you strike'
   ])
 });
 

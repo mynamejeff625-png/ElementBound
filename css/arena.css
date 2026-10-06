@@ -81,27 +81,87 @@
 #battle.arena #pslots .slot::after{top:3px;bottom:auto}
 #battle.arena #pslots .card.is-sick{translate:0 6px}
 #battle.arena .slot>.small{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
-#battle.arena .slots .card{display:flex;flex-direction:column;gap:4px;width:100%;height:auto;aspect-ratio:5/7;max-height:100%;min-height:0;padding:6px;overflow:hidden;box-shadow:var(--eb-shadow-lift)}
-#battle.arena .slots .card.is-sick{translate:0 -6px;box-shadow:var(--eb-shadow-rest);filter:saturate(.75) brightness(.9)}
-#battle.arena .slots .card b,#battle.arena .hand .card b{font:600 11px/1.2 var(--eb-font-display);padding-right:0;white-space:normal;text-overflow:clip;overflow-wrap:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-#battle.arena .slot .card .cost,#battle.arena .card .card-type,#battle.arena .card .rules,#battle.arena .card .card-inspect-hint,#battle.arena .card .card-status:not(.mp-status){display:none}
-#battle.arena .card .arena-stats{display:flex;flex-wrap:wrap;gap:4px;margin-top:auto}
-#battle.arena .arena-stat{display:inline-flex;align-items:center;gap:2px;padding:2px 5px;border-radius:var(--eb-radius-sm);background:var(--eb-plate-edge);font:800 var(--eb-text-xs)/1 var(--eb-font-ui);color:var(--eb-ink)}
-#battle.arena .arena-stat .eb-icon{width:11px;height:11px}
-#battle.arena .arena-sick{color:var(--eb-ink-quiet)}
-#battle.arena .card .effect-strip{display:flex;flex-wrap:wrap;gap:2px;margin:0}
-#battle.arena .card .effect-badge{padding:1px 4px;font-size:10px}
-#battle.arena .slot.drop-ready{outline:2px solid var(--eb-drop);outline-offset:-2px}
+/* 3-2 · Mini Codex cards on the field and in the hand (same frame, gem, medallion and stat plates as the Codex S card).
+   The legacy duel card rules are reset here at higher specificity. */
+#battle.arena .card.arena-card{--eb-card-frame:10px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:0;min-width:0;max-width:none;min-height:0;padding:6px 6px 6px;overflow:hidden;color:var(--eb-ink);background:var(--eb-card-plate);border-style:solid;border-color:transparent;border-width:var(--eb-card-frame);border-radius:calc(var(--eb-card-frame) * .6);border-image:url("../assets/frames/card-frame-bronze.webp") 40 fill / var(--eb-card-frame) stretch;box-shadow:var(--eb-shadow-rest);outline:0;font-family:var(--eb-font-ui);cursor:pointer;transition:translate var(--eb-dur-lift) var(--eb-ease),rotate var(--eb-dur-lift) var(--eb-ease),scale var(--eb-dur-lift) var(--eb-ease),box-shadow var(--eb-dur-lift) var(--eb-ease),filter var(--eb-dur-lift) var(--eb-ease)}
+#battle.arena .card.arena-card:focus-visible{outline:2px solid var(--eb-select);outline-offset:2px}
+#battle.arena .arena-card .codex-card-top{min-height:18px}
+#battle.arena .arena-card .codex-cost{width:20px;height:20px}
+#battle.arena .arena-card .codex-card-type{font-size:8px}
+#battle.arena .arena-card .codex-card-medallion--s{width:22px;height:22px;flex:none;margin-top:1px}
+#battle.arena .arena-card .codex-card-name{font-size:10px;max-height:22px}
+#battle.arena .arena-card .codex-card-stats{font-size:11px;gap:2px}
+#battle.arena .arena-card .codex-card-stat{padding:2px 3px}
+#battle.arena .arena-card .codex-card-stat .eb-icon{width:11px;height:11px}
+#battle.arena .arena-card .arena-stat-icon{padding:2px}
+#battle.arena .arena-card .codex-card-stat.is-hurt{color:var(--eb-hp-hi)}
+#battle.arena .arena-card .arena-sick{color:var(--eb-ink-quiet)}
+#battle.arena .arena-glyphs{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:2px}
+#battle.arena .arena-glyph{display:inline-flex;align-items:center;gap:1px;height:16px;padding:0 3px;border-radius:8px;background:var(--eb-plate-edge);box-shadow:inset 0 0 0 1px var(--eb-bronze-lo);font:800 9px/1 var(--eb-font-ui);color:var(--eb-ink)}
+#battle.arena .arena-glyph .eb-icon{width:11px;height:11px}
+#battle.arena .arena-glyph--text{padding:0 4px}
+#battle.arena .arena-soaked{display:inline-flex;align-items:center;gap:1px}
+#battle.arena .arena-soaked s{opacity:.6}
 
-/* Hand (3-2 replaces this strip with the fanned hand) */
+/* Field cards: no short line (detail lives in Inspect); they face the Rift. */
+#battle.arena .slots .slot{container-type:size}
+#battle.arena .slots .card.arena-card{width:min(100cqw,calc(100cqh * 5 / 7));height:auto;max-height:100%;aspect-ratio:5/7;max-width:100%;margin-inline:auto;justify-content:flex-start;touch-action:none;box-shadow:var(--eb-shadow-lift)}
+#battle.arena .slots .arena-card .codex-card-short{display:none}
+#battle.arena .slots .arena-card .codex-card-stats{margin-top:auto}
+#battle.arena .slots .card.arena-card.is-sick{translate:0 -6px;box-shadow:var(--eb-shadow-rest);filter:saturate(.75) brightness(.9)}
+#battle.arena #pslots .card.arena-card.is-sick{translate:0 6px}
+#battle.arena .slot.drop-ready{outline:2px dashed var(--eb-drop);outline-offset:-3px}
+#battle.arena .slot.drop-hover{outline:2px solid var(--eb-select);background:color-mix(in srgb,var(--eb-drop) 14%,transparent);transform:none}
+
+/* The fanned hand. Position comes from --fan-* set in JS; only translate/rotate/scale move. */
 #battle.arena #recycleHint{flex:none;margin:0;font-size:var(--eb-text-xs);line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--eb-ink-quiet)}
 #battle.arena #recycleHint:empty{display:none}
-#battle.arena #hand.hand{flex:none;height:124px;min-height:0;max-height:none;padding:4px 2px 2px;gap:6px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity}
-#battle.arena #hand.hand .card{flex:none;min-width:0;max-width:none;width:96px;height:116px;min-height:0;padding:6px;display:flex;flex-direction:column;gap:4px;scroll-snap-align:start}
-#battle.arena .hand .card .cost{right:4px;top:4px;width:20px;height:20px;font-size:var(--eb-text-xs)}
-#battle.arena .hand .card b{padding-right:18px}
-#battle.arena .hand .card .arena-short{display:block;font:var(--eb-text-xs)/1.25 var(--eb-font-ui);color:var(--eb-ink-quiet);overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
-#battle.arena .hand .card:not(.play){filter:saturate(.6) brightness(.8)}
+#battle.arena #hand.hand{position:relative;display:block;flex:none;height:146px;min-height:0;max-height:none;padding:0;overflow:visible;touch-action:none;scroll-snap-type:none}
+#battle.arena #hand .card.arena-card{position:absolute;left:50%;bottom:12px;width:92px;height:130px;margin-left:-46px;transform-origin:50% 100%;translate:var(--fan-x,0) var(--fan-y,0);rotate:var(--fan-r,0deg);scale:var(--fan-s,1);scroll-snap-align:none}
+#battle.arena #hand .arena-card .codex-card-short{max-height:20px;margin-top:auto}
+#battle.arena #hand .arena-card:has(.codex-card-stats) .codex-card-short{margin-top:2px;max-height:10px;-webkit-line-clamp:1}
+#battle.arena #hand .card.arena-card:not(.play){filter:saturate(.55) brightness(.75)}
+#battle.arena #hand .card.arena-card.play{box-shadow:var(--eb-shadow-rest),0 0 0 1px color-mix(in srgb,var(--eb-select) 45%,transparent)}
+#battle.arena #hand .card.arena-card.is-focus{box-shadow:var(--eb-shadow-lift)}
+#battle.arena #hand .card.arena-card.recycle-selected{outline:0;box-shadow:var(--eb-glow-select),var(--eb-shadow-lift)}
+#battle.arena #hand .card.arena-card.drag-source{opacity:.35}
+#battle.arena #hand .card.arena-card.mp-pending{opacity:.5}
+#battle.arena #hand .card.arena-card.tech-selected{height:130px;min-height:0;overflow:visible}
+#battle.arena #hand .arena-card .eb-tech-activate{position:absolute;left:50%;top:-54px;width:auto;min-width:96px;min-height:44px;margin:0;padding:8px 14px;translate:-50% 0;border:0;border-radius:var(--eb-radius-md);background:var(--eb-plate);box-shadow:inset 0 0 0 1px var(--eb-bronze-hi),var(--eb-shadow-lift);color:var(--eb-ink);font:700 var(--eb-text-sm)/1 var(--eb-font-display);letter-spacing:.06em;pointer-events:auto!important}
+
+/* Drag ghost (lives on <body>, so it carries its own size) */
+.arena-ghost.codex-card--s{--eb-card-frame:10px;position:fixed;left:0;top:0;z-index:9999;box-sizing:border-box;width:var(--ghost-w,88px);height:var(--ghost-h,130px);padding:6px;pointer-events:none;translate:var(--gx,0) var(--gy,0);rotate:var(--gr,0deg);scale:1.12;box-shadow:var(--eb-shadow-lift);opacity:.95;transition:scale var(--eb-dur-lift) var(--eb-ease),box-shadow var(--eb-dur-lift) var(--eb-ease)}
+.arena-ghost.codex-card--s.is-armed{scale:1;box-shadow:var(--eb-glow-select),var(--eb-shadow-lift)}
+.arena-ghost .codex-card-top{min-height:18px}.arena-ghost .codex-cost{width:20px;height:20px}.arena-ghost .codex-card-medallion--s{width:22px;height:22px}
+.arena-ghost .codex-card-short{max-height:20px;margin-top:auto}.arena-ghost .codex-card-stats{font-size:11px}
+.arena-ghost .arena-glyphs{display:flex;gap:2px}
+
+/* 3-3 · Attacking */
+#battle.arena #pslots .card.arena-card.is-attack-ready{box-shadow:0 0 0 2px var(--eb-select),var(--eb-shadow-lift);animation:arenaReady 1.1s ease-in-out infinite alternate}
+#battle.arena #pslots .card.arena-card.is-aiming{scale:1.06;box-shadow:var(--eb-glow-select),var(--eb-shadow-lift)}
+#battle.arena.is-aiming #eslots .card.arena-card:not(.is-target){filter:brightness(.6)}
+#battle.arena .is-target{position:relative;cursor:crosshair}
+#battle.arena #eslots .card.arena-card.is-target{box-shadow:0 0 0 2px var(--eb-target),var(--eb-shadow-lift)}
+#battle.arena #eplate.is-target{box-shadow:inset 0 0 0 2px var(--eb-target),var(--eb-shadow-rest)}
+#battle.arena .is-target.is-hover,#battle.arena #eslots .card.arena-card.is-target.is-hover{scale:1.05;box-shadow:0 0 0 3px var(--eb-target),0 0 18px color-mix(in srgb,var(--eb-target) 55%,transparent)}
+#battle.arena .is-target:focus-visible{outline:2px solid var(--eb-select);outline-offset:2px}
+.arena-preview{position:absolute;left:50%;top:auto;bottom:34%;z-index:5;display:inline-flex;align-items:center;gap:3px;padding:3px 7px;translate:-50% -50%;border-radius:12px;background:var(--eb-plate-edge);box-shadow:inset 0 0 0 1px var(--eb-target),var(--eb-shadow-rest);color:var(--eb-ink);font:800 var(--eb-text-sm)/1 var(--eb-font-ui);white-space:nowrap;pointer-events:none}
+#eplate>.arena-preview{left:auto;right:56px;top:50%;bottom:auto}
+.arena-preview .eb-icon{width:12px;height:12px;color:var(--eb-target)}
+.arena-preview-was{font-size:var(--eb-text-xs);color:var(--eb-ink-quiet)}
+.arena-preview-note{font-size:10px;color:var(--eb-bronze-hi)}
+.arena-shield{position:absolute;right:-4px;bottom:-4px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--eb-plate-edge);box-shadow:inset 0 0 0 1px var(--eb-bronze-hi);color:var(--eb-bronze-hi)}
+.arena-shield .eb-icon{width:12px;height:12px}
+#battle.arena #eplate.is-guard-locked .arena-shield{width:26px;height:26px;box-shadow:inset 0 0 0 2px var(--eb-bronze-hi),0 0 12px color-mix(in srgb,var(--eb-bronze-hi) 50%,transparent)}
+#battle.arena #eplate.is-guard-locked .arena-shield .eb-icon{width:15px;height:15px}
+#battle.arena #eplate.is-deflecting .arena-shield{animation:arenaDeflect .3s ease}
+.arena-aim{position:fixed;inset:0;z-index:90;width:100vw;height:100vh;pointer-events:none;opacity:0;transition:opacity 120ms linear}
+.arena-aim.is-on{opacity:1}
+.arena-aim path{fill:none;stroke:var(--aim,var(--eb-select));stroke-width:5;stroke-linecap:round;stroke-dasharray:2 11;filter:drop-shadow(0 0 4px var(--aim,var(--eb-select)));animation:arenaFlow .6s linear infinite}
+.arena-aim circle{fill:none;stroke:var(--aim,var(--eb-select));stroke-width:3}
+@keyframes arenaReady{from{box-shadow:0 0 0 2px var(--eb-select),var(--eb-shadow-lift)}to{box-shadow:0 0 0 2px var(--eb-select),0 0 16px color-mix(in srgb,var(--eb-select) 60%,transparent),var(--eb-shadow-lift)}}
+@keyframes arenaFlow{to{stroke-dashoffset:-13}}
+@keyframes arenaDeflect{0%,100%{translate:0}30%{translate:-3px 0}60%{translate:3px 0}}
 
 /* Actions: Attack on the left, End Turn under the right thumb */
 #battle.arena .actions{flex:none;grid-template-columns:1fr 1.3fr;gap:8px}
@@ -117,12 +177,28 @@
 .arena-chronicle-list li::marker{color:var(--eb-bronze-lo);font-size:var(--eb-text-xs)}
 
 @media (max-height:700px){
-  #battle.arena #hand.hand{height:112px}
-  #battle.arena #hand.hand .card{height:104px}
+  #battle.arena #hand.hand{height:140px}
+  #battle.arena #hand .card.arena-card{width:88px;height:124px;margin-left:-44px}
   .arena-plate{min-height:48px;padding-block:2px}
 }
 @media (prefers-reduced-motion:reduce){
   .arena-plate.is-low .arena-ring{animation:none}
   .arena-ring,.arena-rift::before,.rift-ticker,.rift-ticker.is-on{transition:opacity 150ms linear}
   .rift-ticker,.rift-ticker.is-on{transform:none}
+  #battle.arena .card.arena-card,.arena-ghost.codex-card--s{transition:none}
+  #battle.arena #pslots .card.arena-card.is-attack-ready,.arena-aim path,#battle.arena #eplate.is-deflecting .arena-shield{animation:none}
+}
+
+/* Short pedestals (small phones): keep the name and the numbers, drop the decoration. */
+@container (max-height:150px){
+  #battle.arena .slots .arena-card .codex-card-medallion--s,#battle.arena .slots .arena-card .codex-card-type{display:none}
+  #battle.arena .slots .arena-card .codex-card-name{margin-top:1px;font-size:9px}
+  #battle.arena .slots .arena-card .codex-card-stats{flex-wrap:wrap;justify-content:center;gap:1px;font-size:10px}
+  #battle.arena .slots .arena-card .codex-card-stat{padding:1px 2px}
+  #battle.arena .slots .arena-card .codex-card-stat .eb-icon{width:9px;height:9px}
+  #battle.arena .slots .card.arena-card{padding:4px}
+}
+@media (max-width:380px){
+  .arena-essence-num{display:none}
+  .arena-zones{gap:6px}
 }
