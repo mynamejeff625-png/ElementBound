@@ -636,6 +636,15 @@ async function run() {
       await page.locator('.deckselect-change').click();
       await page.waitForFunction(()=>getComputedStyle(document.querySelector('.deckselect-grid-stage')).opacity==='1',null,{timeout:5000});
       await page.evaluate(label=>[...document.querySelectorAll('#setup .codex-dial-option')].find(button=>button.getAttribute('aria-label')===label).click(),primeDeckLabel);await page.waitForTimeout(500);
+      const selectedLook=await page.evaluate(()=>({checks:document.querySelectorAll('#setup .deckselect-difficulty .eb-icon[aria-label$="selected"], #setup .deckselect-check').length,glow:getComputedStyle(document.querySelector('.deckselect-option.is-selected')).boxShadow!=='none',buttons:getComputedStyle(document.querySelector('.deckselect-main')).touchAction,overscroll:getComputedStyle(document.documentElement).overscrollBehaviorY}));
+      assert.deepEqual(selectedLook,{checks:0,glow:true,buttons:'manipulation',overscroll:'none'},'selection shows only the glowing outline (no ✓), and taps are not delayed or swallowed by page bounce');checks++;
+      const gridBox=await page.locator('#setup .codex-grids').boundingBox();
+      await swipe(gridBox.x+gridBox.width*.75,gridBox.y+gridBox.height*.5,gridBox.x+gridBox.width*.2,gridBox.y+gridBox.height*.5);
+      await page.waitForFunction(()=>!document.querySelector('#setup .codex-grids')?._ebSuppressClick,null,{timeout:5000});
+      const selectBox=await page.locator('.deckselect-main').boundingBox();await page.touchscreen.tap(selectBox.x+selectBox.width/2,selectBox.y+selectBox.height/2);
+      await page.waitForFunction(()=>document.querySelector('#setup .deckselect-shell')?.classList.contains('is-choosing-difficulty'),null,{timeout:3000});checks++;
+      await page.locator('.deckselect-change').click();await page.waitForFunction(()=>getComputedStyle(document.querySelector('.deckselect-grid-stage')).opacity==='1',null,{timeout:5000});
+      await page.evaluate(label=>[...document.querySelectorAll('#setup .codex-dial-option')].find(button=>button.getAttribute('aria-label')===label).click(),primeDeckLabel);await page.waitForTimeout(500);
       await page.emulateMedia({reducedMotion:'reduce'});
       const reducedReveal=await page.evaluate(async()=>{const started=performance.now();document.querySelector('.deckselect-main').click();await new Promise(resolve=>requestAnimationFrame(resolve));const style=getComputedStyle(document.querySelector('.deckselect-difficulty')),timing={duration:style.transitionDuration,delay:style.transitionDelay};while(performance.now()-started<3000){await new Promise(resolve=>requestAnimationFrame(resolve));if(Number(getComputedStyle(document.querySelector('.deckselect-difficulty')).opacity)>.99)return{...timing,ms:performance.now()-started}}return{...timing,ms:Infinity}});
       assert.ok(/^0\.15s(, 0\.15s)*$/.test(reducedReveal.duration)&&/^0s(, 0s)*$/.test(reducedReveal.delay),`reduced-motion difficulty reveal is a 150 ms fade with no delay (${JSON.stringify(reducedReveal)})`);checks++;

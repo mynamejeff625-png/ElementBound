@@ -30,3 +30,7 @@
 .eb-toast{padding:var(--eb-space-3) var(--eb-space-4);border-radius:var(--eb-radius-md)}
 .eb-toast--toast{background:var(--eb-plate)}
 .eb-toast--banner{width:100%;text-align:center;font-family:var(--eb-font-display);font-weight:700}
+/* Tap reliability on phones: no double-tap-zoom wait on any control, and no page rubber-band whose
+   deceleration would swallow the next tap (iOS drops a tap that lands while the page is still bouncing). */
+button,[role="button"],[role="radio"],a{touch-action:manipulation}
+html,body{overscroll-behavior:none}
