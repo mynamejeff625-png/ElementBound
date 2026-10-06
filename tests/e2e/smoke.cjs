@@ -387,6 +387,8 @@ async function run() {
       const codexSwipeSettle=await settleStyles('#codex');
       assert.deepEqual(codexSwipeSettle,{grid:'0.3s, 0.3s',dial:'0.3s, 0.3s'},'Codex swipe settles over 300 ms');checks++;
       await page.waitForTimeout(500);assert.equal(await page.locator('#codex').getAttribute('data-current-deck'),'WATER','dial swipe selects Water');checks++;
+      const dialTargets=await page.evaluate(()=>[...document.querySelectorAll('#codex .codex-dial-option')].filter(option=>{const r=option.getBoundingClientRect();return r.left>0&&r.right<innerWidth&&Number(getComputedStyle(option).opacity)>.3}).map(option=>{const r=option.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;return[[0,-20],[0,20],[-20,0],[20,0]].every(([dx,dy])=>{const hit=document.elementFromPoint(cx+dx,cy+dy);return hit===option||option.contains(hit)||(hit?.classList?.contains('codex-dial-option'))})}));
+      assert.ok(dialTargets.length>=3&&dialTargets.every(Boolean),'every visible dial medallion keeps a 44 px tap area, even when shrunk');checks++;
       // Tap and read in the same task, before the 320 ms settle timer can clear the animating state on a slow machine.
       const codexTapSettle=await page.locator('#codex .codex-dial-option').nth(2).evaluate(button=>{button.click();const root=button.closest('#codex'),grid=root.querySelector('.codex-grid-wrap[aria-hidden="false"]'),dial=root.querySelector('.codex-dial-option[aria-selected="true"]');return{grid:getComputedStyle(grid).transitionDuration,dial:getComputedStyle(dial).transitionDuration}});
       assert.deepEqual(codexTapSettle,codexSwipeSettle,'Codex medallion tap matches swipe settling');checks++;
@@ -510,6 +512,7 @@ async function run() {
       assert.equal((await page.locator('.tome-page.is-current .tl-say').textContent()).trim(),'Passing is a choice too. Save the Response for the attack that matters.','Lesson V Pass branch uses the approved line');checks++;
       assert.ok((await page.locator('.tome-page:not([hidden])').count())<=5,'Tome keeps only the nearby page window rendered');checks++;
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),true,'Tome causes no horizontal scroll');checks++;
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1),'the Tome screen fits without page scrolling');checks++;
       assert.match(await page.locator('.tome-narr').first().evaluate(el=>getComputedStyle(el).fontFamily),/Cormorant Garamond/,'Archivist uses the narrator font');checks++;
       await page.locator('.tome-tab[aria-label="Contents"]').click();await tomeSettled();
       await page.locator('.tome-page.is-current button',{hasText:'Effects at a Glance'}).first().click();await tomeSettled();

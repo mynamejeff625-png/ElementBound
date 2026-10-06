@@ -566,6 +566,7 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-06 | Every control uses touch-action: manipulation and the page never rubber-bands (overscroll-behavior: none), so iOS cannot delay or swallow a tap after a swipe |
 | 2026-10-06 | Play with Friends shows the same Hybrid Response row (stacked, under the deck picker) and sends the choice with Create and Join; the remembered choice is shared with single player |
 | 2026-10-06 | Tap-critical deck-select controls activate on finger lift (EB_UI.fastTap) so a tap still counts when a browser withholds the click |
+| 2026-10-06 | Phase 2 exit: no menu screen uses `modal()`; the 19 remaining `modal()` calls are all inside the duel (targeting, Flow, Response window, Re-cycle, result) and are replaced by Phase 3 (tap-to-target, Inspect sheet, Response window) and Phase 4 (result screen), not before |
 | 2026-10-06 | Phase 3 builds the whole issue #81 field (A1–A9, B1–B5, C1–C6, D0) with rules unchanged; new mechanics come after (3c) |
 | 2026-10-06 | D2 Ascension and D1 Bender Arts are prototyped first as simulator-only Balance Lab experiments |
 | 2026-10-06 | The Arena is mirrored around the Rift: Bender plates top and bottom with Vitality rings, pedestals facing the Rift, the duel log in a Chronicle sheet; toggle `?arena=1` until the 3-6 exit audit |

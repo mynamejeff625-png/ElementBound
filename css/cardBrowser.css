@@ -76,3 +76,5 @@
 @media(prefers-reduced-motion:reduce){.codex-guide-button{transition:none}}
 .codex-guide-icon .eb-icon{width:20px;height:20px}
 .codex-card--l .codex-card-name{max-height:none;overflow:visible;-webkit-line-clamp:unset}
+/* Shrunken side medallions keep a 44 px tap area: the hit circle grows by the inverse of the dial scale. */
+.codex-dial-option::before{content:"";position:absolute;left:50%;top:50%;width:max(100%,calc(44px / var(--dial-scale,1)));height:max(100%,calc(44px / var(--dial-scale,1)));border-radius:50%;transform:translate(-50%,-50%)}
