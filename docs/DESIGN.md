@@ -462,7 +462,7 @@ Top to bottom, mirrored, with no page scroll:
   Effects that lower ⚔ get a danger outline and ▼ on the ⚔ plate; effects that
   raise it get ▲, so the change never relies on colour alone. Guard sits in the
   card's top row. Field cards always keep their medallion.
-- **Card detail (live):** a double-tap (or long-press path) opens the Codex
+- **Card detail (live):** a double-tap on any card opens the Codex
   close-up in the shared sheet, topped by a **Right now** panel: current ⚔/♡
   against the printed value, then each status chip with one line on what it
   does (the chip opens its Tome page).
