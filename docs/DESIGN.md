@@ -196,7 +196,7 @@ accessible name (`aria-label` or visible text).
 |---|---|---|
 | Elements | filled silhouette | `fire` `water` `nature` `earth` `lightning` `air` `magma` `storm` `bloom` |
 | Statuses | filled silhouette, readable at 12 px | `burning` `charged` `guard` `soaked` `seeded` `momentum` `armor` `growth` `weakened` `token` |
-| UI | 1.75 px stroke, round caps and joins, no fill | `back` `close` `log` `settings` `hand` `deck` `wake` `recycle` `trophy` `heart` |
+| UI | 1.75 px stroke, round caps and joins, no fill | `back` `close` `log` `settings` `hand` `deck` `wake` `recycle` `trophy` `heart` `search` |
 
 Element glyphs must stay distinguishable by shape alone (Fire vs Magma, Water vs
 Air are close in hue). Hybrids combine their parents' shapes.
@@ -496,3 +496,4 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-05 | How to Play becomes the Bender's Tome: one flip-page book (First Lessons + Glossary) with an Archivist narrator, element thumb tabs, Quick facts strips, "Don't confuse with" boxes and linked terms (`docs/TOME.md`) |
 | 2026-10-05 | Cormorant Garamond (italic, self-hosted, SIL OFL) is approved as the narrator font |
 | 2026-10-05 | Terms on cards open their Tome page in a peek sheet over the current screen, including mid-duel; the duel is never left |
+| 2026-10-05 | Tome search drops down from the top (so the phone keyboard never covers it) and also matches words from other card games (`docs/TOME.md` §0.6) |
