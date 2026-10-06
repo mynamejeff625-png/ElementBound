@@ -259,3 +259,25 @@
 #battle.arena .slots .card.arena-card.is-threatened,#battle.arena #pplate.is-threatened{box-shadow:0 0 0 2px var(--eb-select),var(--eb-shadow-lift)}
 #battle.arena #pplate .arena-zones.is-drop{outline:2px dashed var(--eb-drop);outline-offset:4px;border-radius:6px}
 @media (prefers-reduced-motion:reduce){.arena-panel,.arena-panel.is-leaving{translate:0 0;transition:opacity 150ms linear}}
+
+/* 3-5 · Combo language */
+#battle.arena #hand .card.arena-card.is-combo{box-shadow:0 0 0 1px var(--eb-bronze-hi),0 0 14px color-mix(in srgb,var(--eb-bronze-hi) 55%,transparent),var(--eb-shadow-rest)}
+.arena-combo-badge{position:absolute;left:50%;top:-9px;translate:-50% 0;padding:2px 7px;border-radius:9px;background:var(--eb-plate-edge);box-shadow:inset 0 0 0 1px var(--eb-bronze-hi);color:var(--eb-bronze-hi);font:800 9px/1.2 var(--eb-font-ui);letter-spacing:.08em;text-transform:uppercase;pointer-events:none}
+#battle.arena #hand .card.arena-card.is-combo{overflow:visible}
+#battle.arena .is-primed{animation:arenaHum 1.6s ease-in-out infinite alternate}
+@keyframes arenaHum{from{filter:brightness(1)}to{filter:brightness(1.22) drop-shadow(0 0 6px color-mix(in srgb,var(--eb-bronze-hi) 60%,transparent))}}
+.arena-thread{position:fixed;inset:0;z-index:85;width:100vw;height:100vh;pointer-events:none;opacity:0;transition:opacity 150ms linear}
+.arena-thread.is-on{opacity:1}
+.arena-thread path{fill:none;stroke:var(--eb-bronze-hi);stroke-width:2;stroke-linecap:round;stroke-dasharray:1 7;filter:drop-shadow(0 0 3px var(--eb-bronze-hi));animation:arenaFlow 1s linear infinite}
+.rift-combo{position:absolute;left:50%;top:50%;z-index:6;translate:-50% -50%;padding:4px 14px;border-radius:14px;background:var(--eb-plate-edge);box-shadow:inset 0 0 0 1px var(--combo,var(--eb-bronze-hi)),0 0 18px color-mix(in srgb,var(--combo,var(--eb-bronze-hi)) 55%,transparent);color:var(--eb-ink);font:700 var(--eb-text-md)/1.2 var(--eb-font-display);letter-spacing:.06em;text-transform:uppercase;opacity:0;pointer-events:none}
+.rift-combo.is-on{animation:arenaComboIn 1.4s var(--eb-ease-soft) both}
+.rift-combo.is-big{font-size:var(--eb-text-lg)}
+@keyframes arenaComboIn{0%{opacity:0;scale:1.3}15%{opacity:1;scale:1}75%{opacity:1}100%{opacity:0}}
+#battle.arena.fx-combo .slots,#battle.arena.fx-combo .arena-rift{animation:arenaHitStop .4s steps(1,end),arenaFlash .4s ease-out}
+@keyframes arenaHitStop{0%{scale:1.012}20%{scale:1}}
+@keyframes arenaFlash{0%{filter:brightness(1.35)}100%{filter:brightness(1)}}
+.arena-reserve{margin-left:4px;padding:1px 5px;border-radius:7px;box-shadow:inset 0 0 0 1px var(--eb-essence-hi);color:var(--eb-essence-hi);font:800 8px/1.3 var(--eb-font-ui);letter-spacing:.08em;text-transform:uppercase}
+.arena-plate.has-reserve .arena-gem.is-lit{box-shadow:0 0 6px var(--eb-essence-hi)}
+@media (prefers-reduced-motion:reduce){#battle.arena .is-primed,.arena-thread path{animation:none}.rift-combo.is-on{animation:arenaComboFade 1.4s linear both}}
+@keyframes arenaComboFade{0%,100%{opacity:0}10%,80%{opacity:1}}
+@media (max-width:380px){.arena-reserve{display:none}}

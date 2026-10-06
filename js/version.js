@@ -1,17 +1,17 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.9.2',
-  label:'Choices on the Field',
+  version:'1.9.3',
+  label:'Combo Language',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Arena: Responses and every duel choice rise from the thumb zone instead of a pop-up',
+  focus:'Arena: see your combos before you play them, and feel them land',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Arena: Responses, Flow and target choices open above your hand',
-    'During a Response the field dims except the attacker and its target',
-    'Online Responses show a countdown ring',
-    'Drag a card onto your deck counts to Re-cycle it'
+    'Cards that cash in a set-up are marked Combo, and their target glows',
+    'Pick a Combo card and a thread links it to its target',
+    'Landing a combo flashes Combo (×2, ×3 in one turn) in the Rift',
+    'Essence left over on the rival turn shows as Reserve'
   ])
 });
 
