@@ -74,6 +74,9 @@
     essence.setAttribute('role','img');essence.setAttribute('aria-label',`Essence ${now} of ${Number(player.maxE)||0}`);
     for(let i=0;i<max;i++)essence.append(node('span',`arena-gem${i<now?' is-lit':''}`));
     essence.append(node('span','arena-essence-num',now));
+    const reserve=now>=2&&(side==='you')!==(state.active===0)&&!state.winner;
+    if(reserve){const tag=node('span','arena-reserve','Reserve');tag.setAttribute('aria-hidden','true');essence.append(tag);essence.setAttribute('aria-label',`Essence ${now} of ${Number(player.maxE)||0}, held in Reserve for a Response`)}
+    target.classList.toggle('has-reserve',reserve);
     meta.append(vit,essence);main.append(name,meta);
     const zones=node('div','arena-zones'),count=zone=>root.ebZoneCount?root.ebZoneCount(player,zone):(player[zone]||[]).length;
     zones.append(counted('hand','Hand',count('hand')),counted('deck','Deck',count('deck')),counted('wake','Wake',count('wake')));
@@ -154,6 +157,66 @@
     rift(byId('rift'),state,current,you);
     const recycle=byId('recycle');if(recycle)recycle.hidden=!!context.online;
     if(aim.attackerId!=null||aim.choosing)decorateAim();
+    combos(context);
+    comboBeats(state,current);
+  }
+
+  // ---------- 3-5 · Combo language: set-up hums, payoff threads, the combo beat ----------
+  // Presentation-only map of which hand cards cash in which set-up (docs/DECK_GUIDES.md). Rules stay in game.js.
+  const enemyCard=id=>document.querySelector(`#eslots .card[data-id="${id}"]`),ownCard=id=>document.querySelector(`#pslots .card[data-id="${id}"]`);
+  const burning=x=>(x?.marks||[]).includes('Burning');
+  const PAYOFFS={
+    'Flame Burst':({rival})=>[...rival.slots.filter(burning).map(c=>enemyCard(c.id)),burning(rival)?byId('eplate'):null],
+    'Flare Hawk':({rival})=>[...rival.slots.filter(burning).map(c=>enemyCard(c.id)),burning(rival)?byId('eplate'):null],
+    'Pressure Forge':({rival,res})=>res?rival.slots.filter(burning).map(c=>enemyCard(c.id)):[],
+    'Verdant Mend':({you})=>you.slots.filter(c=>c&&(c.marks||[]).includes('Seeded')&&(c.growth||0)<3).map(c=>ownCard(c.id)),
+    'Static Step':({state})=>(state.chain||0)===1?[byId('eplate')]:[],
+    'Spark Runner':({state})=>(state.chain||0)===1?[byId('rift')?.querySelector('.rift-chain')||byId('rift')]:[],
+    'Crosswind':({rival})=>rival.slots.filter(Boolean).length>=2?rival.slots.filter(Boolean).map(c=>enemyCard(c.id)):[],
+    'Molten Channel':({res})=>res?[byId('rift')?.querySelector('.rift-res')]:[],
+    'Rainseed':({res})=>res?[byId('rift')?.querySelector('.rift-res')]:[],
+    'Flourishing Current':({res})=>res?[byId('rift')?.querySelector('.rift-res')]:[],
+    'Thunderstep':({res})=>res?[byId('rift')?.querySelector('.rift-res')]:[]
+  };
+  const combo={targets:new Map(),svg:null,turnKey:'',count:0,logLen:0};
+  function combos({state,you,rival}){
+    document.querySelectorAll('#battle .is-primed').forEach(el=>el.classList.remove('is-primed'));
+    combo.targets.clear();
+    if(state.active!==0||state.winner)return hideThread();
+    const res=!!you.turnState?.resonance?.active;
+    document.querySelectorAll('#hand .arena-card').forEach(el=>{
+      const card=(you.hand||[]).find(c=>String(c.id)===el.dataset.id),fn=card&&PAYOFFS[card.n];
+      const targets=fn?fn({state,you,rival,res}).filter(Boolean):[];
+      el.classList.toggle('is-combo',targets.length>0);
+      el.querySelector('.arena-combo-badge')?.remove();
+      if(targets.length){const badge=node('span','arena-combo-badge','Combo');el.append(badge);el.setAttribute('aria-label',`${el.getAttribute('aria-label')||''}, combo ready`);combo.targets.set(el.dataset.id,targets);targets.forEach(t=>t.classList.add('is-primed'))}
+    });
+    const chosen=root.selectedHandCard?.()?.id;threadFor(chosen!=null?String(chosen):null);
+  }
+  function threadFor(id){
+    const targets=id!=null?combo.targets.get(id):null,card=id!=null?document.querySelector(`#hand .arena-card[data-id="${id}"]`):null;
+    if(!targets||!card)return hideThread();
+    if(!combo.svg){const ns='http://www.w3.org/2000/svg';combo.svg=document.createElementNS(ns,'svg');combo.svg.setAttribute('class','arena-thread');combo.svg.setAttribute('aria-hidden','true');document.body.append(combo.svg)}
+    const ns='http://www.w3.org/2000/svg',r=card.getBoundingClientRect(),ax=r.left+r.width/2,ay=r.top+8;
+    combo.svg.replaceChildren(...targets.map(t=>{const b=t.getBoundingClientRect(),bx=b.left+b.width/2,by=b.top+b.height/2,p=document.createElementNS(ns,'path');p.setAttribute('d',`M${ax.toFixed(1)} ${ay.toFixed(1)} Q${((ax+bx)/2).toFixed(1)} ${(Math.min(ay,by)-50).toFixed(1)} ${bx.toFixed(1)} ${by.toFixed(1)}`);return p}));
+    combo.svg.classList.add('is-on');
+  }
+  function hideThread(){combo.svg?.classList.remove('is-on')}
+  // A combo that lands gets a short beat: freeze, an elemental flash in the Rift, and "Combo ×N" when it chains in one turn.
+  const COMBO_RX=/→ \+\d+ (ATK|damage)|Burning bonus|exploits Crosswind|Seeded → Growth|Resonance (Growth|deals|heals)|RESONANCE ACTIVE|^BYPASS ·|spends 1 Armor → /;
+  function comboBeats(state,current){
+    const logs=state.logs||[];
+    if(logs.length<combo.logLen)combo.logLen=0;
+    const fresh=logs.slice(combo.logLen);combo.logLen=logs.length;
+    const key=`${state.turn}:${state.active}`;if(key!==combo.turnKey){combo.turnKey=key;combo.count=0}
+    const hits=fresh.map(line=>String(line).replace(/^T\d+\s+/,'')).filter(line=>COMBO_RX.test(line));
+    if(!hits.length||!logs.length||fresh.length===logs.length)return;
+    combo.count+=hits.length;
+    const battle=byId('battle'),rift=byId('rift'),el=String(current?.el||'fire').toLowerCase();
+    let banner=rift?.querySelector('.rift-combo');
+    if(rift&&!banner){banner=node('div','rift-combo');banner.setAttribute('role','status');rift.append(banner)}
+    if(banner){banner.textContent=combo.count>1?`Combo ×${combo.count}`:'Combo';banner.style.setProperty('--combo',`var(--eb-el-${el})`);banner.classList.remove('is-on');void banner.offsetWidth;banner.classList.add('is-on');banner.classList.toggle('is-big',combo.count>1)}
+    if(battle&&!reducedMotion()){battle.classList.remove('fx-combo');void battle.offsetWidth;battle.classList.add('fx-combo');setTimeout(()=>battle.classList.remove('fx-combo'),420)}
   }
 
   // ---------- 3-2 · Mini Codex cards (hand and field) ----------
@@ -239,6 +302,7 @@
     const button=document.querySelector('#hand .eb-tech-activate');
     if(button){const name=button.closest('.arena-card')?.querySelector('.codex-card-name')?.textContent||'';button.textContent=name?`Cast ${name}`:'Cast';button.classList.add('arena-cast');actions.prepend(button)}
     actions.classList.toggle('has-cast',!!actions.querySelector('.eb-tech-activate'));
+    const chosen=root.selectedHandCard?.()?.id;threadFor(chosen!=null?String(chosen):null);
   }
 
   // ---------- 3-2 · The fanned hand ----------
@@ -260,6 +324,8 @@
       card.style.setProperty('--fan-r',`${rot.toFixed(1)}deg`);card.style.setProperty('--fan-s',String(scale));
       card.style.zIndex=String(i===focus?60:i+1);card.classList.toggle('is-focus',i===focus);
     });
+    const focusId=focus>=0?cards[focus]?.dataset.id:root.selectedHandCard?.()?.id;threadFor(focusId!=null?String(focusId):null);
+    clearTimeout(hand.threadT);hand.threadT=setTimeout(()=>{const f=hand.focus>=0?handCards()[hand.focus]?.dataset.id:root.selectedHandCard?.()?.id;threadFor(f!=null?String(f):null)},170);
   }
   function nearestCard(clientX){
     const cards=handCards();if(!cards.length)return -1;

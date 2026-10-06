@@ -478,6 +478,19 @@ Top to bottom, mirrored, with no page scroll:
   dims except the attacker (red outline) and its target (light outline); online,
   a ring counts down the server deadline. Dragging a hand card onto your plate's
   counts Re-cycles it (the Re-cycle button still works).
+- **Combo language (3-5):** on your turn, a hand card whose payoff is live
+  (a presentation map in `js/arena.js`, matching `docs/DECK_GUIDES.md`: Flame
+  Burst / Flare Hawk on Burning, Verdant Mend on Seeded, Static Step and Spark
+  Runner as the second card, Crosswind with two enemies, Resonance payoffs) gets
+  a bronze glow and a "Combo" tag; its set-up target hums (brightness only).
+  Touching or selecting it draws a dotted bronze thread to each target. When a
+  combo lands (detected from the duel log's payoff lines), the field takes a
+  short hit-stop and flash and the Rift shows "Combo", or "Combo ×N" for
+  repeats in one turn (role=status). Reduced motion: no hum, thread or freeze;
+  the banner fades.
+- **Reserve (D0):** on the other player's turn, a plate with 2+ unspent Essence
+  lights those gems and tags them "Reserve" (tag hidden under 380 px; the
+  aria-label always says it). Only the public Essence count is used.
 - **Anchors:** in the Arena the Bender anchors sit on the plates (`#eplate`,
   `#pplate`), one per side; slot and hand-card anchors are unchanged.
 
@@ -583,3 +596,4 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-06 | Arena attacks use a drag arc or tap-then-tap with target rings, damage preview and a Guard shield on the rival plate, replacing Choose Attacker / Choose Target |
 | 2026-10-06 | Arena status chips show a word as well as a glyph; card detail in a duel is the Codex close-up plus a live Right now panel; hand cards lift only while touched; Cast sits in the action row (Owner playtest, PR #82) |
 | 2026-10-06 | Arena choices (Response, Flow, targets, Re-cycle) rise into the thumb zone above the hand instead of a centred pop-up; a Response dims all but attacker and target and shows the online countdown ring |
+| 2026-10-06 | Arena combo language: Combo tag and set-up hum on live payoffs, a bronze thread to the target, a hit-stop and Combo ×N banner when it lands; unspent Essence on the rival turn shows as Reserve |

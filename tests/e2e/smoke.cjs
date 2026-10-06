@@ -780,6 +780,15 @@ async function run() {
         await page.locator('#arenaPanel .arena-panel-btn',{hasText:'PASS'}).click();
         await page.waitForFunction(()=>!!window.__smokeResp&&!EB_Arena.panelOpen&&!document.getElementById('battle').classList.contains('is-responding'),null,{timeout:5000});checks++;
       }
+      // 3-5 · combo language: a payoff card in hand is marked, its set-up hums, selecting it draws the thread; unspent Essence on the rival's turn shows as Reserve.
+      const comboState=await page.evaluate(()=>{const p=me(),e=foe();let en=e.slots.find(Boolean);if(!en){en=e.deck.find(x=>x.type==='MANIFESTATION');e.deck=e.deck.filter(x=>x!==en);e.slots[e.slots.findIndex(x=>!x)]=en}en.marks=[...new Set([...(en.marks||[]),'Burning'])];let t=p.hand.find(x=>x.n==='Flame Burst');if(!t){t=p.deck.find(x=>x.n==='Flame Burst');if(t){p.deck=p.deck.filter(x=>x!==t);p.hand.push(t)}}p.e=Math.max(p.e,2);render();if(t)selectHandCard(t);return {has:!!t,badge:!!document.querySelector(`#hand .arena-card.is-combo[data-id="${t?.id}"] .arena-combo-badge`),primed:!!document.querySelector(`#eslots .card[data-id="${en.id}"].is-primed`)}});
+      if(comboState.has){
+        await page.waitForTimeout(250);
+        assert.ok(comboState.badge&&comboState.primed&&await page.evaluate(()=>document.querySelector('.arena-thread')?.classList.contains('is-on')&&document.querySelectorAll('.arena-thread path').length>0),`a payoff card shows Combo, its Burning target hums and the thread is drawn (${JSON.stringify(comboState)})`);checks++;
+      }
+      const reserve=await page.evaluate(()=>{const p=me();p.e=3;G.active=1;render();const shown=document.getElementById('pplate').classList.contains('has-reserve')&&/Reserve/.test(document.querySelector('#pplate .arena-essence').getAttribute('aria-label'));G.active=0;render();return shown&&!document.getElementById('pplate').classList.contains('has-reserve')});
+      assert.ok(reserve,'unspent Essence shows as Reserve only during the rival turn');checks++;
+      await page.evaluate(()=>{selectedCardId=null;renderSelectionOnly()});
       await shot('06b-duel-arena');
       await page.locator('.arena-chronicle').click();
       await page.locator('.tome-peek .arena-chronicle-list').waitFor({timeout:5000});
