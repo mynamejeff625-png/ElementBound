@@ -694,6 +694,94 @@ async function run() {
       assert.equal((await page.locator('.deckselect-hint').textContent()).trim(),'Shifting Tide selected','quick rematch keeps the selected-deck hint');checks++;
       assert.equal((await page.locator('.deckselect-button-label[aria-hidden="false"]').textContent()).trim(),'START DUEL','returning from a duel preserves quick-rematch difficulty mode');checks++;
 
+      // Phase 3 · 3-1: the Arena field (behind the ?arena=1 toggle) fits one screen and keeps the field-anchor contract.
+      await page.evaluate(()=>{EB_Arena.setEnabled(true);startSelectedMatch('FIRE','Normal')});
+      await visible('#battle.on.arena','arena duel screen');
+      await page.locator('#initiativeOverlay').waitFor({ state: 'visible', timeout: 5000 });
+      await page.waitForFunction(() => { if (!G.initiative.finished) ebInitiativeSkip(); return G.initiative.finished; }, null, { timeout: 5000, polling: 100 });
+      await page.locator('#initiativeOverlay').waitFor({ state: 'hidden', timeout: 5000 });
+      await page.waitForFunction(()=>G.active===0&&!G.pendingResponse,null,{timeout:15000});
+      const arena=await page.evaluate(()=>{
+        const benders=side=>[...document.querySelectorAll(`[data-eb-anchor="bender"][data-eb-side="${side}"]`)].map(el=>el.id);
+        const inView=el=>{const r=el.getBoundingClientRect();return r.width>0&&r.top>=0&&r.bottom<=innerHeight+.5&&r.left>=0&&r.right<=innerWidth+.5};
+        const big=el=>{const r=el.getBoundingClientRect();return r.width>=44&&r.height>=44};
+        return {scrollY:document.documentElement.scrollHeight-innerHeight,scrollX:document.documentElement.scrollWidth-innerWidth,
+          rival:benders('rival'),you:benders('you'),slots:document.querySelectorAll('[data-eb-anchor="slot"]').length,
+          slotsInView:[...document.querySelectorAll('[data-eb-anchor="slot"]')].every(inView),
+          handInView:inView(document.querySelector('[data-eb-anchor="hand-card"]')),
+          plates:[...document.querySelectorAll('.arena-vit')].map(el=>el.getAttribute('aria-label')),
+          turn:document.querySelector('.rift-turn-label')?.textContent,
+          targets:['.arena-exit','.arena-chronicle','#end','#attack'].every(sel=>big(document.querySelector(sel))),
+          classicHidden:['#log','#battle .top','#estats'].every(sel=>getComputedStyle(document.querySelector(sel)).display==='none')};
+      });
+      assert.ok(arena.scrollY<=0&&arena.scrollX<=0,`arena duel fits the screen with no scroll (${arena.scrollY}px down, ${arena.scrollX}px across)`);checks++;
+      assert.deepEqual([arena.rival,arena.you,arena.slots],[['eplate'],['pplate'],6],'Bender anchors move to the plates (one per side) and all six slot anchors remain');checks++;
+      assert.ok(arena.slotsInView&&arena.handInView,'every slot and the hand are on screen');checks++;
+      assert.deepEqual(arena.plates,['Vitality 30','Vitality 30'],'both Bender plates show Vitality as a number');checks++;
+      assert.equal(arena.turn,'Your turn','the Rift says whose turn it is');checks++;
+      assert.ok(arena.targets,'arena controls are at least 44×44');checks++;
+      assert.ok(arena.classicHidden,'the classic header, stats pills and Event Log leave the arena field');checks++;
+      const summon=await page.evaluate(()=>{const c=me().hand.find(card=>card.type==='MANIFESTATION'&&playable(card));if(!c)return null;const i=me().slots.findIndex(slot=>!slot);play(c,i);return {id:c.id,i}});
+      if(summon){
+        await page.waitForFunction(({id,i})=>!!document.querySelector(`#pslots .slot[data-slot="${i}"] .card[data-id="${id}"]`),summon,{timeout:5000});
+        const fieldCard=await page.evaluate(({id,i})=>{const slot=document.querySelector(`#pslots .slot[data-slot="${i}"]`).getBoundingClientRect(),card=document.querySelector(`#pslots .card[data-id="${id}"]`),r=card.getBoundingClientRect();return {inside:r.left>=slot.left-1&&r.right<=slot.right+1&&r.top>=slot.top-8&&r.bottom<=slot.bottom+8,sick:card.classList.contains('is-sick'),stats:!!card.querySelector('.codex-card-stats [aria-label="Attack"]')}},summon);
+        assert.deepEqual(fieldCard,{inside:true,sick:true,stats:true},'a summoned card stands inside its pedestal, shows ⚔/♡ and waits (summoning sickness)');checks++;
+      }
+      // 3-2 · the fanned hand: mini Codex cards; dragging one up onto an empty pedestal summons it.
+      const fan=await page.evaluate(()=>{const cards=[...document.querySelectorAll('#hand .arena-card')];const rot=cards.map(c=>parseFloat(getComputedStyle(c).rotate)||0);return {n:cards.length,codex:cards.every(c=>c.classList.contains('codex-card--s')&&!!c.querySelector('.codex-card-medallion--s')),fanned:cards.length<2||rot[0]<0&&rot.at(-1)>0}});
+      assert.ok(fan.codex&&fan.fanned,`the hand is a fan of mini Codex cards (${JSON.stringify(fan)})`);checks++;
+      await page.evaluate(()=>{G.p[0].e=Math.max(G.p[0].e,3);let free=G.p[0].hand.find(c=>c.type==='MANIFESTATION'&&c.c<=G.p[0].e);if(!free){let unit=G.p[0].deck.find(c=>c.type==='MANIFESTATION'&&c.c<=3);if(unit){G.p[0].deck.splice(G.p[0].deck.indexOf(unit),1);G.p[0].hand.push(unit)}}render()});
+      const dragPlan=await page.evaluate(()=>{const hand=document.getElementById('hand'),r=hand.getBoundingClientRect(),cards=[...hand.querySelectorAll('.arena-card')];const i=cards.findIndex(el=>{const c=me().hand.find(h=>h.id==el.dataset.id);return c&&c.type==='MANIFESTATION'&&playable(c)});const slot=[...document.querySelectorAll('#pslots .slot')].find(el=>!el.querySelector('.card'));if(i<0||!slot)return null;const s=slot.getBoundingClientRect();return {id:Number(cards[i].dataset.id),x:r.left+r.width/2+Number(cards[i].dataset.fanX),y:r.top+r.height*.7,tx:s.left+s.width/2,ty:s.top+s.height/2,slot:Number(slot.dataset.slot),w:cards[i].offsetWidth,h:cards[i].offsetHeight}});
+      if(dragPlan){
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:dragPlan.x,y:dragPlan.y}]});
+        for(let step=1;step<=10;step++){const t=step/10;await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:dragPlan.x+(dragPlan.tx-dragPlan.x)*t,y:dragPlan.y+(dragPlan.ty-dragPlan.y)*t}]})}
+        const ghost=await page.evaluate(()=>{const g=document.querySelector('.arena-ghost');return g?{w:g.offsetWidth,h:g.offsetHeight,text:!!g.querySelector('.rules,.card-summary,.card-inspect-hint'),hover:!!document.querySelector('#pslots .slot.drop-hover')}:null});
+        await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+        assert.ok(ghost&&ghost.w===dragPlan.w&&ghost.h===dragPlan.h&&!ghost.text&&ghost.hover,`the dragged card keeps its mini-card size with no description and lights the pedestal (${JSON.stringify(ghost)})`);checks++;
+        await page.waitForFunction(({id,slot})=>me().slots[slot]?.id===id,dragPlan,{timeout:5000});checks++;
+        assert.equal(await page.locator('.arena-ghost').count(),0,'the drag ghost is removed after the drop');checks++;
+      }
+      // 3-3 · attacking: a ready Manifestation aims at targets with a damage preview; tapping a target attacks.
+      await page.evaluate(()=>{const unit=me().slots.find(Boolean);if(unit){unit.sick=false;unit.ready=true}render()});
+      const aimPlan=await page.evaluate(()=>{const el=document.querySelector('#pslots .arena-card');if(!el)return null;const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}});
+      if(aimPlan){
+        await page.touchscreen.tap(aimPlan.x,aimPlan.y);
+        const aimState=await page.evaluate(()=>({aiming:EB_Arena.aiming,targets:[...document.querySelectorAll('[data-arena-target]')].map(el=>({key:el.dataset.arenaTarget,label:el.getAttribute('aria-label')})),modal:!document.getElementById('mw').classList.contains('hide')}));
+        assert.ok(aimState.aiming!=null&&aimState.targets.length>0&&aimState.targets.every(t=>/^Attack (the rival Bender( past Guard)?|.+), \d+ damage$/.test(t.label))&&!aimState.modal,`tapping a ready Manifestation aims it with labelled targets and damage, no pop-up (${JSON.stringify(aimState)})`);checks++;
+        const rev=await page.evaluate(()=>G.rev);
+        const targetBox=await page.locator('[data-arena-target]').last().boundingBox();
+        await page.touchscreen.tap(targetBox.x+targetBox.width*.5,targetBox.y+targetBox.height*.4);
+        await page.waitForFunction(r=>G.rev>r||!!G.pendingResponse,rev,{timeout:5000});checks++;
+        assert.equal(await page.evaluate(()=>EB_Arena.aiming),null,'aiming ends after the attack');checks++;
+      }
+      // Playtest fixes: status chips carry a word, the live detail is the Codex close-up plus "Right now", no card stays lifted after a touch.
+      const live=await page.evaluate(()=>{const unit=me().slots.find(Boolean);if(!unit)return null;unit.marks=[...new Set([...(unit.marks||[]),'Weakened'])];render();const el=document.querySelector(`#pslots .card[data-id="${unit.id}"]`);return {word:[...el.querySelectorAll('.arena-glyph-text')].map(x=>x.textContent),medallion:!!el.querySelector('.codex-card-medallion--s')&&getComputedStyle(el.querySelector('.codex-card-medallion--s')).display!=='none',id:unit.id}});
+      if(live){
+        assert.ok(live.word.includes('Weak')&&live.medallion,`field cards show their medallion and status chips carry a word (${JSON.stringify(live)})`);checks++;
+        await page.evaluate(id=>inspectCard(me().slots.find(c=>c&&c.id===id)),live.id);
+        await page.locator('.tome-peek .arena-now').waitFor({timeout:5000});
+        const sheet=await page.evaluate(()=>({codex:!!document.querySelector('.tome-peek .codex-card--l'),status:document.querySelector('.tome-peek .arena-now-list')?.textContent||'',oldModal:!document.getElementById('mw').classList.contains('hide')}));
+        assert.ok(sheet.codex&&/Weakened/.test(sheet.status)&&!sheet.oldModal,`card detail is the Codex close-up with the live Right now panel (${JSON.stringify(sheet)})`);checks++;
+        await page.keyboard.press('Escape');await page.locator('.tome-peek-backdrop').waitFor({state:'detached',timeout:5000});
+      }
+      const handBox=await page.locator('#hand').boundingBox();
+      if(await page.locator('#hand .arena-card').count()){
+        await page.touchscreen.tap(handBox.x+handBox.width/2,handBox.y+handBox.height*.6);
+        await page.waitForTimeout(250);
+        assert.equal(await page.locator('#hand .arena-card.is-focus').count(),0,'no hand card stays lifted after the finger leaves');checks++;
+      }
+      await shot('06b-duel-arena');
+      await page.locator('.arena-chronicle').click();
+      await page.locator('.tome-peek .arena-chronicle-list').waitFor({timeout:5000});
+      const chronicle=await page.evaluate(()=>({items:document.querySelectorAll('.tome-peek .arena-chronicle-list li').length,logs:G.logs.length}));
+      assert.equal(chronicle.items,chronicle.logs,'the Chronicle lists every log line');checks++;
+      await shot('06c-duel-chronicle');
+      await page.keyboard.press('Escape');await page.locator('.tome-peek-backdrop').waitFor({state:'detached',timeout:5000});
+      assert.ok(await page.evaluate(()=>document.activeElement?.classList.contains('arena-chronicle')),'closing the Chronicle returns focus to its button');checks++;
+      await page.evaluate(()=>{exitBattle();EB_Arena.setEnabled(false)});
+      await visible('#setup.on','deck select after leaving the arena duel');
+      assert.equal(await page.evaluate(()=>document.querySelectorAll('[data-eb-anchor="bender"]').length===2&&!!document.querySelector('#you[data-eb-anchor="bender"]')&&!document.getElementById('battle').classList.contains('arena')),true,'turning the arena off restores the classic anchors');checks++;
+
       assert.deepEqual(errors, [], `${vp.name}: page errors:\n${errors.join('\n')}`); checks++;
       console.log(`${vp.name}: ${blockedStyles.size} distinct inline styles blocked by CSP (ceiling ${MAX_BLOCKED_INLINE_STYLES})`);
       assert.ok(blockedStyles.size <= MAX_BLOCKED_INLINE_STYLES,

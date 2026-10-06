@@ -413,6 +413,65 @@ The narrator font is Cormorant Garamond italic, self-hosted.
 
 The Tome also opens as a **peek sheet** over any screen: a term chip on a card (Codex, deck select, duel inspect) or any `data-tome-term` element slides up that term's page (340 ms, same as the Trials chapter sheet) without leaving the screen. Links inside the peek replace its page and keep their own back trail; Try it is hidden there. "Seen on" card chips open the card the same way.
 
+### Duel · The Arena *(Phase 3, issue #81)*
+
+The new duel field, built in steps 3-1 to 3-6 behind a toggle (`?arena=1` turns
+it on and is remembered on the device; `?arena=0` turns it off). It changes
+layout and presentation only; rules, AI and online play are untouched.
+
+Top to bottom, mirrored, with no page scroll:
+
+| Row | Contents |
+|---|---|
+| Rival plate | Leave-duel button · medallion in a Vitality ring · name, ♡ number, Essence gems · Hand/Deck/Wake counts · Initiation Token · status glyphs on the medallion |
+| Rival pedestals | 3 slots; cards stand on the Rift-facing edge |
+| The Rift | Chronicle button · whose turn ("Your turn" / "Rival's turn") and the turn number · the latest action for about 2 s · Chain pips (Lightning, Storm) · Resonance half-rings (Hybrids). Its light leans toward the side whose turn it is; faint dashed lanes join facing slots |
+| Your pedestals | 3 slots; mirrors the rival row |
+| Your plate | Same as the rival's, with Card Re-cycle at the right |
+| Hand | A fan of mini Codex cards (see Cards and hand below) |
+| Actions | Attack (left) · End Turn (right thumb) |
+
+- **Vitality ring:** drains with damage; at 10 or less it turns to the danger
+  colour and pulses (still under reduced motion: no pulse). The number is always
+  shown, so meaning never relies on colour.
+- **Readiness:** a summoning-sick Manifestation sits back from the Rift, dimmer,
+  with the hourglass; a ready one stands at the edge with the lift shadow.
+- **Chronicle:** the full duel log in the shared top sheet (`EB_Tome.sheet`),
+  newest at the bottom; Escape or ✕ closes and focus returns to the button.
+- **Cards and hand (3-2):** hand and field cards are the Codex S card in miniature
+  (bronze frame, cost gem, type, element medallion, name, `short` line, ⚔/♡
+  plates; field cards drop the `short` line and show status glyphs). The hand
+  is an arc fan: sliding sideways scrubs (the card under the thumb rises and
+  grows), sliding up more than 24 px pulls a playable card out, and lifting
+  selects it. A Manifestation dropped on an empty pedestal is summoned; a
+  Technique released above the hand is cast (same path as ACTIVATE). The
+  dragged card keeps its mini-card size. Arrow keys move along the fan and
+  Enter selects; empty pedestals become buttons while a Manifestation is
+  selected. Short pedestals hide the medallion and type so name and numbers fit.
+- **Attacking (3-3):** tap a ready Manifestation, or drag from it and an
+  element-coloured arc follows the finger. Legal targets (exactly the old
+  Choose Target list) get a target ring and a damage preview (`−3`, with the
+  printed ⚔ struck through when a bonus or Soaked changes it); the preview runs
+  the live bonus code on a throwaway copy of the duel and is hidden in Trials.
+  Tap a target to strike; tap anywhere else or Escape to cancel. Attack with
+  several ready units highlights them to choose from. A rival Guard shows a
+  shield on the rival plate; while it blocks the Bender the shield grows and
+  the Bender is not a target.
+- **Status chips:** every status on a card is a glyph **plus a word or number**
+  (Burn, Soak, Weak, Seed, Chg, Wait, +N for Momentum and Growth, N for Armor).
+  Effects that lower ⚔ get a danger outline and ▼ on the ⚔ plate; effects that
+  raise it get ▲, so the change never relies on colour alone. Guard sits in the
+  card's top row. Field cards always keep their medallion.
+- **Card detail (live):** a double-tap on any card opens the Codex
+  close-up in the shared sheet, topped by a **Right now** panel: current ⚔/♡
+  against the printed value, then each status chip with one line on what it
+  does (the chip opens its Tome page).
+- **Touch feedback:** a hand card rises only while the finger is on it; after
+  release the fan settles and the selection shows as a glow. A selected
+  Technique's Cast button replaces Attack in the action row.
+- **Anchors:** in the Arena the Bender anchors sit on the plates (`#eplate`,
+  `#pplate`), one per side; slot and hand-card anchors are unchanged.
+
 ### Field anchors
 
 Trial overlays are layout-agnostic and may locate duel UI only through these
@@ -453,7 +512,7 @@ license that allows use in the game (e.g. CC0), recorded in an
 |---|---|---|
 | 1 · Foundation | Tokens, components CSS, `EB_UI`, SVG icons replace emoji, fonts applied, inline styles removed | Every screen still works; only icons, fonts and spacing look different |
 | 2 · Menus and sheets | Home, Trials, Codex (deck dial + zoom, §7), Help rebuilt from components; medallions replace the element glyphs at ≥ 32 px; sheets and dialogs replace `modal()` | All High-severity menu audit items closed |
-| 3 · New duel screen (behind a toggle) | Slate, fanned hand, Bender plates, tap-to-target, Inspect sheet, framed cards with the `short` effect line, 60 s turn timer online; host Trials exclusively through the field-anchor contract | Zero scroll at 375×667; playtest on both layouts; all Trial overlays still work without layout-specific selectors |
+| 3 · New duel screen (behind a toggle, `?arena=1`; steps 3-1…3-6 in issue #81) | Slate, fanned hand, Bender plates, tap-to-target, Inspect sheet, framed cards with the `short` effect line, 60 s turn timer online; host Trials exclusively through the field-anchor contract | Zero scroll at 375×667; playtest on both layouts; all Trial overlays still work without layout-specific selectors |
 | 3b · Speed and connection | Latency audit after the duel redesign (Owner, 2026-10-05): online move round-trip, snapshot and event size, slow-connection and reconnect handling, render cost on mid-range phones | Online moves feel immediate on a throttled slow connection; no visible frame drops on a mid-range phone |
 | 4 · Feel | Motion, sound (§8), coin flip, result screen; old duel screen removed | First summon within 60 s for new players |
 | 5 · Profiles and cosmetics | Accounts, gems, Bender cosmetics, App Check | — |
@@ -508,3 +567,9 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-06 | Play with Friends shows the same Hybrid Response row (stacked, under the deck picker) and sends the choice with Create and Join; the remembered choice is shared with single player |
 | 2026-10-06 | Tap-critical deck-select controls activate on finger lift (EB_UI.fastTap) so a tap still counts when a browser withholds the click |
 | 2026-10-06 | Phase 2 exit: no menu screen uses `modal()`; the 19 remaining `modal()` calls are all inside the duel (targeting, Flow, Response window, Re-cycle, result) and are replaced by Phase 3 (tap-to-target, Inspect sheet, Response window) and Phase 4 (result screen), not before |
+| 2026-10-06 | Phase 3 builds the whole issue #81 field (A1–A9, B1–B5, C1–C6, D0) with rules unchanged; new mechanics come after (3c) |
+| 2026-10-06 | D2 Ascension and D1 Bender Arts are prototyped first as simulator-only Balance Lab experiments |
+| 2026-10-06 | The Arena is mirrored around the Rift: Bender plates top and bottom with Vitality rings, pedestals facing the Rift, the duel log in a Chronicle sheet; toggle `?arena=1` until the 3-6 exit audit |
+| 2026-10-06 | Arena hand and field use mini Codex cards; the hand is an arc fan with scrub, pull-up drag and lift-to-select (Owner playtest feedback on PR #82) |
+| 2026-10-06 | Arena attacks use a drag arc or tap-then-tap with target rings, damage preview and a Guard shield on the rival plate, replacing Choose Attacker / Choose Target |
+| 2026-10-06 | Arena status chips show a word as well as a glyph; card detail in a duel is the Codex close-up plus a live Right now panel; hand cards lift only while touched; Cast sits in the action row (Owner playtest, PR #82) |

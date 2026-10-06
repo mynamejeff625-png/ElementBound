@@ -1,15 +1,19 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.8.6',
-  label:'Menu polish',
+  version:'1.9.0',
+  label:'Arena Preview',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Phase 2 complete: every menu screen fits and is easy to tap',
+  focus:'Try the new one-screen duel field: add ?arena=1 to the address',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Small deck medallions are now easier to tap',
-    'How to Play fits the screen without scrolling'
+    'Preview the Arena: the whole duel on one screen, no scrolling',
+    'Benders show Vitality as a ring, with Essence gems beside it',
+    'The Rift between the fields shows whose turn it is, Chain and Resonance',
+    'The duel log moves into the Chronicle',
+    'Your hand is a fan of mini cards: slide to browse, pull a card up to play it',
+    'Attack by dragging an arc to a target, with the damage shown before you strike'
   ])
 });
 
