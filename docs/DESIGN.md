@@ -415,8 +415,9 @@ The Tome also opens as a **peek sheet** over any screen: a term chip on a card (
 
 ### Duel · The Arena *(Phase 3, issue #81)*
 
-The new duel field, built in steps 3-1 to 3-6 behind a toggle (`?arena=1` turns
-it on and is remembered on the device; `?arena=0` turns it off). It changes
+The duel field, built in steps 3-1 to 3-6. It is the default duel screen since
+1.10.0; `?arena=0` switches to the classic layout (remembered on the device) and
+`?arena=1` switches back. It changes
 layout and presentation only; rules, AI and online play are untouched.
 
 Top to bottom, mirrored, with no page scroll:
@@ -491,6 +492,16 @@ Top to bottom, mirrored, with no page scroll:
 - **Reserve (D0):** on the other player's turn, a plate with 2+ unspent Essence
   lights those gems and tags them "Reserve" (tag hidden under 380 px; the
   aria-label always says it). Only the public Essence count is used.
+- **Terrain (3-6):** each half of the field is tinted by its Bender's element
+  (rival at the top, yours at the bottom) with a faint element texture on your
+  half (Fire/Magma heat lines, Water/Bloom ripples, Earth tiles, Nature moss,
+  Lightning/Storm static, Air cloud). Static, so it never competes with FX.
+- **Lethal moment (3-6):** when the duel ends at 0 Vitality the field pushes in
+  briefly, the losing medallion flares and shatters, and the result panel rises
+  0.8 s later. Reduced motion: the medallion simply greys out.
+- **Online turn timer:** deferred to 3b · Speed and connection. A real 60 s
+  timer needs a server-enforced deadline (an `/api/submit-move` and view-shape
+  change), which belongs with the latency work, not a presentation step.
 - **Anchors:** in the Arena the Bender anchors sit on the plates (`#eplate`,
   `#pplate`), one per side; slot and hand-card anchors are unchanged.
 
@@ -534,7 +545,7 @@ license that allows use in the game (e.g. CC0), recorded in an
 |---|---|---|
 | 1 · Foundation | Tokens, components CSS, `EB_UI`, SVG icons replace emoji, fonts applied, inline styles removed | Every screen still works; only icons, fonts and spacing look different |
 | 2 · Menus and sheets | Home, Trials, Codex (deck dial + zoom, §7), Help rebuilt from components; medallions replace the element glyphs at ≥ 32 px; sheets and dialogs replace `modal()` | All High-severity menu audit items closed |
-| 3 · New duel screen (behind a toggle, `?arena=1`; steps 3-1…3-6 in issue #81) | Slate, fanned hand, Bender plates, tap-to-target, Inspect sheet, framed cards with the `short` effect line, 60 s turn timer online; host Trials exclusively through the field-anchor contract | Zero scroll at 375×667; playtest on both layouts; all Trial overlays still work without layout-specific selectors |
+| 3 · New duel screen (the Arena; steps 3-1…3-6 in issue #81; default since 1.10.0) | Slate, fanned hand, Bender plates, tap-to-target, Inspect sheet, framed cards with the `short` effect line, 60 s turn timer online; host Trials exclusively through the field-anchor contract | Zero scroll at 375×667; playtest on both layouts; all Trial overlays still work without layout-specific selectors |
 | 3b · Speed and connection | Latency audit after the duel redesign (Owner, 2026-10-05): online move round-trip, snapshot and event size, slow-connection and reconnect handling, render cost on mid-range phones | Online moves feel immediate on a throttled slow connection; no visible frame drops on a mid-range phone |
 | 4 · Feel | Motion, sound (§8), coin flip, result screen; old duel screen removed | First summon within 60 s for new players |
 | 5 · Profiles and cosmetics | Accounts, gems, Bender cosmetics, App Check | — |
@@ -597,3 +608,4 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-06 | Arena status chips show a word as well as a glyph; card detail in a duel is the Codex close-up plus a live Right now panel; hand cards lift only while touched; Cast sits in the action row (Owner playtest, PR #82) |
 | 2026-10-06 | Arena choices (Response, Flow, targets, Re-cycle) rise into the thumb zone above the hand instead of a centred pop-up; a Response dims all but attacker and target and shows the online countdown ring |
 | 2026-10-06 | Arena combo language: Combo tag and set-up hum on live payoffs, a bronze thread to the target, a hit-stop and Combo ×N banner when it lands; unspent Essence on the rival turn shows as Reserve |
+| 2026-10-06 | Phase 3 exit: the Arena becomes the default duel screen (`?arena=0` keeps the classic layout); every Trial passes on it; elemental terrain and the lethal moment ship; the online 60 s turn timer moves to 3b because it needs a server-enforced deadline |

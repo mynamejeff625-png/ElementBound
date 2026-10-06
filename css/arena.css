@@ -281,3 +281,30 @@
 @media (prefers-reduced-motion:reduce){#battle.arena .is-primed,.arena-thread path{animation:none}.rift-combo.is-on{animation:arenaComboFade 1.4s linear both}}
 @keyframes arenaComboFade{0%,100%{opacity:0}10%,80%{opacity:1}}
 @media (max-width:380px){.arena-reserve{display:none}}
+
+/* 3-6 · A3 Elemental terrain: each half of the field takes on its Bender's element. Painted on two fixed layers behind the field. */
+#battle.arena{--terrain-you:transparent;--terrain-rival:transparent}
+#battle.arena[data-terrain-you="fire"],#battle.arena[data-terrain-you="magma"]{--terrain-you:color-mix(in srgb,var(--eb-el-fire) 18%,transparent);--terrain-you-tex:repeating-linear-gradient(115deg,transparent 0 22px,color-mix(in srgb,var(--eb-el-fire) 10%,transparent) 22px 23px)}
+#battle.arena[data-terrain-you="water"],#battle.arena[data-terrain-you="bloom"]{--terrain-you:color-mix(in srgb,var(--eb-el-water) 16%,transparent);--terrain-you-tex:repeating-radial-gradient(circle at 50% 120%,transparent 0 18px,color-mix(in srgb,var(--eb-el-water) 9%,transparent) 18px 19px)}
+#battle.arena[data-terrain-you="earth"]{--terrain-you:color-mix(in srgb,var(--eb-el-earth) 16%,transparent);--terrain-you-tex:repeating-linear-gradient(0deg,transparent 0 30px,color-mix(in srgb,var(--eb-el-earth) 10%,transparent) 30px 31px),repeating-linear-gradient(90deg,transparent 0 46px,color-mix(in srgb,var(--eb-el-earth) 8%,transparent) 46px 47px)}
+#battle.arena[data-terrain-you="nature"]{--terrain-you:color-mix(in srgb,var(--eb-el-nature) 15%,transparent);--terrain-you-tex:radial-gradient(circle at 20% 80%,color-mix(in srgb,var(--eb-el-nature) 12%,transparent),transparent 30%),radial-gradient(circle at 75% 95%,color-mix(in srgb,var(--eb-el-nature) 10%,transparent),transparent 26%)}
+#battle.arena[data-terrain-you="lightning"],#battle.arena[data-terrain-you="storm"]{--terrain-you:color-mix(in srgb,var(--eb-el-lightning) 12%,transparent);--terrain-you-tex:repeating-linear-gradient(65deg,transparent 0 40px,color-mix(in srgb,var(--eb-el-lightning) 9%,transparent) 40px 41px,transparent 41px 52px,color-mix(in srgb,var(--eb-el-storm) 7%,transparent) 52px 53px)}
+#battle.arena[data-terrain-you="air"]{--terrain-you:color-mix(in srgb,var(--eb-el-air) 12%,transparent);--terrain-you-tex:radial-gradient(ellipse 60% 18% at 30% 70%,color-mix(in srgb,var(--eb-el-air) 10%,transparent),transparent),radial-gradient(ellipse 50% 14% at 75% 88%,color-mix(in srgb,var(--eb-el-air) 9%,transparent),transparent)}
+#battle.arena[data-terrain-rival="fire"],#battle.arena[data-terrain-rival="magma"]{--terrain-rival:color-mix(in srgb,var(--eb-el-fire) 16%,transparent)}
+#battle.arena[data-terrain-rival="water"],#battle.arena[data-terrain-rival="bloom"]{--terrain-rival:color-mix(in srgb,var(--eb-el-water) 14%,transparent)}
+#battle.arena[data-terrain-rival="earth"]{--terrain-rival:color-mix(in srgb,var(--eb-el-earth) 14%,transparent)}
+#battle.arena[data-terrain-rival="nature"]{--terrain-rival:color-mix(in srgb,var(--eb-el-nature) 13%,transparent)}
+#battle.arena[data-terrain-rival="lightning"],#battle.arena[data-terrain-rival="storm"]{--terrain-rival:color-mix(in srgb,var(--eb-el-lightning) 11%,transparent)}
+#battle.arena[data-terrain-rival="air"]{--terrain-rival:color-mix(in srgb,var(--eb-el-air) 11%,transparent)}
+#battle.arena.on{background:linear-gradient(180deg,var(--terrain-rival),transparent 38%,transparent 56%,var(--terrain-you)),var(--terrain-you-tex,none) 0 100%/100% 50% no-repeat}
+
+/* 3-6 · B4 The lethal moment: a short slow push, then the losing medallion shatters before the result. */
+.arena-plate.is-shattered .arena-medal img{animation:arenaShatter .9s var(--eb-ease-in) forwards}
+.arena-plate.is-shattered .arena-ring{opacity:.25}
+@keyframes arenaShatter{0%{scale:1;opacity:1;filter:none}30%{scale:1.12;filter:brightness(1.8)}100%{scale:.6;opacity:.15;filter:grayscale(1) brightness(.6)}}
+#battle.arena.fx-lethal .slots,#battle.arena.fx-lethal .arena-rift,#battle.arena.fx-lethal .arena-plate{animation:arenaLethal .9s var(--eb-ease-soft)}
+@keyframes arenaLethal{0%{scale:1}35%{scale:1.03;filter:brightness(1.25)}100%{scale:1}}
+#battle.arena.fx-lethal #winner:not(:empty){animation:arenaResultIn .5s var(--eb-ease-soft) .8s both}
+@keyframes arenaResultIn{from{opacity:0;scale:.94}to{opacity:1;scale:1}}
+@media (prefers-reduced-motion:reduce){.arena-plate.is-shattered .arena-medal img{animation:none;opacity:.3;filter:grayscale(1)}}
+#battle.arena.fx-lethal .arena-panel.is-open{transition-delay:.8s}

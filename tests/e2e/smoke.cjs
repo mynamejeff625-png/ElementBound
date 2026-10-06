@@ -663,6 +663,7 @@ async function run() {
       await page.locator('.deckselect-option[data-difficulty="Hard"]').click();
       await page.locator('.deckselect-main').click();
       await visible('#battle.on', 'duel screen');
+      assert.equal(await page.evaluate(()=>document.getElementById('battle').classList.contains('arena')),true,'the Arena is the default duel screen (1.10.0)');checks++;
       await calmBackground('Duel');
       await navUnlocked();
       // The initiative coin flip starts shortly after the duel opens. Wait for it,
