@@ -397,6 +397,16 @@ async function run() {
       const noHorizontalScroll=await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth);
       assert.equal(noHorizontalScroll,true,'Codex causes no horizontal page scroll');checks++;
 
+      await page.locator('#codex .codex-guide-button').click();await page.locator('.tome-peek-backdrop.is-open').waitFor({timeout:5000});await page.waitForTimeout(400);
+      const guideDeck=await page.evaluate(()=>EB_CardBrowser&&document.querySelector('#codex .codex-shell').dataset.currentDeck);
+      assert.equal((await page.locator('.deck-guide-title').textContent()).trim(),await page.evaluate(key=>ElementBoundCards.INFO[key][0],guideDeck),'Codex guide opens for the deck on the dial');checks++;
+      assert.equal(await page.locator('.deck-guide-plan li').count(),3,'deck guide shows a three-step plan');checks++;
+      await shot('10-deck-guide');
+      await page.locator('.deck-guide .tome-card-chip').first().click();await page.locator('.tome-peek .codex-card-name').waitFor({timeout:5000});
+      assert.match(await page.locator('.tome-peek .tome-ribbon').textContent(),/Back to How .+ wins/,'a key card opens inside the guide with a way back');checks++;
+      await page.locator('.tome-peek .tome-ribbon').click();await page.locator('.deck-guide-title').waitFor({timeout:5000});checks++;
+      await page.keyboard.press('Escape');await page.locator('.tome-peek-backdrop').waitFor({state:'detached',timeout:5000});
+      assert.equal(await page.evaluate(()=>document.activeElement?.classList.contains('codex-guide-button')),true,'closing the guide returns focus to its button');checks++;
       await page.locator('#codex .codex-find-button').click();await page.locator('.tome-peek-backdrop.is-search.is-open').waitFor({timeout:5000});await page.waitForTimeout(400);
       assert.equal(await page.evaluate(()=>document.activeElement?.classList.contains('codex-finder-input')),true,'card finder opens with its input focused');checks++;
       assert.match(await page.locator('.codex-finder-status').textContent(),/^42 cards$/,'card finder lists every unique card by default');checks++;
@@ -522,8 +532,11 @@ async function run() {
 
       await menuPush({trigger:'.home-play',from:'#home',to:'#setup',label:'Home to deck select'});
       await visible('#setup .deckselect-shell .codex-card','deck select cards');
+      await page.locator('#setup .codex-guide-icon').click();await page.locator('.tome-peek-backdrop.is-open').waitFor({timeout:5000});
+      assert.equal(await page.locator('.deck-guide-plan li').count(),3,'deck select opens the same deck guide from its header');checks++;
+      await page.keyboard.press('Escape');await page.locator('.tome-peek-backdrop').waitFor({state:'detached',timeout:5000});
       await calmBackground('Deck select');
-      await menuPush({trigger:'#setup .codex-header button',from:'#setup',to:'#home',direction:'back',label:'Deck select to Home'});
+      await menuPush({trigger:'#setup .codex-header .codex-back',from:'#setup',to:'#home',direction:'back',label:'Deck select to Home'});
       await menuPush({trigger:'.home-play',from:'#home',to:'#setup',label:'Home to deck select again'});
       await visible('#setup .deckselect-shell .codex-card','deck select cards after returning');
       const deckSelectFits=await page.evaluate(()=>({vertical:document.documentElement.scrollHeight<=document.documentElement.clientHeight,horizontal:document.documentElement.scrollWidth<=document.documentElement.clientWidth}));

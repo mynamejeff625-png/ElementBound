@@ -1,15 +1,15 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.8.0',
-  label:'Card finder',
+  version:'1.8.1',
+  label:'Deck guides',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Find any card by name, type, cost or effect',
+  focus:'Every deck explains how it wins',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Find any card from the magnifier in the Codex',
-    'Filter by type, cost or effect, then tap to see the card'
+    'Every deck now has a How this deck wins guide',
+    'Find it under the deck in the Codex, or the book icon in deck select'
   ])
 });
 

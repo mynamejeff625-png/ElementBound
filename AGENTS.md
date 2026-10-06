@@ -102,6 +102,7 @@ Facts:
 | `VERSIONING.md` | Release procedure (keep consistent with §5) |
 | `docs/DESIGN.md` | Binding UI/UX design system: tokens, frames, components, icons, layout rules, roadmap. Read before any UI work |
 | `docs/TOME.md` | How to Play (the Bender's Tome) content: lessons, glossary pages and page-format rules |
+| `docs/DECK_GUIDES.md` | "How this deck wins" guide text for all nine decks (mirrored in `js/deckGuides.js`) |
 | `CANDIDATE_B.md`, `MIGRATION.md`, `MIGRATION_MANIFEST.json`, `migration/` | Historical migration records. Do not edit unless asked |
 
 ## 4. Rules parity checklist
