@@ -9,7 +9,8 @@ window.EB_RELEASE=Object.freeze({
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
     'Play with Friends now connects by itself, no button needed',
-    'Long card names show in full when a card is zoomed'
+    'Long card names show in full when a card is zoomed',
+    'Tome pages now follow your finger when you swipe'
   ])
 });
 
