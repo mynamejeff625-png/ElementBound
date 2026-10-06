@@ -54,6 +54,8 @@ jobs:
       - run: node --check js/deckGuides.js
       - run: node --check tests/deck-guides-1.8.1.cjs
       - run: node tests/deck-guides-1.8.1.cjs
+      - run: node --check tests/rule-experiments-1.9.1.cjs
+      - run: node tests/rule-experiments-1.9.1.cjs
       - run: node --check tests/ui-foundation-1.2.0.cjs
       - run: node tests/ui-foundation-1.2.0.cjs
       - run: node --check js/game.js
