@@ -242,7 +242,11 @@ async function run() {
       await visible('#devcheck.on','System Check after version long-press');await navigate(()=>go('home'),'#home.on');
       for(let tap=0;tap<5;tap++)await page.locator('#buildStamp').click();await visible('#devcheck.on','System Check after five version taps');await navigate(()=>go('home'),'#home.on');
       await menuPush({trigger:'.home-secondary .ghost:first-child',from:'#home',to:'#friends',label:'Home to Friends'});
-      await visible('#friends #mpConnectOnline','Friends connect control');assert.ok(await page.locator('#friends #mpRoomCode').count(),'Friends room-code control is present');checks++;
+      await page.waitForFunction(()=>/Connecting to online services|Couldn't connect|Ready to create/.test(document.getElementById('mpMatchmakingResult')?.textContent||''),null,{timeout:8000});checks++;
+      await page.waitForFunction(()=>!/Connecting to online services/.test(document.getElementById('mpMatchmakingResult')?.textContent||''),null,{timeout:15000});
+      const friendsState=await page.evaluate(()=>({text:document.getElementById('mpMatchmakingResult').textContent,retry:!document.getElementById('mpConnectOnline').hidden,create:!document.getElementById('mpCreateMatch').disabled}));
+      assert.ok(friendsState.create?!friendsState.retry:(friendsState.retry&&/Try again/.test(friendsState.text)),`Play with Friends connects by itself and only offers Try again after a failure (${JSON.stringify(friendsState)})`);checks++;
+      assert.ok(await page.locator('#friends #mpRoomCode').count(),'Friends room-code control is present');checks++;
       assert.equal(await page.locator('#mpDeckPicker img').count(),1,'Friends deck trigger shows a medallion');checks++;
       assert.ok((await page.locator('#mpDeckPicker strong').textContent()).trim(),'Friends deck trigger shows a deck name');checks++;
       await page.locator('#mpDeckPicker').click();await visible('.mp-deck-sheet','online deck picker');

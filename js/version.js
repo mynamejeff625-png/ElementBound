@@ -1,15 +1,15 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.8.1',
-  label:'Deck guides',
+  version:'1.8.2',
+  label:'Auto connect',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Every deck explains how it wins',
+  focus:'Play with Friends connects by itself',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Every deck now has a How this deck wins guide',
-    'Find it under the deck in the Codex, or the book icon in deck select'
+    'Play with Friends now connects by itself, no button needed',
+    'Long card names show in full when a card is zoomed'
   ])
 });
 

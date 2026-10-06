@@ -501,3 +501,4 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-05 | Mobile first: the Tome's two-page spread for wide screens is deferred; 2e ends at search |
 | 2026-10-05 | The Codex finds any card from a top sheet with Type, Cost and Effect filters; a result jumps to that card's zoom in its deck |
 | 2026-10-05 | Each deck has a "How this deck wins" guide (`docs/DECK_GUIDES.md`): a pill under the deck name in the Codex, and a book icon in the deck-select header so that screen still fits without scrolling |
+| 2026-10-06 | Play with Friends connects to online services automatically when the screen opens; the old Connect Online button became a Try again button shown only after a failure. The page itself still never signs in on load, so single player stays offline |
