@@ -1,0 +1,128 @@
+/* Element Bound · Arena duel field (Phase 3 · 3-1). Active only with #battle.arena. */
+.arena-only,.arena-stats,.arena-short{display:none}
+
+/* A1 · One screen, mirrored: rival plate, rival slots, Rift, your slots, your plate, hand, actions. */
+.app:has(> #battle.arena.on){padding:env(safe-area-inset-top) 10px env(safe-area-inset-bottom);min-height:0}
+#battle.arena.on{display:flex;flex-direction:column;gap:6px;height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));padding:8px 0 8px;overflow:hidden}
+#battle.arena .arena-only{display:flex}
+#battle.arena .top,#battle.arena .side>.row,#battle.arena #estats,#battle.arena #pstats,#battle.arena #you>b,#battle.arena .actions>button:last-child,#battle.arena>h3,#battle.arena #log{display:none}
+#battle.arena .side{display:contents}
+#battle.arena>*{flex:none}
+#battle.arena .trial-guide.on,#battle.arena #trialObjective:not(:empty){flex:none}
+#battle.arena #winner:empty{display:none}
+#battle.arena #winner:not(:empty){position:absolute;left:50%;top:50%;z-index:30;width:min(320px,86%);transform:translate(-50%,-50%)}
+
+/* A2 · Bender plates */
+.arena-plate{position:relative;flex:none;align-items:center;gap:8px;min-height:52px;padding:4px 8px;border-radius:var(--eb-radius-lg);background:var(--eb-plate);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--eb-bronze-lo) 55%,transparent),var(--eb-shadow-rest);transition:box-shadow var(--eb-dur-lift) var(--eb-ease-soft)}
+.arena-plate.is-active{box-shadow:inset 0 0 0 1px var(--eb-bronze-hi),0 0 16px color-mix(in srgb,var(--plate-el,var(--eb-bronze-hi)) 30%,transparent),var(--eb-shadow-rest)}
+.arena-plate-body{position:relative;display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.arena-plate-tools{display:flex;align-items:center;gap:6px;flex:none}
+.arena-plate-tools:empty{display:none}
+.arena-medal{position:relative;flex:none;width:46px;height:46px;display:grid;place-items:center}
+.arena-medal img{width:36px;height:36px;border-radius:50%;object-fit:cover}
+.arena-ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(var(--eb-hp-hi) calc(var(--vit,1) * 1turn),rgba(255,255,255,.10) 0);-webkit-mask:radial-gradient(circle,transparent 19px,#000 20px);mask:radial-gradient(circle,transparent 19px,#000 20px);transition:background var(--eb-dur-float) var(--eb-ease-soft)}
+.arena-plate.is-low .arena-ring{background:conic-gradient(var(--eb-danger) calc(var(--vit,1) * 1turn),rgba(255,255,255,.10) 0);animation:arenaLow 1.4s ease-in-out infinite alternate}
+.arena-plate.is-low .arena-medal::after{content:"";position:absolute;inset:4px;border-radius:50%;box-shadow:inset 0 0 8px rgba(255,90,60,.55)}
+@keyframes arenaLow{from{filter:brightness(1)}to{filter:brightness(1.35)}}
+.arena-plate-main{min-width:0;flex:1}
+.arena-name{font:600 var(--eb-text-sm)/1.2 var(--eb-font-display);color:var(--eb-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arena-meta{display:flex;align-items:center;gap:10px;margin-top:2px}
+.arena-vit{display:inline-flex;align-items:center;gap:3px;font:800 var(--eb-text-md)/1 var(--eb-font-ui);color:var(--eb-ink)}
+.arena-vit .eb-icon{width:14px;height:14px;color:var(--eb-hp-hi)}
+.arena-essence{display:inline-flex;align-items:center;gap:3px}
+.arena-gem{width:8px;height:8px;transform:rotate(45deg);border-radius:2px;border:1px solid var(--eb-essence-lo);background:transparent}
+.arena-gem.is-lit{background:linear-gradient(135deg,var(--eb-essence-hi),var(--eb-essence-lo));border-color:var(--eb-essence-hi)}
+.arena-essence-num{margin-left:3px;font:700 var(--eb-text-xs)/1 var(--eb-font-ui);color:var(--eb-ink-quiet)}
+.arena-zones{display:flex;align-items:center;gap:8px;flex:none;color:var(--eb-ink-quiet);font:700 var(--eb-text-xs)/1 var(--eb-font-ui)}
+.arena-count{display:inline-flex;align-items:center;gap:2px}
+.arena-count .eb-icon{width:13px;height:13px}
+.arena-token .eb-icon{width:16px;height:16px;color:var(--eb-bronze-hi)}
+.arena-marks{position:absolute;left:30px;top:-8px;display:flex;gap:3px}
+.arena-mark{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 4px;border-radius:10px;background:var(--eb-plate-edge);box-shadow:inset 0 0 0 1px var(--eb-bronze-lo);color:var(--eb-ink);font:700 10px/1 var(--eb-font-ui)}
+.arena-mark .eb-icon{width:13px;height:13px}
+.arena-mark--text{font-size:var(--eb-text-xs)}
+#battle.arena #recycle{min-height:44px;border-color:var(--eb-bronze-lo);background:var(--eb-plate-edge);box-shadow:none;color:var(--eb-ink);padding:4px 8px;max-width:84px;font:700 var(--eb-text-xs)/1.15 var(--eb-font-ui);white-space:normal}
+.arena-plate.fx-bender-hit{animation:ebBenderHit .38s ease}
+
+/* A4 · The Rift, A6 · lanes */
+.arena-rift{position:relative;flex:none;align-items:center;gap:8px;min-height:48px;padding:2px 0;border-block:1px solid color-mix(in srgb,var(--eb-bronze-lo) 60%,transparent);background:linear-gradient(90deg,transparent,rgba(13,17,27,.75) 18%,rgba(13,17,27,.75) 82%,transparent)}
+.arena-rift::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.0;transition:opacity var(--eb-dur-banner) var(--eb-ease-soft),background var(--eb-dur-banner) var(--eb-ease-soft)}
+.arena-rift.rift--you::before{opacity:1;background:linear-gradient(0deg,color-mix(in srgb,var(--eb-bronze-hi) 22%,transparent),transparent 70%)}
+.arena-rift.rift--rival::before{opacity:1;background:linear-gradient(180deg,color-mix(in srgb,var(--eb-danger) 20%,transparent),transparent 70%)}
+.rift-lanes{position:absolute;inset:-8px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;pointer-events:none}
+.rift-lanes span{justify-self:center;width:0;border-left:1px dashed color-mix(in srgb,var(--eb-bronze-lo) 45%,transparent)}
+.rift-tools,.rift-state{position:relative;display:flex;align-items:center;gap:6px;flex:none;min-width:44px}
+.rift-state{justify-content:flex-end;padding-right:4px}
+.rift-center{position:relative;flex:1;min-width:0;text-align:center}
+.rift-turn{display:flex;justify-content:center;align-items:baseline;gap:8px}
+.rift-turn-label{font:600 var(--eb-text-md)/1.1 var(--eb-font-display);color:var(--eb-bronze-hi);text-shadow:var(--eb-text-shadow)}
+.rift-turn-round{font:700 var(--eb-text-xs)/1 var(--eb-font-ui);color:var(--eb-ink-quiet)}
+.rift-ticker{min-height:14px;margin-top:2px;font:var(--eb-text-xs)/1.25 var(--eb-font-ui);color:var(--eb-ink-quiet);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translateY(3px);transition:opacity 200ms var(--eb-ease-in),transform 200ms var(--eb-ease-in)}
+.rift-ticker.is-on{opacity:1;transform:none;transition:opacity 250ms var(--eb-ease-soft),transform 250ms var(--eb-ease-soft)}
+.rift-chain{display:inline-flex;align-items:center;gap:3px;color:var(--eb-el-lightning)}
+.rift-chain .eb-icon{width:14px;height:14px}
+.rift-pip{width:8px;height:8px;border-radius:50%;border:1px solid var(--eb-el-lightning)}
+.rift-pip.is-on{background:var(--eb-el-lightning);box-shadow:0 0 6px var(--eb-el-lightning)}
+.rift-chain-more{font:700 var(--eb-text-xs)/1 var(--eb-font-ui)}
+.rift-res{position:relative;display:inline-flex;gap:2px}
+.rift-res-half{display:grid;place-items:center;width:20px;height:28px;border:1px solid var(--eb-bronze-lo);opacity:.55;transition:opacity var(--eb-dur-lift),border-color var(--eb-dur-lift)}
+.rift-res-half--a{border-radius:14px 0 0 14px;border-right:0}
+.rift-res-half--b{border-radius:0 14px 14px 0;border-left:0}
+.rift-res-half.is-on{opacity:1;border-color:var(--eb-bronze-hi)}
+.rift-res-half .eb-icon{width:13px;height:13px}
+.rift-res.is-full .rift-res-half{box-shadow:0 0 10px color-mix(in srgb,var(--eb-bronze-hi) 45%,transparent)}
+.rift-res-label{position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);font:700 9px/1 var(--eb-font-ui);letter-spacing:1px;text-transform:uppercase;color:var(--eb-bronze-hi);white-space:nowrap}
+
+/* A5 · Pedestals: a ready Manifestation stands lifted; a summoning-sick one waits lower. */
+#battle.arena .slots{display:grid;flex:1 1 0;min-height:0;overflow:visible;scroll-snap-type:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+#battle.arena .slots .slot{position:relative;flex:none;width:auto;min-width:0;max-width:none;min-height:0;overflow:visible;height:100%;display:flex;align-items:flex-end;padding:5px 4px 10px;border:0;border-radius:var(--eb-radius-md);background:linear-gradient(180deg,rgba(13,17,27,.35),rgba(13,17,27,.82));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--eb-bronze-lo) 45%,transparent)}
+#battle.arena .slots .slot::after{content:"";position:absolute;left:10%;right:10%;bottom:3px;height:5px;border-radius:50%;background:color-mix(in srgb,var(--eb-bronze-lo) 55%,transparent);pointer-events:none}
+#battle.arena #pslots .slot{align-items:flex-start;padding:10px 4px 5px}
+#battle.arena #pslots .slot::after{top:3px;bottom:auto}
+#battle.arena #pslots .card.is-sick{translate:0 6px}
+#battle.arena .slot>.small{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+#battle.arena .slots .card{display:flex;flex-direction:column;gap:4px;width:100%;height:auto;aspect-ratio:5/7;max-height:100%;min-height:0;padding:6px;overflow:hidden;box-shadow:var(--eb-shadow-lift)}
+#battle.arena .slots .card.is-sick{translate:0 -6px;box-shadow:var(--eb-shadow-rest);filter:saturate(.75) brightness(.9)}
+#battle.arena .slots .card b,#battle.arena .hand .card b{font:600 11px/1.2 var(--eb-font-display);padding-right:0;white-space:normal;text-overflow:clip;overflow-wrap:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#battle.arena .slot .card .cost,#battle.arena .card .card-type,#battle.arena .card .rules,#battle.arena .card .card-inspect-hint,#battle.arena .card .card-status:not(.mp-status){display:none}
+#battle.arena .card .arena-stats{display:flex;flex-wrap:wrap;gap:4px;margin-top:auto}
+#battle.arena .arena-stat{display:inline-flex;align-items:center;gap:2px;padding:2px 5px;border-radius:var(--eb-radius-sm);background:var(--eb-plate-edge);font:800 var(--eb-text-xs)/1 var(--eb-font-ui);color:var(--eb-ink)}
+#battle.arena .arena-stat .eb-icon{width:11px;height:11px}
+#battle.arena .arena-sick{color:var(--eb-ink-quiet)}
+#battle.arena .card .effect-strip{display:flex;flex-wrap:wrap;gap:2px;margin:0}
+#battle.arena .card .effect-badge{padding:1px 4px;font-size:10px}
+#battle.arena .slot.drop-ready{outline:2px solid var(--eb-drop);outline-offset:-2px}
+
+/* Hand (3-2 replaces this strip with the fanned hand) */
+#battle.arena #recycleHint{flex:none;margin:0;font-size:var(--eb-text-xs);line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--eb-ink-quiet)}
+#battle.arena #recycleHint:empty{display:none}
+#battle.arena #hand.hand{flex:none;height:124px;min-height:0;max-height:none;padding:4px 2px 2px;gap:6px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity}
+#battle.arena #hand.hand .card{flex:none;min-width:0;max-width:none;width:96px;height:116px;min-height:0;padding:6px;display:flex;flex-direction:column;gap:4px;scroll-snap-align:start}
+#battle.arena .hand .card .cost{right:4px;top:4px;width:20px;height:20px;font-size:var(--eb-text-xs)}
+#battle.arena .hand .card b{padding-right:18px}
+#battle.arena .hand .card .arena-short{display:block;font:var(--eb-text-xs)/1.25 var(--eb-font-ui);color:var(--eb-ink-quiet);overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+#battle.arena .hand .card:not(.play){filter:saturate(.6) brightness(.8)}
+
+/* Actions: Attack on the left, End Turn under the right thumb */
+#battle.arena .actions{flex:none;grid-template-columns:1fr 1.3fr;gap:8px}
+#battle.arena .actions button{min-height:46px;padding:8px}
+#battle.arena #end{background:var(--eb-plate);box-shadow:inset 0 0 0 1px var(--eb-bronze-hi);font-family:var(--eb-font-display);font-weight:700;letter-spacing:.5px}
+#battle.arena #attack{font-family:var(--eb-font-display);font-weight:700;letter-spacing:.5px}
+
+/* A9 · Chronicle sheet */
+.arena-chronicle-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 48px 10px 0}
+.arena-chronicle-title{margin:0;font:600 var(--eb-text-lg)/1.2 var(--eb-font-display);color:var(--eb-bronze-hi)}
+.arena-chronicle-info{font:var(--eb-text-xs)/1.2 var(--eb-font-ui);color:var(--eb-ink-quiet)}
+.arena-chronicle-list{margin:0;padding:0 0 0 22px;display:grid;gap:6px;font:var(--eb-text-sm)/1.4 var(--eb-font-ui);color:var(--eb-ink)}
+.arena-chronicle-list li::marker{color:var(--eb-bronze-lo);font-size:var(--eb-text-xs)}
+
+@media (max-height:700px){
+  #battle.arena #hand.hand{height:112px}
+  #battle.arena #hand.hand .card{height:104px}
+  .arena-plate{min-height:48px;padding-block:2px}
+}
+@media (prefers-reduced-motion:reduce){
+  .arena-plate.is-low .arena-ring{animation:none}
+  .arena-ring,.arena-rift::before,.rift-ticker,.rift-ticker.is-on{transition:opacity 150ms linear}
+  .rift-ticker,.rift-ticker.is-on{transform:none}
+}

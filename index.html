@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="css/menu.css">
 <link rel="stylesheet" href="css/trials.css">
 <link rel="stylesheet" href="css/tome.css">
+<link rel="stylesheet" href="css/arena.css">
 </head><body><div class="app">
 
 <section id="devcheck" class="screen"><div class="devHead"><div><div class="title">SYSTEM CHECK</div><div class="small" data-eb-version-context="diagnostics"></div></div><button class="ghost compact-back" onclick="go('home')">BACK</button></div><div id="devSummary" class="devSummary">Ready to verify.</div><div class="devActions"><button onclick="runEBVerification()">RUN ALL CHECKS</button><button onclick="copyEBVerification()">COPY REPORT</button><button onclick="goBalanceLab()">BALANCE LAB</button><button onclick="go('home')">EXIT DEV</button></div><div class="devHint">Developer access: long-press or tap the build/version text on the main menu five times. These checks snapshot and restore live globals; they do not alter saved gameplay.</div><div id="devResults"></div></section>
@@ -47,8 +48,9 @@
 <div id="battleFx" aria-hidden="true"></div><div id="battleFocus" aria-live="polite"></div><div id="initiativeOverlay" class="hide" role="dialog" aria-modal="true" aria-label="Initiative flip" onclick="ebInitiativeSkip()"><div id="initiativePanel" class="initPanel"><div class="initLabel">INITIATIVE FLIP</div><div id="initiativeRival" class="initRival"></div><div class="initCoinStage"><div id="initiativeCoin" class="initCoin">EB</div></div><div id="initiativeResult" class="initResult">FLIPPING…</div><div id="initiativeBonus" class="initBonus"></div><div class="initSkip">TAP TO SKIP</div></div></div>
 <div id="mpStatus" class="mpStatus" role="status" aria-live="polite" hidden></div>
 <section id="battle" class="screen"><div class="top"><div class="row"><b>ELEMENT BOUND <span class="small" data-eb-version-context="battle"></span></b><span id="rev" class="pill"></span></div><div class="stats"><span id="turn" class="pill"></span><span id="chain" class="pill chainContext" hidden></span><span id="difficulty" class="pill"></span></div></div><div id="trialGuide" class="trial-guide"></div><div id="trialObjective" class="trialObjective" aria-live="polite"></div><div id="winner"></div>
-<div id="enemy" class="side" data-eb-anchor="bender" data-eb-side="rival"><div class="row"><b id="ename"></b><b id="evit"></b></div><div id="estats" class="stats"></div><div id="eslots" class="slots"></div></div>
-<div id="you" class="side" data-eb-anchor="bender" data-eb-side="you"><div class="row"><b id="pname"></b><div class="benderHeadRight"><button id="recycle" class="recycleBtn" onclick="requestRecycle()">Card Re-cycle 3/3</button><b id="pvit"></b></div></div><div id="pstats" class="stats"></div><div id="pslots" class="slots"></div><b>Hand</b><div id="recycleHint" class="recycleHint"></div><div id="hand" class="hand"></div></div>
+<div id="enemy" class="side" data-eb-anchor="bender" data-eb-side="rival"><div id="eplate" class="arena-plate arena-only" data-side="rival"><span class="arena-plate-tools" data-arena-tools="rival"></span><div class="arena-plate-body"></div></div><div class="row"><b id="ename"></b><b id="evit"></b></div><div id="estats" class="stats"></div><div id="eslots" class="slots"></div></div>
+<div id="rift" class="arena-rift arena-only" role="group" aria-label="The Rift"><div class="rift-lanes" aria-hidden="true"><span></span><span></span><span></span></div><span class="rift-tools" data-arena-tools="rift"></span><div class="rift-center"><div class="rift-turn" aria-live="polite"></div><div class="rift-ticker" aria-hidden="true"></div></div><div class="rift-state"></div></div>
+<div id="you" class="side" data-eb-anchor="bender" data-eb-side="you"><div class="row"><b id="pname"></b><div class="benderHeadRight"><button id="recycle" class="recycleBtn" onclick="requestRecycle()">Card Re-cycle 3/3</button><b id="pvit"></b></div></div><div id="pstats" class="stats"></div><div id="pslots" class="slots"></div><div id="pplate" class="arena-plate arena-only" data-side="you"><div class="arena-plate-body"></div><span class="arena-plate-tools" data-arena-tools="you"></span></div><b>Hand</b><div id="recycleHint" class="recycleHint"></div><div id="hand" class="hand"></div></div>
 <div class="actions"><button id="attack" onclick="attackPick()">Attack</button><button id="end" onclick="endTurn()">End Turn</button><button onclick="exitBattle()">Exit</button></div><h3>Event Log</h3><div id="log" class="log"></div></section>
 </div><div id="mw" class="modalw hide"><div class="modal"><h3 id="mt"></h3><div id="mb"></div><button id="modalDismiss" onclick="hideModal()">Cancel</button></div></div>
 <script src="js/version.js"></script>
@@ -72,6 +74,7 @@
 <script src="js/tome.js"></script>
 <script src="js/mainMenu.js"></script>
 <script src="js/game.js"></script>
+<script src="js/arena.js"></script>
 </body></html>
 
 <!-- Alpha 0.8.32 HOTFIX: Burning/Charged lifecycle cleanup. Transient marks are cleared on Wake entry; Cinder Adept Burning ends when its source leaves Field; orphaned Bender Charged expires at turn transition. -->

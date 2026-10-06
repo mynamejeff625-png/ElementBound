@@ -691,6 +691,51 @@ async function run() {
       assert.equal((await page.locator('.deckselect-hint').textContent()).trim(),'Shifting Tide selected','quick rematch keeps the selected-deck hint');checks++;
       assert.equal((await page.locator('.deckselect-button-label[aria-hidden="false"]').textContent()).trim(),'START DUEL','returning from a duel preserves quick-rematch difficulty mode');checks++;
 
+      // Phase 3 · 3-1: the Arena field (behind the ?arena=1 toggle) fits one screen and keeps the field-anchor contract.
+      await page.evaluate(()=>{EB_Arena.setEnabled(true);startSelectedMatch('FIRE','Normal')});
+      await visible('#battle.on.arena','arena duel screen');
+      await page.locator('#initiativeOverlay').waitFor({ state: 'visible', timeout: 5000 });
+      await page.waitForFunction(() => { if (!G.initiative.finished) ebInitiativeSkip(); return G.initiative.finished; }, null, { timeout: 5000, polling: 100 });
+      await page.locator('#initiativeOverlay').waitFor({ state: 'hidden', timeout: 5000 });
+      await page.waitForFunction(()=>G.active===0&&!G.pendingResponse,null,{timeout:15000});
+      const arena=await page.evaluate(()=>{
+        const benders=side=>[...document.querySelectorAll(`[data-eb-anchor="bender"][data-eb-side="${side}"]`)].map(el=>el.id);
+        const inView=el=>{const r=el.getBoundingClientRect();return r.width>0&&r.top>=0&&r.bottom<=innerHeight+.5&&r.left>=0&&r.right<=innerWidth+.5};
+        const big=el=>{const r=el.getBoundingClientRect();return r.width>=44&&r.height>=44};
+        return {scrollY:document.documentElement.scrollHeight-innerHeight,scrollX:document.documentElement.scrollWidth-innerWidth,
+          rival:benders('rival'),you:benders('you'),slots:document.querySelectorAll('[data-eb-anchor="slot"]').length,
+          slotsInView:[...document.querySelectorAll('[data-eb-anchor="slot"]')].every(inView),
+          handInView:inView(document.querySelector('[data-eb-anchor="hand-card"]')),
+          plates:[...document.querySelectorAll('.arena-vit')].map(el=>el.getAttribute('aria-label')),
+          turn:document.querySelector('.rift-turn-label')?.textContent,
+          targets:['.arena-exit','.arena-chronicle','#end','#attack'].every(sel=>big(document.querySelector(sel))),
+          classicHidden:['#log','#battle .top','#estats'].every(sel=>getComputedStyle(document.querySelector(sel)).display==='none')};
+      });
+      assert.ok(arena.scrollY<=0&&arena.scrollX<=0,`arena duel fits the screen with no scroll (${arena.scrollY}px down, ${arena.scrollX}px across)`);checks++;
+      assert.deepEqual([arena.rival,arena.you,arena.slots],[['eplate'],['pplate'],6],'Bender anchors move to the plates (one per side) and all six slot anchors remain');checks++;
+      assert.ok(arena.slotsInView&&arena.handInView,'every slot and the hand are on screen');checks++;
+      assert.deepEqual(arena.plates,['Vitality 30','Vitality 30'],'both Bender plates show Vitality as a number');checks++;
+      assert.equal(arena.turn,'Your turn','the Rift says whose turn it is');checks++;
+      assert.ok(arena.targets,'arena controls are at least 44×44');checks++;
+      assert.ok(arena.classicHidden,'the classic header, stats pills and Event Log leave the arena field');checks++;
+      const summon=await page.evaluate(()=>{const c=me().hand.find(card=>card.type==='MANIFESTATION'&&playable(card));if(!c)return null;const i=me().slots.findIndex(slot=>!slot);play(c,i);return {id:c.id,i}});
+      if(summon){
+        await page.waitForFunction(({id,i})=>!!document.querySelector(`#pslots .slot[data-slot="${i}"] .card[data-id="${id}"]`),summon,{timeout:5000});
+        const fieldCard=await page.evaluate(({id,i})=>{const slot=document.querySelector(`#pslots .slot[data-slot="${i}"]`).getBoundingClientRect(),card=document.querySelector(`#pslots .card[data-id="${id}"]`),r=card.getBoundingClientRect();return {inside:r.left>=slot.left-1&&r.right<=slot.right+1&&r.top>=slot.top-8&&r.bottom<=slot.bottom+8,sick:card.classList.contains('is-sick'),stats:!!card.querySelector('.arena-stats [aria-label="Attack"]')}},summon);
+        assert.deepEqual(fieldCard,{inside:true,sick:true,stats:true},'a summoned card stands inside its pedestal, shows ⚔/♡ and waits (summoning sickness)');checks++;
+      }
+      await shot('06b-duel-arena');
+      await page.locator('.arena-chronicle').click();
+      await page.locator('.tome-peek .arena-chronicle-list').waitFor({timeout:5000});
+      const chronicle=await page.evaluate(()=>({items:document.querySelectorAll('.tome-peek .arena-chronicle-list li').length,logs:G.logs.length}));
+      assert.equal(chronicle.items,chronicle.logs,'the Chronicle lists every log line');checks++;
+      await shot('06c-duel-chronicle');
+      await page.keyboard.press('Escape');await page.locator('.tome-peek-backdrop').waitFor({state:'detached',timeout:5000});
+      assert.ok(await page.evaluate(()=>document.activeElement?.classList.contains('arena-chronicle')),'closing the Chronicle returns focus to its button');checks++;
+      await page.evaluate(()=>{exitBattle();EB_Arena.setEnabled(false)});
+      await visible('#setup.on','deck select after leaving the arena duel');
+      assert.equal(await page.evaluate(()=>document.querySelectorAll('[data-eb-anchor="bender"]').length===2&&!!document.querySelector('#you[data-eb-anchor="bender"]')&&!document.getElementById('battle').classList.contains('arena')),true,'turning the arena off restores the classic anchors');checks++;
+
       assert.deepEqual(errors, [], `${vp.name}: page errors:\n${errors.join('\n')}`); checks++;
       console.log(`${vp.name}: ${blockedStyles.size} distinct inline styles blocked by CSP (ceiling ${MAX_BLOCKED_INLINE_STYLES})`);
       assert.ok(blockedStyles.size <= MAX_BLOCKED_INLINE_STYLES,

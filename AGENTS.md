@@ -84,6 +84,7 @@ Facts:
 | `assets/medallions/`, `assets/frames/` | Owner-made element/result medallions and the card frames (bronze default, gold special) (usage rules: `docs/DESIGN.md` §5a) |
 | `js/version.js` | Player-facing release record (see §5) |
 | `js/game.js` | Browser game: live duel loop, rival AI, UI and FX, Balance Lab simulator, in-browser dev checks, multiplayer adapter (`EB_MP`) |
+| `js/arena.js`, `css/arena.css` | Phase 3 Arena duel field (one-screen layout behind `?arena=1`); layout only, never duel state or rules |
 | `js/firebaseBootstrap.js`, `js/multiplayerClient.js`, `js/matchmakingClient.js` | Online play client |
 | `lib/cardCatalog.js` | Card data and rules text (Manifestations, Techniques, Responses, hybrids). Loaded by the browser and Node |
 | `lib/gameEngine.js` | Pure, DOM-free authoritative rules engine. Used by the server, loaded in the browser (`window.ElementBoundEngine`), and used by Node tests |
