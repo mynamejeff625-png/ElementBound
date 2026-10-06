@@ -18,7 +18,7 @@
   function byId(id){return document.getElementById(id)}
   function node(tag,className,text){const el=document.createElement(tag);if(className)el.className=className;if(text!=null)el.textContent=String(text);return el}
   function icon(name,label){return root.EB_UI.icon(name,label?{label}:{})}
-  function counted(name,label,value){const el=node('span','arena-count');el.setAttribute('aria-label',`${label} ${value}`);el.append(icon(name),node('span','',value));return el}
+  function counted(name,label,value){const el=node('span','arena-count');el.dataset.zone=name;el.setAttribute('aria-label',`${label} ${value}`);el.append(icon(name),node('span','',value));return el}
   function reducedMotion(){return !!root.matchMedia?.('(prefers-reduced-motion: reduce)').matches}
 
   function setEnabled(on){
@@ -331,6 +331,7 @@
     moveGhost(g);
     return true;
   }
+  function deckUnder(x,y){return !!document.elementFromPoint(x,y)?.closest?.('#pplate .arena-zones')}
   function slotUnder(x,y){const under=document.elementFromPoint(x,y);const slot=under?.closest?.('#pslots .slot');return slot&&!slot.querySelector('.card')?slot:null}
   function castZone(y){const top=hand.el?.getBoundingClientRect().top??0;return y<top-24}
   function moveGhost(g){
@@ -339,13 +340,14 @@
     g.ghost.style.setProperty('--gr',`${Math.max(-8,Math.min(8,(g.x-g.x0)/18)).toFixed(1)}deg`);
     const slot=g.isTechnique?null:slotUnder(g.x,g.y);
     if(slot!==g.slot){g.slot?.classList.remove('drop-hover');slot?.classList.add('drop-hover');g.slot=slot}
-    g.ghost.classList.toggle('is-armed',g.isTechnique?castZone(g.y):!!slot);
+    const deck=deckUnder(g.x,g.y);if(deck!==g.deck){document.querySelector('#pplate .arena-zones')?.classList.toggle('is-drop',deck);g.deck=deck}
+    g.ghost.classList.toggle('is-armed',deck||(g.isTechnique?castZone(g.y):!!slot));
   }
   function endHandGesture(){
     const g=hand.gesture;hand.gesture=null;
     document.removeEventListener('pointermove',onHandMove,true);document.removeEventListener('pointerup',onHandUp,true);document.removeEventListener('pointercancel',onHandCancel,true);
     if(g?.frame)cancelAnimationFrame(g.frame);
-    if(g?.ghost)g.ghost.remove();g?.slot?.classList.remove('drop-hover');
+    if(g?.ghost)g.ghost.remove();g?.slot?.classList.remove('drop-hover');document.querySelector('#pplate .arena-count.is-drop')?.classList.remove('is-drop');
     handCards().forEach(card=>card.classList.remove('drag-source'));
     return g;
   }
@@ -353,11 +355,12 @@
     const g=hand.gesture;if(!g||event.pointerId!==g.id)return;event.preventDefault();
     g.x=event.clientX;g.y=event.clientY;
     if(g.mode==='drag'){
-      const slot=g.isTechnique?null:slotUnder(g.x,g.y),cast=g.isTechnique&&castZone(g.y),id=g.cardId;
+      const recycle=deckUnder(g.x,g.y),slot=recycle||g.isTechnique?null:slotUnder(g.x,g.y),cast=!recycle&&g.isTechnique&&castZone(g.y),id=g.cardId;
       endHandGesture();root.ebArenaDragEnd?.();
       if(slot&&root.ebArenaSummon?.(id,Number(slot.dataset.slot)))return;
       const index=handCards().findIndex(card=>Number(card.dataset.id)===id);
       if(index>=0)selectAt(index);
+      if(recycle){root.requestRecycle?.();return}
       if(cast)document.querySelector('#battle .actions .eb-tech-activate')?.click();
       return;
     }
@@ -510,6 +513,66 @@
   function hideArc(){aim.svg?.classList.remove('is-on')}
   function wireField(){const slots=byId('pslots');if(slots&&!slots._arenaAim){slots._arenaAim=true;slots.addEventListener('pointerdown',onFieldDown,{passive:false})}}
 
-  root.EB_Arena=Object.freeze({enabled:()=>enabled,setEnabled,render,apply,cardMarkup,wireHand,beginAttack,endAim,inspect,afterSelection,get aiming(){return aim.attackerId}});
+  // ---------- 3-4 · Choices open in the Rift instead of a pop-up ----------
+  // Every duel modal() (Response Window, Flow, Technique targets, swaps, Re-cycle) renders here while the Arena is on.
+  // Same buttons and callbacks; rules-critical windows (dismissible:false) still exit only through a game action.
+  const panel={el:null,opener:null,total:0,hideT:0,next:null};
+  // The online Response prompt passes who is attacking whom (and the seconds left) just before it calls modal().
+  function responseContext(info){panel.next=info||null}
+  function ensurePanel(){
+    if(panel.el?.isConnected)return panel.el;
+    const el=node('section','arena-panel');el.id='arenaPanel';el.setAttribute('role','dialog');el.setAttribute('aria-modal','false');el.setAttribute('aria-labelledby','arenaPanelTitle');el.hidden=true;
+    const head=node('div','arena-panel-head'),title=node('h2','arena-panel-title');title.id='arenaPanelTitle';
+    const ring=node('span','arena-panel-timer');ring.setAttribute('role','timer');ring.hidden=true;ring.append(node('span','arena-panel-timer-num'));
+    head.append(title,ring);el.append(head,node('div','arena-panel-body'));
+    el.addEventListener('keydown',event=>{if(event.key==='Escape'&&el.dataset.dismissible==='1'){event.preventDefault();event.stopPropagation();root.hideModal?.()}});
+    byId('battle')?.append(el);panel.el=el;return el;
+  }
+  function clearThreat(){byId('battle')?.classList.remove('is-responding');document.querySelectorAll('#battle .is-threat,#battle .is-threatened').forEach(el=>el.classList.remove('is-threat','is-threatened'))}
+  function showPanel(title,buttons,options={}){
+    const context=panel.next;panel.next=null;
+    if(!enabled||!byId('battle')?.classList.contains('on'))return false;
+    if(context){options={...options,response:{attackerId:context.attackerId,targetId:context.targetId},seconds:context.seconds}}
+    endAim();
+    const el=ensurePanel(),body=el.querySelector('.arena-panel-body');clearTimeout(panel.hideT);
+    const lines=String(title).split('\n');
+    el.querySelector('.arena-panel-title').textContent=lines[0];
+    body.replaceChildren();
+    if(lines.length>1)body.append(node('p','arena-panel-note',lines.slice(1).join(' ')));
+    const list=node('div','arena-panel-actions');
+    const dismissible=options.dismissible!==false&&!buttons.some(([label])=>String(label).toUpperCase()==='CANCEL');
+    buttons.forEach(([label,fn])=>{const text=String(label),b=node('button','arena-panel-btn',text);b.type='button';if(/^(PASS|CANCEL)$/i.test(text))b.classList.add('is-quiet');b.addEventListener('click',fn);list.append(b)});
+    if(dismissible){const cancel=node('button','arena-panel-btn is-quiet','Cancel');cancel.type='button';cancel.addEventListener('click',()=>root.hideModal?.());list.append(cancel)}
+    body.append(list);el.dataset.dismissible=dismissible?'1':'0';
+    clearThreat();
+    if(options.response){
+      byId('battle').classList.add('is-responding');el.classList.add('is-response');
+      const find=id=>id==null?null:document.querySelector(`#battle .slots .card[data-id="${id}"]`);
+      find(options.response.attackerId)?.classList.add('is-threat');
+      (find(options.response.targetId)||(options.response.targetId==null?byId('pplate'):null))?.classList.add('is-threatened');
+    }else el.classList.remove('is-response');
+    if(!Number.isFinite(options.seconds))countdown(null);else{panel.total=Math.max(panel.total,options.seconds);countdown(options.seconds)}
+    const wasHidden=el.hidden;el.hidden=false;
+    if(wasHidden){panel.opener=document.activeElement;el.classList.remove('is-leaving');void el.offsetWidth;el.classList.add('is-open')}
+    list.querySelector('button')?.focus({preventScroll:true});
+    return true;
+  }
+  function countdown(seconds){
+    const el=panel.el;if(!el)return;const ring=el.querySelector('.arena-panel-timer');
+    if(seconds==null){ring.hidden=true;panel.total=0;return}
+    if(!panel.total)panel.total=seconds;
+    ring.hidden=false;ring.querySelector('.arena-panel-timer-num').textContent=String(seconds);ring.setAttribute('aria-label',`${seconds} seconds left`);
+    ring.style.setProperty('--left',String(Math.max(0,Math.min(1,seconds/Math.max(1,panel.total)))));
+  }
+  function closePanel(){
+    const el=panel.el;clearThreat();if(!el||el.hidden)return false;
+    el.classList.remove('is-open');el.classList.add('is-leaving');panel.total=0;
+    const opener=panel.opener;panel.opener=null;
+    panel.hideT=setTimeout(()=>{el.hidden=true;el.classList.remove('is-leaving','is-response')},reducedMotion()?150:170);
+    if(opener?.isConnected&&el.contains(document.activeElement))opener.focus({preventScroll:true});
+    return true;
+  }
+
+  root.EB_Arena=Object.freeze({enabled:()=>enabled,setEnabled,render,apply,cardMarkup,wireHand,beginAttack,endAim,inspect,afterSelection,panel:showPanel,closePanel,countdown,responseContext,get panelOpen(){return !!panel.el&&!panel.el.hidden},get aiming(){return aim.attackerId}});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
 })(window);

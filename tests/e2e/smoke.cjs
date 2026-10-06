@@ -770,6 +770,16 @@ async function run() {
         await page.waitForTimeout(250);
         assert.equal(await page.locator('#hand .arena-card.is-focus').count(),0,'no hand card stays lifted after the finger leaves');checks++;
       }
+      // 3-4 · choices open in the thumb-zone panel, not the centred pop-up; a Response dims everything but attacker and target and exits only through a game action.
+      const resp=await page.evaluate(()=>{const p=me(),e=foe(),mine=p.slots.find(Boolean)||(()=>{const c=[...p.deck,...p.hand].find(x=>x.type==='MANIFESTATION');p.deck=p.deck.filter(x=>x!==c);p.hand=p.hand.filter(x=>x!==c);p.slots[p.slots.findIndex(x=>!x)]=c;return c})(),enemy=e.slots.find(Boolean)||(()=>{const c=e.deck.find(x=>x.type==='MANIFESTATION');e.deck=e.deck.filter(x=>x!==c);e.slots[e.slots.findIndex(x=>!x)]=c;return c})();p.initiationToken=true;mine.h=Math.max(1,mine.max-1);render();window.__smokeResp=null;ebChooseHumanResponse(enemy,mine,'AFTER',r=>{window.__smokeResp=r});return {open:EB_Arena.panelOpen,legacy:!document.getElementById('mw').classList.contains('hide'),cancel:[...document.querySelectorAll('#arenaPanel .arena-panel-btn')].some(b=>/^cancel$/i.test(b.textContent)),pass:[...document.querySelectorAll('#arenaPanel .arena-panel-btn')].some(b=>b.textContent==='PASS'),dim:document.getElementById('battle').classList.contains('is-responding'),threat:!!document.querySelector('#eslots .is-threat')&&!!document.querySelector('#pslots .is-threatened'),focus:document.activeElement?.classList.contains('arena-panel-btn')}});
+      if(resp){
+        assert.deepEqual(resp,{open:true,legacy:false,cancel:false,pass:true,dim:true,threat:true,focus:true},`the Response Window opens in the arena panel with the held breath (${JSON.stringify(resp)})`);checks++;
+        await shot('06d-duel-response');
+        await page.keyboard.press('Escape');
+        assert.equal(await page.evaluate(()=>EB_Arena.panelOpen),true,'Escape cannot dismiss a rules-critical Response');checks++;
+        await page.locator('#arenaPanel .arena-panel-btn',{hasText:'PASS'}).click();
+        await page.waitForFunction(()=>!!window.__smokeResp&&!EB_Arena.panelOpen&&!document.getElementById('battle').classList.contains('is-responding'),null,{timeout:5000});checks++;
+      }
       await shot('06b-duel-arena');
       await page.locator('.arena-chronicle').click();
       await page.locator('.tome-peek .arena-chronicle-list').waitFor({timeout:5000});
