@@ -1,16 +1,15 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.8.2',
-  label:'Auto connect',
+  version:'1.8.3',
+  label:'Hybrid Response',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Play with Friends connects by itself',
+  focus:'Choose your Hybrid Response before the duel',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Play with Friends now connects by itself, no button needed',
-    'Long card names show in full when a card is zoomed',
-    'Tome pages now follow your finger when you swipe'
+    'Hybrid decks pick their Response card right in deck select',
+    'Each Hybrid remembers the Response you chose last'
   ])
 });
 
