@@ -54,5 +54,17 @@
   function dialog(opts={}){return container('dialog',{tag:'div',...opts})}
   function toast(text,opts={}){return container('toast',{...opts,text})}
 
-  return {button,iconButton,icon,sheet,dialog,toast};
+  // Activate on the finger lifting from the same control, so a tap still counts when a browser withholds the
+  // synthetic click (seen after swipes: iOS stopping a coasting gesture, Chromium tap-gesture races). The click that
+  // normally follows is swallowed once, so the action never runs twice; keyboard activation still uses click.
+  function fastTap(element,handler){
+    if(!element||typeof handler!=='function')return element;let start=null,swallowUntil=0;
+    element.addEventListener('pointerdown',event=>{if(event.button!==undefined&&event.button!==0)return;start={id:event.pointerId,x:event.clientX,y:event.clientY,t:event.timeStamp}});
+    element.addEventListener('pointercancel',()=>{start=null});
+    element.addEventListener('pointerup',event=>{const s=start;start=null;if(!s||s.id!==event.pointerId||element.disabled)return;const r=element.getBoundingClientRect(),inside=event.clientX>=r.left&&event.clientX<=r.right&&event.clientY>=r.top&&event.clientY<=r.bottom;if(!inside||Math.hypot(event.clientX-s.x,event.clientY-s.y)>12||event.timeStamp-s.t>800)return;swallowUntil=event.timeStamp+700;handler(event)});
+    element.addEventListener('click',event=>{if(event.timeStamp<swallowUntil){swallowUntil=0;event.preventDefault();event.stopImmediatePropagation();return}handler(event)});
+    return element;
+  }
+
+  return {button,iconButton,icon,sheet,dialog,toast,fastTap};
 });

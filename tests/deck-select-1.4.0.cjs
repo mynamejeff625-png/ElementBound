@@ -27,4 +27,7 @@ const game=require('node:fs').readFileSync(require('node:path').join(__dirname,'
 check(/function startSelectedMatch\(deckKey,difficultyKey,responseElement=null\)\{[^}]*EB_HYBRID_RESPONSE_CHOICE=responseElement/.test(game),'Start Duel passes the chosen Response into the match');
 check(!/Choose your Hybrid Response card/.test(game),'the old Hybrid Response pop-up is retired');
 check(/startSelectedMatch\(browser\.key,difficultyKey\(state\.difficulty\),state\.response\)/.test(select),'deck select sends its Response choice');}
+{const game=require('node:fs').readFileSync(require('node:path').join(__dirname,'..','js/game.js'),'utf8');
+check(/createRoom\(\{element,responseElement:ebOnlineResponse\(\)\}\)/.test(game)&&/joinRoom\(roomId,\{element,responseElement:ebOnlineResponse\(\)\}\)/.test(game),'online Create and Join send the Hybrid Response choice');
+check(/window\.EB_DeckSelect\?\.responseChooser\?\.\(element\)/.test(game),'Play with Friends reuses the deck-select Response chooser');}
 console.log(`Deck select 1.4.0: ${checks} checks passed`);

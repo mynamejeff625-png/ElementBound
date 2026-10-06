@@ -82,4 +82,6 @@ check(icon.outerHTML==='<svg class="eb-icon" aria-hidden="true"><use href="asset
   check(context.G.initiative.finished&&overlay.hidden,'finishing initiative before show keeps the overlay hidden');
 }
 
+check(typeof require('../js/ui.js').fastTap==='function'||/function fastTap\(element,handler\)/.test(fs.readFileSync('js/ui.js','utf8')),'EB_UI exposes fastTap for tap-reliable controls');
+check(/UI\.fastTap\(mainButton,mainAction\)/.test(fs.readFileSync('js/deckSelect.js','utf8')),'deck select activates Select / Start Duel on the finger lifting, not only on click');
 console.log(`UI foundation 1.2.0: ${checks} checks passed`);

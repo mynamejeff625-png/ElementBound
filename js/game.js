@@ -1453,9 +1453,14 @@ function ebOpenDeckPicker(){
  if(document.querySelector('.mp-deck-backdrop'))return;let select=document.getElementById('mpDeck'),trigger=document.getElementById('mpDeckPicker');if(!select||!trigger)return;
  let overlay=document.createElement('div');overlay.className='mp-deck-backdrop';overlay.addEventListener('click',event=>{if(event.target===overlay)ebCloseDeckPicker()});
  let title=document.createElement('h2');title.id='mpDeckPickerTitle';title.textContent='Choose your deck';let list=document.createElement('div');list.className='mp-deck-list';
- Object.keys(INFO).forEach(element=>{let option=document.createElement('button');option.type='button';option.className='mp-deck-option';option.dataset.deck=element;option.setAttribute('role','option');option.setAttribute('aria-selected',String(select.value===element));option.append(ebDeckMedallion(element),ebDeckPickerCopy(element));let tag=document.createElement('span');tag.className='mp-deck-tag';tag.textContent=HYBRIDS[element]?'Hybrid':'Prime';let check=document.createElement('span');check.className='mp-deck-check';check.append(window.EB_UI.icon('check',{label:'Selected'}));option.append(tag,check);option.addEventListener('click',()=>ebChooseOnlineDeck(element));list.append(option)});
+ Object.keys(INFO).forEach(element=>{let option=document.createElement('button');option.type='button';option.className='mp-deck-option';option.dataset.deck=element;option.setAttribute('role','option');option.setAttribute('aria-selected',String(select.value===element));option.append(ebDeckMedallion(element),ebDeckPickerCopy(element));let tag=document.createElement('span');tag.className='mp-deck-tag';tag.textContent=HYBRIDS[element]?'Hybrid':'Prime';option.append(tag);option.addEventListener('click',()=>ebChooseOnlineDeck(element));list.append(option)});
  let sheet=window.EB_UI.sheet({variant:'choice',children:[title,list]});sheet.classList.add('mp-deck-sheet');sheet.setAttribute('role','listbox');sheet.setAttribute('aria-labelledby',title.id);overlay.append(sheet);document.body.append(overlay);trigger.setAttribute('aria-expanded','true');document.addEventListener('keydown',ebDeckPickerKeydown);(list.querySelector('[aria-selected="true"]')||list.firstElementChild)?.focus({preventScroll:true});
 }
+function ebRenderOnlineResponse(){
+ let box=document.getElementById('mpResponse'),element=document.getElementById('mpDeck')?.value;if(!box)return;
+ let chooser=window.EB_DeckSelect?.responseChooser?.(element)||null;EB_MP.responseChooser=chooser;box.replaceChildren();box.hidden=!chooser;if(chooser)box.append(chooser.root);
+}
+function ebOnlineResponse(){return EB_MP.responseChooser?.value||null}
 async function ebEnsureMatchmakingAuth(){
  try{
    let existing=ebMatchmakingSession();if(existing){EB_MP.authSession=existing;ebSetMatchmakingEnabled(true);ebMatchmakingMessage('Ready to create or join a match');return existing}
@@ -1473,7 +1478,7 @@ async function ebEnsureMatchmakingAuth(){
 function ebSetupMatchmaking(){
  console.debug('[ElementBound] ebSetupMatchmaking ran');
  let select=document.getElementById('mpDeck');if(select&&!select.options.length)select.innerHTML=Object.keys(INFO).map(element=>`<option value="${element}">${ebElementName(element)} ${INFO[element][0]}</option>`).join('');
- let picker=document.getElementById('mpDeckPicker');if(select&&picker&&!picker.dataset.bound){picker.dataset.bound='true';picker.addEventListener('click',ebOpenDeckPicker);select.addEventListener('change',()=>{if(!picker.classList.contains('is-changing'))ebUpdateDeckTrigger()});ebUpdateDeckTrigger()}
+ let picker=document.getElementById('mpDeckPicker');if(select&&picker&&!picker.dataset.bound){picker.dataset.bound='true';picker.addEventListener('click',ebOpenDeckPicker);select.addEventListener('change',()=>{if(!picker.classList.contains('is-changing'))ebUpdateDeckTrigger();ebRenderOnlineResponse()});ebUpdateDeckTrigger();ebRenderOnlineResponse()}
  let invited=new URLSearchParams(location.search).get('join'),input=document.getElementById('mpRoomCode');if(invited&&input)input.value=invited.toUpperCase();ebSetMatchmakingEnabled(false);
  let panel=document.getElementById('mpMatchmaking'),connect=document.getElementById('mpConnectOnline'),begin=()=>ebEnsureMatchmakingAuth().catch(()=>{});
  if(panel&&connect&&window.ElementBoundFirebaseBootstrap)window.ElementBoundFirebaseBootstrap.bindConnectButton(connect,begin);if(invited)begin();
@@ -1481,13 +1486,13 @@ function ebSetupMatchmaking(){
 async function ebCreateMatch(){
  let session=ebMatchmakingSession();if(!session){try{session=await ebEnsureMatchmakingAuth()}catch(error){return}}
  let element=document.getElementById('mpDeck')?.value,client=window.ElementBoundMatchmaking.createMatchmakingClient({getIdToken:()=>session.user.getIdToken(),fetchImpl:session.fetchImpl});ebMatchmakingMessage('Creating room…');
- let result=await client.createRoom({element});if(!result.ok)return ebMatchmakingMessage(`Could not create room: ${result.error}`,true);
+ let result=await client.createRoom({element,responseElement:ebOnlineResponse()});if(!result.ok)return ebMatchmakingMessage(`Could not create room: ${result.error}`,true);
  let liveUrl=new URL(location.href);liveUrl.search='';liveUrl.searchParams.set('roomId',result.roomId);history.replaceState(null,'',liveUrl);let inviteUrl=new URL(liveUrl);inviteUrl.search='';inviteUrl.searchParams.set('join',result.roomId);ebMatchmakingMessage(`Room ${result.roomId} · Share ${inviteUrl.href}`);ebStartMultiplayer({roomId:result.roomId,...session});
 }
 async function ebJoinMatch(){
  let session=ebMatchmakingSession();if(!session){try{session=await ebEnsureMatchmakingAuth()}catch(error){return}}
  let roomId=String(document.getElementById('mpRoomCode')?.value||'').trim().toUpperCase(),element=document.getElementById('mpDeck')?.value,client=window.ElementBoundMatchmaking.createMatchmakingClient({getIdToken:()=>session.user.getIdToken(),fetchImpl:session.fetchImpl});ebMatchmakingMessage('Joining room…');
- let result=await client.joinRoom(roomId,{element});if(!result.ok)return ebMatchmakingMessage(`Could not join room: ${result.error}`,true);
+ let result=await client.joinRoom(roomId,{element,responseElement:ebOnlineResponse()});if(!result.ok)return ebMatchmakingMessage(`Could not join room: ${result.error}`,true);
  let link=new URL(location.href);link.search='';link.searchParams.set('roomId',result.roomId);history.replaceState(null,'',link);ebMatchmakingMessage(`Joined room ${result.roomId}.`);ebStartMultiplayer({roomId:result.roomId,...session});
 }
 function ebMpInitializeFromUrl(){

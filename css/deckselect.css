@@ -22,8 +22,8 @@
 .deckselect-shell.is-choosing-difficulty .deckselect-option{opacity:1;transform:none;transition-duration:300ms;transition-timing-function:var(--eb-ease-soft)}
 .deckselect-shell.is-choosing-difficulty .deckselect-option:nth-child(1){transition-delay:220ms}.deckselect-shell.is-choosing-difficulty .deckselect-option:nth-child(2){transition-delay:280ms}.deckselect-shell.is-choosing-difficulty .deckselect-option:nth-child(3){transition-delay:340ms}
 .deckselect-option-copy{display:flex;flex-direction:column}.deckselect-option-copy strong{font:700 var(--eb-text-md)/1.1 var(--eb-font-display)}.deckselect-option-copy span{margin-top:4px;color:var(--eb-ink-quiet);font-size:var(--eb-text-sm)}
-.deckselect-option.is-selected{box-shadow:var(--eb-glow-select)}
-.deckselect-check{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--eb-select);color:var(--eb-plate-edge)}.deckselect-check[hidden]{display:none}.deckselect-check .eb-icon{width:20px;height:20px}
+.deckselect-option.is-selected{border-color:var(--eb-bronze-hi);box-shadow:var(--eb-glow-select)}
+
 .deckselect-rival{margin:8px 0 0;color:var(--eb-ink-quiet);font-size:var(--eb-text-sm);text-align:center}
 .deckselect-actions{width:min(300px,calc(100% - 24px));margin:0 auto;text-align:center}
 .deckselect-main{position:relative;width:100%;height:64px;padding:0;overflow:hidden}
@@ -41,7 +41,6 @@
 .deckselect-response-options{display:grid;grid-template-columns:1fr 1fr;gap:6px}.deckselect-response-item{position:relative;min-width:0}
 .deckselect-response-option{position:relative;display:grid;grid-template-columns:32px minmax(0,1fr);align-items:center;gap:8px;width:100%;min-height:52px;padding:5px 40px 5px 8px;color:var(--eb-ink);background:var(--eb-card-plate);border:1px solid var(--eb-bronze-lo);border-radius:var(--eb-radius-md);text-align:left;cursor:pointer;transition:box-shadow 150ms var(--eb-ease),border-color 150ms var(--eb-ease)}.deckselect-response-option.is-selected{border-color:var(--eb-bronze-hi);box-shadow:var(--eb-glow-select)}
 .deckselect-response-medallion{width:32px;height:32px}.deckselect-response-copy{display:grid;gap:2px;min-width:0}.deckselect-response-copy strong{font:700 13px/1.1 var(--eb-font-display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.deckselect-response-copy span{color:var(--eb-ink-quiet);font-size:11px;line-height:1.2}
-.deckselect-response-option .deckselect-check{position:absolute;z-index:1;left:26px;top:calc(50% + 4px);width:20px;height:20px;box-shadow:0 0 0 2px var(--eb-plate-edge)}.deckselect-response-option .deckselect-check[hidden]{display:none}.deckselect-response-option .deckselect-check .eb-icon{width:12px;height:12px}
 .deckselect-response-info{position:absolute;top:50%;right:0;width:44px;height:44px;transform:translateY(-50%);border:0;background:transparent;color:#c9a26a}.deckselect-response-info .eb-icon{width:18px;height:18px}
 .deckselect-difficulty.has-response .deckselect-option{height:46px;padding:4px 14px}.deckselect-difficulty.has-response .deckselect-option-copy span{margin-top:2px;font-size:12px}.deckselect-difficulty.has-response .deckselect-options{gap:5px}.deckselect-difficulty.has-response .deckselect-difficulty-head{height:36px}
 @media(prefers-reduced-motion:reduce){.deckselect-response,.deckselect-shell.is-choosing-difficulty .deckselect-response{transition-duration:150ms;transition-delay:0ms;transition-timing-function:linear;transform:none}}
