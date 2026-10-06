@@ -88,7 +88,7 @@ function goDeckSelectBack(){window.EB_DeckSelect.changeDeck();return ebNavigate(
 function goFriends(){const moved=ebNavigate('friends');ebAutoConnectFriends();return moved}
 function ebAutoConnectFriends(){if(ebMatchmakingSession()){ebSetMatchmakingEnabled(true);return}if(!EB_MP.authPromise)ebEnsureMatchmakingAuth().catch(()=>{})}
 function goFriendsBack(){return ebNavigate('home',{direction:'back'})}
-function startSelectedMatch(deckKey,difficultyKey){choice=deckKey;diff=difficultyKey;EB_HYBRID_RESPONSE_CHOICE=null;startMatch()}
+function startSelectedMatch(deckKey,difficultyKey,responseElement=null){choice=deckKey;diff=difficultyKey;EB_HYBRID_RESPONSE_CHOICE=responseElement;startMatch()}
 function setup(){}
 function mk(el,n,c,a,h,guard=false,text='',tip=''){return window.ElementBoundMatchFactory.manifestation(()=>++uid,el,n,c,a,h,guard,text,tip)}
 function deck(el,responseEl=null){return window.ElementBoundMatchFactory.createDeck(el,{responseElement:responseEl,nextId:()=>++uid})}
@@ -105,9 +105,7 @@ function ebInitiativeReveal(){if(!G||!G.initiative||G.initiative.finished||G.ini
 function ebInitiativeSkip(){if(!G||!G.initiative||G.initiative.finished)return;EB_INIT_RUN++;if(EB_INIT_RAF1)cancelAnimationFrame(EB_INIT_RAF1);if(EB_INIT_RAF2)cancelAnimationFrame(EB_INIT_RAF2);EB_INIT_RAF1=EB_INIT_RAF2=0;clearTimeout(EB_INIT_T);EB_INIT_T=0;if(!G.initiative.revealed)ebInitiativeReveal();else ebInitiativeFinish()}
 function ebInitiativeShow(){if(!G||!G.initiative||G.initiative.finished)return;let o=document.getElementById('initiativeOverlay'),c=document.getElementById('initiativeCoin'),r=document.getElementById('initiativeResult'),b=document.getElementById('initiativeBonus');if(!o)return ebInitiativeFinish();ebInitiativeCancelPresentation();let run=EB_INIT_RUN;o.classList.remove('hide');if(r)r.textContent='FLIPPING…';if(b)b.textContent='';if(c)c.classList.remove('flip');/* Two paint opportunities prevent iOS Safari from coalescing overlay reveal + animation start. */EB_INIT_RAF1=requestAnimationFrame(()=>{if(run!==EB_INIT_RUN||!G||!G.initiative||G.initiative.finished)return;EB_INIT_RAF2=requestAnimationFrame(()=>{if(run!==EB_INIT_RUN||!G||!G.initiative||G.initiative.finished)return;if(c)c.classList.add('flip');EB_INIT_T=setTimeout(ebInitiativeReveal,1500)})})}
 function startMatch(){
- if(HYBRIDS[choice]&&!HYBRIDS[choice].parents.includes(EB_HYBRID_RESPONSE_CHOICE)){
-  let h=HYBRIDS[choice];modal('Choose your Hybrid Response card',h.parents.map(el=>[`${ebElementName(el)} ${RESPONSES[el].n}`,()=>{EB_HYBRID_RESPONSE_CHOICE=el;hideModal();setTimeout(startMatch,190)}]));return;
- }
+ if(HYBRIDS[choice]&&!HYBRIDS[choice].parents.includes(EB_HYBRID_RESPONSE_CHOICE))EB_HYBRID_RESPONSE_CHOICE=window.EB_DeckSelect?.loadResponse?.(choice,window.localStorage)||HYBRIDS[choice].parents[0];
  selectedCardId=null;clearTimeout(EB_INIT_T);let keys=Object.keys(INFO),pool=keys.filter(x=>x!==choice&&x!==window.lastOpp);if(!pool.length)pool=keys.filter(x=>x!==choice);let opp=pool[Math.floor(Math.random()*pool.length)];window.lastOpp=opp;
  let oppResp=HYBRIDS[opp]?HYBRIDS[opp].parents[Math.floor(Math.random()*HYBRIDS[opp].parents.length)]:opp;
  G=window.ElementBoundMatchFactory.createInitialState({players:[{name:'Your Bender',element:choice,responseElement:EB_HYBRID_RESPONSE_CHOICE},{name:`${diff} ${INFO[opp][0]} Rival`,element:opp,responseElement:oppResp}],random:Math.random});let starter=G.active;G.initiative.revealed=false;G.initiative.finished=false;uid=Math.max(uid,...G.p.flatMap(p=>[...p.deck,...p.hand].map(c=>Number(c.id)||0)));let rival=document.getElementById('initiativeRival');if(rival){rival.className=`initRival eb-element--${opp.toLowerCase()}`;rival.replaceChildren(window.EB_UI.icon(opp.toLowerCase(),{label:INFO[opp][0]}),document.createTextNode(`vs ${INFO[opp][0]}`))}
