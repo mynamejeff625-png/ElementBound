@@ -507,3 +507,4 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-06 | Every control uses touch-action: manipulation and the page never rubber-bands (overscroll-behavior: none), so iOS cannot delay or swallow a tap after a swipe |
 | 2026-10-06 | Play with Friends shows the same Hybrid Response row (stacked, under the deck picker) and sends the choice with Create and Join; the remembered choice is shared with single player |
 | 2026-10-06 | Tap-critical deck-select controls activate on finger lift (EB_UI.fastTap) so a tap still counts when a browser withholds the click |
+| 2026-10-06 | Phase 2 exit: no menu screen uses `modal()`; the 19 remaining `modal()` calls are all inside the duel (targeting, Flow, Response window, Re-cycle, result) and are replaced by Phase 3 (tap-to-target, Inspect sheet, Response window) and Phase 4 (result screen), not before |

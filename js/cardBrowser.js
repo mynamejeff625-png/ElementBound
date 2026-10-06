@@ -89,7 +89,7 @@
     state.root.classList.toggle('is-animating',animate&&!state.reduce);
     state.medallions.forEach((button,index)=>{
       const offset=circularOffset(index,position),view=dialInterpolation(offset),centered=Math.abs(offset)<.5;
-      button.style.transform=`translateX(${view.x}px) scale(${view.scale})`;
+      button.style.transform=`translateX(${view.x}px) scale(${view.scale})`;button.style.setProperty('--dial-scale',String(Math.max(.2,view.scale)));
       button.style.opacity=String(view.opacity);button.style.zIndex=String(20-Math.round(Math.abs(offset)*2));button.style.pointerEvents=view.opacity<=.2?'none':'';
       button.style.boxShadow=centered?`0 0 0 2px #05070d,0 0 26px ${elementColor(DECKS[index])}bb`:'';
       button.setAttribute('aria-selected',String(centered));button.tabIndex=centered?0:-1;
