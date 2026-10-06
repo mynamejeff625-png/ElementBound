@@ -1,15 +1,15 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.7.3',
-  label:'Tome search',
+  version:'1.8.0',
+  label:'Card finder',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Search the Tome, even with words from other card games',
+  focus:'Find any card by name, type, cost or effect',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Search the Tome from the magnifier at the top',
-    'Words from other card games work too: try mana or graveyard'
+    'Find any card from the magnifier in the Codex',
+    'Filter by type, cost or effect, then tap to see the card'
   ])
 });
 

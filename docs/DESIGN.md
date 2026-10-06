@@ -454,6 +454,7 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 1 · Foundation | Tokens, components CSS, `EB_UI`, SVG icons replace emoji, fonts applied, inline styles removed | Every screen still works; only icons, fonts and spacing look different |
 | 2 · Menus and sheets | Home, Trials, Codex (deck dial + zoom, §7), Help rebuilt from components; medallions replace the element glyphs at ≥ 32 px; sheets and dialogs replace `modal()` | All High-severity menu audit items closed |
 | 3 · New duel screen (behind a toggle) | Slate, fanned hand, Bender plates, tap-to-target, Inspect sheet, framed cards with the `short` effect line, 60 s turn timer online; host Trials exclusively through the field-anchor contract | Zero scroll at 375×667; playtest on both layouts; all Trial overlays still work without layout-specific selectors |
+| 3b · Speed and connection | Latency audit after the duel redesign (Owner, 2026-10-05): online move round-trip, snapshot and event size, slow-connection and reconnect handling, render cost on mid-range phones | Online moves feel immediate on a throttled slow connection; no visible frame drops on a mid-range phone |
 | 4 · Feel | Motion, sound (§8), coin flip, result screen; old duel screen removed | First summon within 60 s for new players |
 | 5 · Profiles and cosmetics | Accounts, gems, Bender cosmetics, App Check | — |
 
@@ -497,3 +498,5 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-05 | Cormorant Garamond (italic, self-hosted, SIL OFL) is approved as the narrator font |
 | 2026-10-05 | Terms on cards open their Tome page in a peek sheet over the current screen, including mid-duel; the duel is never left |
 | 2026-10-05 | Tome search drops down from the top (so the phone keyboard never covers it) and also matches words from other card games (`docs/TOME.md` §0.6) |
+| 2026-10-05 | Mobile first: the Tome's two-page spread for wide screens is deferred; 2e ends at search |
+| 2026-10-05 | The Codex finds any card from a top sheet with Type, Cost and Effect filters; a result jumps to that card's zoom in its deck |

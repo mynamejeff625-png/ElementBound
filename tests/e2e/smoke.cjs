@@ -397,7 +397,23 @@ async function run() {
       const noHorizontalScroll=await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth);
       assert.equal(noHorizontalScroll,true,'Codex causes no horizontal page scroll');checks++;
 
-      await menuPush({trigger:'#codex .codex-header button',from:'#codex',to:'#home',direction:'back',label:'Codex to Home'});
+      await page.locator('#codex .codex-find-button').click();await page.locator('.tome-peek-backdrop.is-search.is-open').waitFor({timeout:5000});await page.waitForTimeout(400);
+      assert.equal(await page.evaluate(()=>document.activeElement?.classList.contains('codex-finder-input')),true,'card finder opens with its input focused');checks++;
+      assert.match(await page.locator('.codex-finder-status').textContent(),/^42 cards$/,'card finder lists every unique card by default');checks++;
+      await page.locator('.codex-finder-chip[data-value="TECHNIQUE"]').click();await page.locator('.codex-finder-chip[data-value="2"]').click();
+      assert.equal(await page.locator('.codex-finder-result').count(),9,'Type and Cost filters combine (2-Essence Techniques)');checks++;
+      assert.equal(await page.locator('.codex-finder-chip[data-value="TECHNIQUE"]').getAttribute('aria-pressed'),'true','selected filters expose aria-pressed');checks++;
+      await page.locator('.codex-finder-chip[data-value="ALL"]').click();await page.locator('.codex-finder-chip[data-value="ANY"]').click();
+      await page.locator('.codex-finder-chip[data-value="Burning"]').click();
+      assert.equal(await page.locator('.codex-finder-result').count(),6,'Effect filter finds every Burning card');checks++;
+      await page.locator('.codex-finder-chip[data-value="Burning"]').click();
+      await page.fill('.codex-finder-input','tidelily');await page.waitForTimeout(150);
+      await shot('09-codex-finder');
+      await page.keyboard.press('Enter');await page.locator('.codex-zoom.is-open').waitFor({timeout:5000});await page.waitForTimeout(500);
+      assert.equal((await page.locator('.codex-zoom-slide[aria-hidden="false"] .codex-card-name').textContent()).trim(),'Tidelily Guardian','a finder result opens that card zoomed in its deck');checks++;
+      assert.equal(await page.evaluate(()=>document.querySelector('#codex .codex-shell')?.dataset.currentDeck),'BLOOM','the dial moves to the card\'s deck');checks++;
+      await page.locator('.codex-zoom-close').click();await page.locator('.codex-zoom').waitFor({state:'detached',timeout:5000});
+      await menuPush({trigger:'#codex .codex-header .codex-back',from:'#codex',to:'#home',direction:'back',label:'Codex to Home'});
       await menuPush({trigger:'.home-links button:nth-child(2)',from:'#home',to:'#tome',label:'Home to Tome'});
       await visible('.tome-cover','Tome cover');
       await calmBackground('Tome');
