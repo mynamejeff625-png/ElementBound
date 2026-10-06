@@ -54,6 +54,9 @@ async function run() {
         viewport: { width: vp.width, height: vp.height }, deviceScaleFactor: 2,
         isMobile: true, hasTouch: true, reducedMotion: 'no-preference'
       });
+      // The static smoke server has no /api endpoints. Answer the public Firebase config request with a
+      // controlled "offline" reply so Play with Friends exercises its connection-failure path on every machine.
+      await context.route('**/api/firebase-config',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:false,error:'SMOKE_OFFLINE'})}));
       const page = await context.newPage();
       const cdp = await context.newCDPSession(page);
       const swipe = async (startX,startY,endX,endY) => {
