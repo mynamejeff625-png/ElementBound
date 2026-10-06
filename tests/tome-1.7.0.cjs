@@ -65,4 +65,5 @@ const synonymTable=source.slice(source.indexOf('### 0.6 Search words from other 
 equal(Object.fromEntries(synonymTable.map(([title,words])=>[title,words.split(', ')])),JSON.parse(JSON.stringify(tome.synonyms)),'search synonyms in tomeData.js match TOME.md §0.6 exactly');
 for(const title of Object.keys(tome.synonyms))check(tome.pages.some(page=>page.title===title),`search synonym target ${title} is a Tome page`);
 check(/search:searchTome/.test(tomeSource)&&/icon:'search'/.test(tomeSource),'Tome header exposes search');
+check(/\.tome-page-scroll\{[^}]*touch-action:pan-y/.test(css),'Tome pages only allow vertical panning, so a sideways swipe stays with the page on touch screens');
 console.log(`Tome 1.7.0: ${checks} checks passed`);
