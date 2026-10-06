@@ -660,6 +660,6 @@ async function run() {
 run().catch(err => {
   console.error(err);
   // On GitHub Actions, surface the failure as an annotation so it can be read without downloading the log.
-  if (process.env.GITHUB_ACTIONS) console.log(`::error title=browser-smoke::${String(err && (err.message || err)).replace(/%/g,'%25').replace(/\r?\n/g,'%0A').slice(0,1800)}`);
+  if (process.env.GITHUB_ACTIONS) console.log(`::error title=browser-smoke::${(String(err && (err.message || err))+' @ '+String(err&&err.stack||'').split('\n').filter(line=>line.includes('smoke.cjs')).slice(0,2).join(' | ')).replace(/%/g,'%25').replace(/\r?\n/g,'%0A').slice(0,1800)}`);
   process.exit(1);
 });
