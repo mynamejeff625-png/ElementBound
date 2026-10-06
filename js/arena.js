@@ -80,7 +80,7 @@
     if(player.initiationToken){const token=node('span','arena-count arena-token');token.setAttribute('aria-label','Initiation Token: one free Response');token.append(icon('token'));zones.append(token)}
     const marks=node('div','arena-marks');marks.setAttribute('aria-label','Bender effects');
     (player.marks||[]).forEach(mark=>{const key=String(mark).toLowerCase();if(STATUS_ICONS.has(key)){const badge=node('span','arena-mark');badge.append(icon(key,mark));marks.append(badge)}else marks.append(node('span','arena-mark arena-mark--text',mark))});
-    if(player.turnState?.airOpening)marks.append(node('span','arena-mark arena-mark--text','Air Opening +1'));
+    if(player.turnState?.airOpening){const air=node('span','arena-mark');air.setAttribute('role','img');air.setAttribute('aria-label','Air Opening: +1 for Gale Scout');air.append(icon('air'),node('b','','+1'));marks.append(air)}
     body.replaceChildren(medal,main,zones);if(marks.childNodes.length)body.append(marks);
     target.style.setProperty('--vit',share.toFixed(3));
     target.style.setProperty('--plate-el',`var(--eb-el-${String(player.el).toLowerCase()})`);
@@ -162,24 +162,83 @@
   function iconHtml(name,label){return icon(name,label).outerHTML}
   function typeShort(card){return card.type==='MANIFESTATION'?'UNIT':card.type==='TECHNIQUE'?'TECH':'RESP'}
   function typeLong(card){return card.type==='MANIFESTATION'?'Manifestation':card.type==='TECHNIQUE'?'Technique':'Response'}
+  // Status chips carry a word as well as the glyph, so an effect is readable at a glance.
+  const STATUS_INFO={
+    Burning:{icon:'burning',word:'Burn',what:'Fire payoffs hit it harder.'},
+    Soaked:{icon:'soaked',word:'Soak',what:'Its next attack deals 2 less.',down:true},
+    Weakened:{icon:'weakened',word:'Weak',what:'−1 ⚔ until it is destroyed (already counted in its ⚔).',down:true},
+    Seeded:{icon:'seeded',word:'Seed',what:'Can gain Growth.'},
+    Charged:{icon:'charged',word:'Chg',what:'The next Lightning hit on it deals +1.'},
+    Guard:{icon:'guard',word:'Guard',what:'Attacks cannot reach its Bender while it stands.'},
+    Momentum:{icon:'momentum',what:'+1 ⚔ per stack until round end.',up:true},
+    Growth:{icon:'growth',what:'+1 ⚔ per stack.',up:true},
+    Armor:{icon:'armor',what:'Blocks 1 damage per point until round end.'}
+  };
+  function cardStatuses(card,momentum){
+    const list=[];
+    (card.marks||[]).filter(mark=>mark!=='Momentum').forEach(mark=>{const info=STATUS_INFO[mark];list.push({name:mark,icon:info?.icon||(STATUS_ICONS.has(String(mark).toLowerCase())?String(mark).toLowerCase():null),text:info?.word||mark,what:info?.what||'',down:!!info?.down})});
+    if(momentum>0)list.push({name:'Momentum',icon:'momentum',text:`+${momentum}`,value:momentum,what:STATUS_INFO.Momentum.what,up:true});
+    if((card.growth||0)>0)list.push({name:'Growth',icon:'growth',text:`+${card.growth}`,value:card.growth,what:STATUS_INFO.Growth.what,up:true});
+    if((card.armor||0)>0)list.push({name:'Armor',icon:'armor',text:String(card.armor),value:card.armor,what:STATUS_INFO.Armor.what});
+    if(card.quick)list.push({name:'Response ready',icon:'sparkle',text:'Ready',what:'A Response effect is waiting on this card.'});
+    if(card.sick)list.push({name:'Waiting',icon:'hourglass',text:'Wait',what:'Summoned this turn: it can attack next turn.'});
+    return list;
+  }
+  function chipHtml(status){return `<span class="arena-glyph${status.down?' is-down':''}${status.up?' is-up':''}">${status.icon?iconHtml(status.icon):''}<span class="arena-glyph-text">${esc(status.text)}</span></span>`}
   function cardMarkup(card,opts={}){
     const el=String(card.el||'').toLowerCase(),short=root.ElementBoundCards?.SHORT?.[card.n]||'',unit=card.type==='MANIFESTATION';
     const cls=['card','arena-card','codex-card','codex-card--s','eb-card',`eb-element--${el}`,el];
     if(opts.can)cls.push('play');if(opts.pending)cls.push('mp-pending');if(card.sick)cls.push('is-sick');
-    const glyphs=[],words=[];
-    (card.marks||[]).filter(mark=>mark!=='Momentum').forEach(mark=>{const key=String(mark).toLowerCase();words.push(mark);glyphs.push(STATUS_ICONS.has(key)?`<span class="arena-glyph">${iconHtml(key,mark)}</span>`:`<span class="arena-glyph arena-glyph--text">${esc(mark)}</span>`)});
-    const counted=(name,label,value)=>{words.push(`${label} ${value}`);glyphs.push(`<span class="arena-glyph">${iconHtml(name,`${label} ${value}`)}<b aria-hidden="true">${value}</b></span>`)};
-    if(opts.momentum>0)counted('momentum','Momentum',opts.momentum);
-    if((card.growth||0)>0)counted('growth','Growth',card.growth);
-    if((card.armor||0)>0)counted('armor','Armor',card.armor);
-    if(card.quick){words.push('Response effect ready');glyphs.push(`<span class="arena-glyph">${iconHtml('sparkle','Response effect ready')}</span>`)}
+    const statuses=cardStatuses(card,opts.momentum||0),down=statuses.some(st=>st.down),up=statuses.some(st=>st.up);
     let stats='';
     if(unit){
-      const hurt=Number(card.h)<Number(card.max),attack=opts.soakedPreview?`<span class="arena-soaked">${iconHtml('soaked','Soaked')}<s>${card.a}</s>→${Math.max(0,card.a-2)}</span>`:String(card.a);
-      stats=`<span class="codex-card-stats"><span class="codex-card-stat">${iconHtml('sword','Attack')}${attack}</span>${card.guard?`<span class="codex-card-stat arena-stat-icon">${iconHtml('guard','Guard')}</span>`:''}${card.sick?`<span class="codex-card-stat arena-stat-icon arena-sick">${iconHtml('hourglass','Waiting a turn')}</span>`:''}<span class="codex-card-stat${hurt?' is-hurt':''}">${iconHtml('heart',`Health ${card.h} of ${card.max}`)}${card.h}</span></span>`;
+      const hurt=Number(card.h)<Number(card.max),trend=down?'<span class="arena-trend" aria-hidden="true">▼</span>':up?'<span class="arena-trend" aria-hidden="true">▲</span>':'';
+      const attack=opts.soakedPreview?`<span class="arena-soaked"><s>${card.a}</s>→${Math.max(0,card.a-2)}</span>`:String(card.a);
+      stats=`<span class="codex-card-stats"><span class="codex-card-stat${down?' is-down':''}${up&&!down?' is-up':''}">${iconHtml('sword','Attack')}${attack}${trend}</span><span class="codex-card-stat${hurt?' is-hurt':''}">${iconHtml('heart',`Health ${card.h} of ${card.max}`)}${card.h}</span></span>`;
     }
-    const label=[card.n,typeLong(card),`cost ${card.c}`,short,unit?`${card.a} attack, ${card.h} of ${card.max} health`:'',card.guard?'Guard':'',card.sick?'waiting a turn':'',...words].filter(Boolean).join(', ');
-    return `<div class="${cls.join(' ')}" data-id="${card.id}" data-inspect="1" role="group" aria-label="${esc(label)}"><span class="codex-card-top"><span class="codex-cost"><span>${card.c}</span></span><span class="codex-card-type codex-card-type--${card.type.toLowerCase()}">${typeShort(card)}</span></span><img class="codex-medallion codex-card-medallion--s" src="assets/medallions/${el}.webp" alt=""><span class="codex-card-name">${esc(card.n)}</span>${short?`<span class="codex-card-short">${esc(short)}</span>`:''}${glyphs.length?`<span class="arena-glyphs">${glyphs.join('')}</span>`:''}${stats}</div>`;
+    const guard=card.guard?`<span class="arena-top-guard">${iconHtml('guard','Guard')}</span>`:'';
+    const label=[card.n,typeLong(card),`cost ${card.c}`,short,unit?`${card.a} attack, ${card.h} of ${card.max} health`:'',card.guard?'Guard':'',...statuses.map(st=>`${st.name}${st.value?' '+st.value:''}`)].filter(Boolean).join(', ');
+    return `<div class="${cls.join(' ')}" data-id="${card.id}" data-inspect="1" role="group" aria-label="${esc(label)}"><span class="codex-card-top"><span class="codex-cost"><span>${card.c}</span></span>${guard}<span class="codex-card-type codex-card-type--${card.type.toLowerCase()}">${typeShort(card)}</span></span><img class="codex-medallion codex-card-medallion--s" src="assets/medallions/${el}.webp" alt=""><span class="codex-card-name">${esc(card.n)}</span>${short?`<span class="codex-card-short">${esc(short)}</span>`:''}${statuses.length?`<span class="arena-glyphs">${statuses.map(chipHtml).join('')}</span>`:''}${stats}</div>`;
+  }
+
+  // Live card detail: the Codex close-up plus a "Right now" panel with the card's current state.
+  function inspect(card){
+    const tome=root.EB_Tome,parts=card&&root.EB_CardBrowser?.cardDetail?.(card.n);
+    if(!tome?.sheet||!parts)return false;
+    const momentum=root.momentumStacks?root.momentumStacks(card):0,statuses=cardStatuses(card,momentum);
+    const onField=!!lastRender?.state?.p?.some(side=>side.slots.some(slot=>slot&&slot.id===card.id));
+    tome.sheet({label:card.n,render:()=>{
+      const wrap=node('div','arena-inspect');
+      if(onField||statuses.length){
+        const now=node('section','arena-now');now.setAttribute('aria-label','Right now');
+        now.append(node('h3','arena-now-title','Right now'));
+        if(card.type==='MANIFESTATION'){
+          const row=node('div','arena-now-stats');
+          const stat=(name,label,value,base)=>{const box=node('span',`arena-now-stat${value<base?' is-down':value>base?' is-up':''}`);box.append(icon(name,label),node('b','',value));if(value!==base)box.append(node('s','',base));box.setAttribute('aria-label',`${label} ${value}${value!==base?`, printed ${base}`:''}`);return box};
+          const base=findPrinted(card.n)||{a:card.a,h:card.max};
+          row.append(stat('sword','Attack',card.a,base.a),stat('heart','Health',card.h,card.max));
+          now.append(row);
+        }
+        if(statuses.length){
+          const list=node('ul','arena-now-list');
+          statuses.forEach(st=>{const li=node('li'),term=STATUS_INFO[st.name]?st.name:null;const chip=node(term?'button':'span','arena-now-chip');if(term){chip.type='button';chip.dataset.tomeTerm=term;chip.setAttribute('aria-label',`${st.name}: open its page in the Tome`)}chip.innerHTML=chipHtml(st);li.append(chip,node('span','arena-now-what',`${st.name}${st.value?` ${st.value}`:''}: ${st.what}`));list.append(li)});
+          now.append(list);
+        }
+        wrap.append(now);
+      }
+      wrap.append(...parts);
+      return wrap;
+    }});
+    return true;
+  }
+  function findPrinted(name){const browser=root.EB_CardBrowser;if(!browser?.deckCards)return null;for(const key of browser.DECKS||[]){const hit=browser.deckCards(key).find(c=>c&&c.n===name);if(hit)return{a:hit.a,h:hit.h}}return null}
+
+  // A selected Technique's ACTIVATE moves to the action row (thumb zone) as "Cast", instead of floating over the field.
+  function afterSelection(){
+    const actions=document.querySelector('#battle .actions');if(!actions)return;
+    const button=document.querySelector('#hand .eb-tech-activate');
+    if(button){const name=button.closest('.arena-card')?.querySelector('.codex-card-name')?.textContent||'';button.textContent=name?`Cast ${name}`:'Cast';button.classList.add('arena-cast');actions.prepend(button)}
+    actions.classList.toggle('has-cast',!!actions.querySelector('.eb-tech-activate'));
   }
 
   // ---------- 3-2 · The fanned hand ----------
@@ -188,7 +247,6 @@
   const SCRUB_LIFT=-30,DRAG_START=24,TAP_SLOP=10,DOUBLE_TAP_MS=360;
   const hand={el:null,focus:-1,gesture:null,lastTap:{id:null,at:0}};
   function handCards(){return hand.el?[...hand.el.querySelectorAll('.arena-card')]:[]}
-  function selectedId(){return root.selectedHandCard?.()?.id??null}
   function layoutFan(focus=hand.focus){
     const cards=handCards(),n=cards.length;hand.focus=focus;if(!n||!hand.el)return;
     const width=hand.el.clientWidth||320,cardWidth=cards[0].offsetWidth||88;
@@ -211,15 +269,16 @@
   }
   function wireHand(handEl){
     hand.el=handEl;
-    const cards=handCards(),chosen=selectedId();
+    const cards=handCards();
     cards.forEach(card=>{card.dataset.doubleTapWired='1';card.setAttribute('role','button');card.tabIndex=0});
     if(!handEl._arenaWired){
       handEl._arenaWired=true;
       handEl.addEventListener('pointerdown',onHandDown,{passive:false});
       handEl.addEventListener('keydown',onHandKey);
-      handEl.addEventListener('focusin',event=>{const i=handCards().indexOf(event.target);if(i>=0&&!hand.gesture)layoutFan(i)});
+      handEl.addEventListener('focusin',event=>{const i=handCards().indexOf(event.target);if(i>=0&&!hand.gesture&&event.target.matches(':focus-visible'))layoutFan(i)});
+      handEl.addEventListener('focusout',()=>{if(!hand.gesture)layoutFan(-1)});
     }
-    layoutFan(chosen==null?-1:cards.findIndex(card=>Number(card.dataset.id)===chosen));
+    layoutFan(-1);
   }
   function cardIdAt(i){const card=handCards()[i];return card?Number(card.dataset.id):null}
   function selectAt(i,{tap=false}={}){
@@ -228,7 +287,7 @@
     if(tap&&hand.lastTap.id===id&&now-hand.lastTap.at<=DOUBLE_TAP_MS){hand.lastTap={id:null,at:0};root.inspectCard?.(root.findLiveCardById?.(id));return}
     if(tap)hand.lastTap={id,at:now};
     root.ebArenaSelect?.(id);
-    layoutFan(handCards().findIndex(card=>Number(card.dataset.id)===id));
+    layoutFan(-1);
     decorateSlots();
   }
   function onHandKey(event){
@@ -299,7 +358,7 @@
       if(slot&&root.ebArenaSummon?.(id,Number(slot.dataset.slot)))return;
       const index=handCards().findIndex(card=>Number(card.dataset.id)===id);
       if(index>=0)selectAt(index);
-      if(cast)handCards()[index]?.querySelector('.eb-tech-activate')?.click();
+      if(cast)document.querySelector('#battle .actions .eb-tech-activate')?.click();
       return;
     }
     endHandGesture();selectAt(g.index,{tap:!g.moved});
@@ -307,7 +366,7 @@
   function onHandCancel(event){
     const g=hand.gesture;if(!g||event.pointerId!==g.id)return;
     const dragging=g.mode==='drag';endHandGesture();if(dragging)root.ebArenaDragEnd?.();
-    const chosen=selectedId();layoutFan(chosen==null?-1:handCards().findIndex(card=>Number(card.dataset.id)===chosen));
+    layoutFan(-1);
   }
   // Empty slots become keyboard targets while a Manifestation is selected or dragged.
   function decorateSlots(draggingId=null){
@@ -451,6 +510,6 @@
   function hideArc(){aim.svg?.classList.remove('is-on')}
   function wireField(){const slots=byId('pslots');if(slots&&!slots._arenaAim){slots._arenaAim=true;slots.addEventListener('pointerdown',onFieldDown,{passive:false})}}
 
-  root.EB_Arena=Object.freeze({enabled:()=>enabled,setEnabled,render,apply,cardMarkup,wireHand,beginAttack,endAim,get aiming(){return aim.attackerId}});
+  root.EB_Arena=Object.freeze({enabled:()=>enabled,setEnabled,render,apply,cardMarkup,wireHand,beginAttack,endAim,inspect,afterSelection,get aiming(){return aim.attackerId}});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
 })(window);

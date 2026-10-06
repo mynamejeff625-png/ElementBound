@@ -457,6 +457,18 @@ Top to bottom, mirrored, with no page scroll:
   several ready units highlights them to choose from. A rival Guard shows a
   shield on the rival plate; while it blocks the Bender the shield grows and
   the Bender is not a target.
+- **Status chips:** every status on a card is a glyph **plus a word or number**
+  (Burn, Soak, Weak, Seed, Chg, Wait, +N for Momentum and Growth, N for Armor).
+  Effects that lower ⚔ get a danger outline and ▼ on the ⚔ plate; effects that
+  raise it get ▲, so the change never relies on colour alone. Guard sits in the
+  card's top row. Field cards always keep their medallion.
+- **Card detail (live):** a double-tap (or long-press path) opens the Codex
+  close-up in the shared sheet, topped by a **Right now** panel: current ⚔/♡
+  against the printed value, then each status chip with one line on what it
+  does (the chip opens its Tome page).
+- **Touch feedback:** a hand card rises only while the finger is on it; after
+  release the fan settles and the selection shows as a glow. A selected
+  Technique's Cast button replaces Attack in the action row.
 - **Anchors:** in the Arena the Bender anchors sit on the plates (`#eplate`,
   `#pplate`), one per side; slot and hand-card anchors are unchanged.
 
@@ -559,3 +571,4 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-06 | The Arena is mirrored around the Rift: Bender plates top and bottom with Vitality rings, pedestals facing the Rift, the duel log in a Chronicle sheet; toggle `?arena=1` until the 3-6 exit audit |
 | 2026-10-06 | Arena hand and field use mini Codex cards; the hand is an arc fan with scrub, pull-up drag and lift-to-select (Owner playtest feedback on PR #82) |
 | 2026-10-06 | Arena attacks use a drag arc or tap-then-tap with target rings, damage preview and a Guard shield on the rival plate, replacing Choose Attacker / Choose Target |
+| 2026-10-06 | Arena status chips show a word as well as a glyph; card detail in a duel is the Codex close-up plus a live Right now panel; hand cards lift only while touched; Cast sits in the action row (Owner playtest, PR #82) |

@@ -751,6 +751,22 @@ async function run() {
         await page.waitForFunction(r=>G.rev>r||!!G.pendingResponse,rev,{timeout:5000});checks++;
         assert.equal(await page.evaluate(()=>EB_Arena.aiming),null,'aiming ends after the attack');checks++;
       }
+      // Playtest fixes: status chips carry a word, the live detail is the Codex close-up plus "Right now", no card stays lifted after a touch.
+      const live=await page.evaluate(()=>{const unit=me().slots.find(Boolean);if(!unit)return null;unit.marks=[...new Set([...(unit.marks||[]),'Weakened'])];render();const el=document.querySelector(`#pslots .card[data-id="${unit.id}"]`);return {word:[...el.querySelectorAll('.arena-glyph-text')].map(x=>x.textContent),medallion:!!el.querySelector('.codex-card-medallion--s')&&getComputedStyle(el.querySelector('.codex-card-medallion--s')).display!=='none',id:unit.id}});
+      if(live){
+        assert.ok(live.word.includes('Weak')&&live.medallion,`field cards show their medallion and status chips carry a word (${JSON.stringify(live)})`);checks++;
+        await page.evaluate(id=>inspectCard(me().slots.find(c=>c&&c.id===id)),live.id);
+        await page.locator('.tome-peek .arena-now').waitFor({timeout:5000});
+        const sheet=await page.evaluate(()=>({codex:!!document.querySelector('.tome-peek .codex-card--l'),status:document.querySelector('.tome-peek .arena-now-list')?.textContent||'',oldModal:!document.getElementById('mw').classList.contains('hide')}));
+        assert.ok(sheet.codex&&/Weakened/.test(sheet.status)&&!sheet.oldModal,`card detail is the Codex close-up with the live Right now panel (${JSON.stringify(sheet)})`);checks++;
+        await page.keyboard.press('Escape');await page.locator('.tome-peek-backdrop').waitFor({state:'detached',timeout:5000});
+      }
+      const handBox=await page.locator('#hand').boundingBox();
+      if(await page.locator('#hand .arena-card').count()){
+        await page.touchscreen.tap(handBox.x+handBox.width/2,handBox.y+handBox.height*.6);
+        await page.waitForTimeout(250);
+        assert.equal(await page.locator('#hand .arena-card.is-focus').count(),0,'no hand card stays lifted after the finger leaves');checks++;
+      }
       await shot('06b-duel-arena');
       await page.locator('.arena-chronicle').click();
       await page.locator('.tome-peek .arena-chronicle-list').waitFor({timeout:5000});
