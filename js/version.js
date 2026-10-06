@@ -1,15 +1,15 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.8.4',
-  label:'Cleaner choices',
+  version:'1.8.5',
+  label:'Online Hybrid Response',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Glow-only selection and more reliable taps',
+  focus:'Choose your Hybrid Response online too',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Selected choices now just glow, no check marks',
-    'Buttons respond on the first tap, even right after a swipe'
+    'Play with Friends lets Hybrid decks choose their Response too',
+    'Your Response choice is shared between single player and online'
   ])
 });
 

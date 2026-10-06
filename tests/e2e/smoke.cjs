@@ -272,6 +272,14 @@ async function run() {
       await page.locator('.mp-deck-option[data-deck="STORM"]').click();await page.locator('.mp-deck-sheet').waitFor({state:'detached'});
       assert.equal((await page.locator('#mpDeckPicker strong').textContent()).trim(),'Storm','choosing Storm updates the trigger');checks++;
       assert.equal(await page.locator('#mpDeck').inputValue(),'STORM','custom picker updates the authoritative select');checks++;
+      assert.deepEqual(await page.evaluate(()=>({hidden:document.getElementById('mpResponse').hidden,options:[...document.querySelectorAll('#mpResponse [role="radio"]')].map(button=>button.dataset.response)})),{hidden:false,options:['LIGHTNING','AIR']},'a Hybrid online deck offers its two Response cards');checks++;
+      await page.locator('#mpResponse [data-response="AIR"]').click();
+      assert.equal(await page.locator('#mpResponse [data-response="AIR"]').getAttribute('aria-checked'),'true','the online Response choice is selectable');checks++;
+      let createBody=null;await page.route('**/api/create-room',route=>{createBody=route.request().postDataJSON();route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:false,error:'SMOKE_TEST'})})});
+      await page.evaluate(()=>{window.EB_MULTIPLAYER_DEPS={user:{uid:'smoke',getIdToken:async()=>'smoke-token'},db:{},fetchImpl:window.fetch.bind(window)};ebSetMatchmakingEnabled(true)});
+      await page.locator('#mpCreateMatch').click();await page.waitForFunction(()=>/SMOKE_TEST/.test(document.getElementById('mpMatchmakingResult').textContent),null,{timeout:5000});
+      assert.deepEqual(createBody,{element:'STORM',responseElement:'AIR'},'Create Match sends the chosen Hybrid Response');checks++;
+      await page.unroute('**/api/create-room');await page.evaluate(()=>{delete window.EB_MULTIPLAYER_DEPS;ebSetMatchmakingEnabled(false)});
       await page.locator('#mpDeckPicker').click();await visible('.mp-deck-sheet','reopened online deck picker');
       assert.equal(await page.locator('.mp-deck-option[data-deck="STORM"]').getAttribute('aria-selected'),'true','reopened picker marks Storm selected');checks++;
       await page.keyboard.press('Escape');await page.locator('.mp-deck-sheet').waitFor({state:'detached'});assert.equal(await page.evaluate(()=>document.activeElement===document.getElementById('mpDeckPicker')),true,'deck picker Escape restores trigger focus');checks++;

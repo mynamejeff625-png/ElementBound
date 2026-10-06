@@ -505,3 +505,5 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-06 | Hybrid decks choose their Response in deck select: a two-option row (parent medallion, card name, short effect, ⓘ for the full card) above Choose your opponent, remembered per deck; the old pop-up is retired and falls back to the remembered or first parent's Response. Online Hybrid Response choice follows in its own PR |
 | 2026-10-06 | Selected choices (difficulty, Hybrid Response, online deck picker) show only the glowing bronze outline, no ✓ badge; the state is still exposed through aria-checked / aria-selected |
 | 2026-10-06 | Every control uses touch-action: manipulation and the page never rubber-bands (overscroll-behavior: none), so iOS cannot delay or swallow a tap after a swipe |
+| 2026-10-06 | Play with Friends shows the same Hybrid Response row (stacked, under the deck picker) and sends the choice with Create and Join; the remembered choice is shared with single player |
+| 2026-10-06 | Tap-critical deck-select controls activate on finger lift (EB_UI.fastTap) so a tap still counts when a browser withholds the click |
