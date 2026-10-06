@@ -654,4 +654,9 @@ async function run() {
   console.log(`Browser smoke test: ${checks} checks passed; screenshots in test-results/screenshots/`);
 }
 
-run().catch(err => { console.error(err); process.exit(1); });
+run().catch(err => {
+  console.error(err);
+  // On GitHub Actions, surface the failure as an annotation so it can be read without downloading the log.
+  if (process.env.GITHUB_ACTIONS) console.log(`::error title=browser-smoke::${String(err && (err.message || err)).replace(/%/g,'%25').replace(/\r?\n/g,'%0A').slice(0,1800)}`);
+  process.exit(1);
+});
