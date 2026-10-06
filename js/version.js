@@ -1,15 +1,17 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.9.1',
-  label:'Rule Experiments',
+  version:'1.9.2',
+  label:'Choices on the Field',
   engine:'EB-1.1.2',
   balanceLab:'Balance Lab XIX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Balance Lab tests ways to keep new Manifestations alive (issue #83)',
+  focus:'Arena: Responses and every duel choice rise from the thumb zone instead of a pop-up',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Balance Lab: new Rule Experiments panel compares candidate combat rules',
-    'Live duel rules are unchanged'
+    'Arena: Responses, Flow and target choices open above your hand',
+    'During a Response the field dims except the attacker and its target',
+    'Online Responses show a countdown ring',
+    'Drag a card onto your deck counts to Re-cycle it'
   ])
 });
 

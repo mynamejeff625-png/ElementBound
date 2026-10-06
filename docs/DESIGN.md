@@ -469,6 +469,15 @@ Top to bottom, mirrored, with no page scroll:
 - **Touch feedback:** a hand card rises only while the finger is on it; after
   release the fan settles and the selection shows as a glow. A selected
   Technique's Cast button replaces Attack in the action row.
+- **Choices (3-4):** in the Arena every duel `modal()` (Response Window, Flow,
+  Technique targets, swaps, recipients, Re-cycle) opens as one panel rising into
+  the thumb zone over the hand (250 ms in, 170 ms out; reduced motion fades in
+  150 ms). Focus moves to its first button and returns to the opener. Ordinary
+  choices get a Cancel (and Escape); a Response is rules-critical: no Cancel,
+  Escape does nothing, only USE or PASS ends it. During a Response the field
+  dims except the attacker (red outline) and its target (light outline); online,
+  a ring counts down the server deadline. Dragging a hand card onto your plate's
+  counts Re-cycles it (the Re-cycle button still works).
 - **Anchors:** in the Arena the Bender anchors sit on the plates (`#eplate`,
   `#pplate`), one per side; slot and hand-card anchors are unchanged.
 
@@ -573,3 +582,4 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-06 | Arena hand and field use mini Codex cards; the hand is an arc fan with scrub, pull-up drag and lift-to-select (Owner playtest feedback on PR #82) |
 | 2026-10-06 | Arena attacks use a drag arc or tap-then-tap with target rings, damage preview and a Guard shield on the rival plate, replacing Choose Attacker / Choose Target |
 | 2026-10-06 | Arena status chips show a word as well as a glyph; card detail in a duel is the Codex close-up plus a live Right now panel; hand cards lift only while touched; Cast sits in the action row (Owner playtest, PR #82) |
+| 2026-10-06 | Arena choices (Response, Flow, targets, Re-cycle) rise into the thumb zone above the hand instead of a centred pop-up; a Response dims all but attacker and target and shows the online countdown ring |
