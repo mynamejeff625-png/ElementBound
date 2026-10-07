@@ -20,8 +20,10 @@ for(const [offset,x,scale,opacity] of [[0,0,1,1],[1,74,.667,.85],[2,128,.472,.45
 }
 
 for(const key of DECKS.slice(0,6)){
-  const cards=deckCards(key,catalog);check(cards.length===5,`${key} maps to five cards`);
-  check(cards.slice(0,3).every(card=>card.type==='MANIFESTATION')&&cards[3].type==='TECHNIQUE'&&cards[4].type==='RESPONSE',`${key} preserves unit, Technique, Response order`);
+  // Issue #93: each Prime shows its two Techniques, first Technique before the second.
+  const cards=deckCards(key,catalog);check(cards.length===6,`${key} maps to six cards`);
+  check(cards.slice(0,3).every(card=>card.type==='MANIFESTATION')&&cards[3].type==='TECHNIQUE'&&cards[4].type==='TECHNIQUE'&&cards[5].type==='RESPONSE',`${key} preserves unit, Technique, second Technique, Response order`);
+  check(cards[3].n===catalog.TECH[key][0]&&cards[4].n===catalog.TECH2[key][0],`${key} shows ${catalog.TECH2[key][0]} after ${catalog.TECH[key][0]}`);
 }
 for(const key of DECKS.slice(6)){
   const cards=deckCards(key,catalog);check(cards.length===4,`${key} maps to four cards`);

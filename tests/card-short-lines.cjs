@@ -4,6 +4,7 @@ const cards=require('../lib/cardCatalog.js');
 const names=[];
 for(const list of Object.values(cards.BASE))for(const c of list)names.push(c[0]);
 for(const t of Object.values(cards.TECH))names.push(t[0]);
+for(const t of Object.values(cards.TECH2))names.push(t[0]);
 for(const r of Object.values(cards.RESPONSES))names.push(r.n);
 for(const list of Object.values(cards.HYBRID_CARDS))for(const c of list)names.push(c.n);
 

@@ -62,6 +62,8 @@ jobs:
       - run: node tests/turn-timer-1.10.2.cjs
       - run: node --check tests/sim-ai-fidelity-1.10.3.cjs
       - run: node tests/sim-ai-fidelity-1.10.3.cjs
+      - run: node --check tests/second-techniques-1.11.0.cjs
+      - run: node tests/second-techniques-1.11.0.cjs
       - run: node --check tests/ui-foundation-1.2.0.cjs
       - run: node tests/ui-foundation-1.2.0.cjs
       - run: node --check js/game.js

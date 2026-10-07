@@ -17,6 +17,8 @@ function techniquePayload(tech,original){
   if(['EARTH','NATURE'].includes(tech.el))payload.friendId='friend';
   if(tech.el==='WATER')payload.enemyId='enemy';
   if(tech.el==='AIR')payload.friendId='friend';
+  // Second Prime Techniques (issue #93) that also name an enemy.
+  if(['Stone Fist','Downdraft'].includes(tech.n))payload.enemyId='enemy';
   if(tech.el==='MAGMA'){
     if(tech.n==='Molten Channel')Object.assign(payload,{friendId:'friend',enemyId:'enemy',magmaMode:'BOTH'});
     else payload.friendId='friend';
