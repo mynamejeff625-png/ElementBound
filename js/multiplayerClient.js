@@ -84,7 +84,8 @@
         if(!response.ok||!body.ok){
           const code=body.error||`HTTP_${response.status}`;
           if(code==='REVISION_MISMATCH')resync();
-          if(code!=='RESPONSE_NOT_EXPIRED'&&!(move.type==='RESOLVE_EXPIRED'&&code==='REVISION_MISMATCH'))notify('error',messageFor(code),code);
+          const expiry=move.type==='RESOLVE_EXPIRED'||move.type==='TURN_EXPIRED';
+          if(code!=='RESPONSE_NOT_EXPIRED'&&code!=='TURN_NOT_EXPIRED'&&code!=='NO_TURN_TIMER'&&!(expiry&&(code==='REVISION_MISMATCH'||code==='RESPONSE_PENDING')))notify('error',messageFor(code),code);
           return {ok:false,error:code,detail:body.detail||null};
         }
         const sendMs=clock()-t0,target=Number(body.rev);
