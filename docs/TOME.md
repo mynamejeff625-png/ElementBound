@@ -96,6 +96,7 @@ The search in the Tome header matches titles first, then these words players bri
 | Card Re-cycle | mulligan, redraw, swap card |
 | Summoning sickness | summon sick, sick, cannot attack |
 | Warded | rally ward, ward, protected, cannot be attacked |
+| Second Wind | catch up, comeback, extra draw, behind |
 | Attack ⚔ | atk, attack, power, damage |
 | Initiative | coin flip, who goes first, first player |
 | Chain | combo, sequence, storm count |
@@ -304,6 +305,13 @@ Tab icon: sword. Pages follow this order.
 - **Quick facts:** On: Manifestation · Lasts: Until your next turn · Stacks: No
 - **Don't confuse with:** [[Guard]], which protects your Bender, not the Manifestation itself.
 - **See also:** [[Target]], [[Summoning sickness]]
+
+#### Second Wind
+- **Archivist:** "A Bender pushed to the edge finds one more card. What you do with it decides the duel."
+- **Rule:** From round 2, if you start your turn with fewer Manifestations than the rival, and you hold 2 or fewer cards or are 2 or more Manifestations behind, you draw 1 extra card after your normal draw. It never draws from an empty [[Deck]], so it never causes [[Exhaustion]].
+- **Quick facts:** On: Your turn · Lasts: Instant · Stacks: No
+- **Don't confuse with:** [[Warded]], which protects a Manifestation you summon onto an empty field.
+- **See also:** [[Hand]], [[Warded]]
 
 #### Elemental effect
 - **Archivist:** "An effect does little on its own. It is a promise that a later card will keep."

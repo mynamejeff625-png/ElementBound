@@ -16,10 +16,10 @@ function equal(actual,expected,message){assert.deepEqual(actual,expected,message
 // Every approved page appears exactly once, in source order.
 const lessons=[...source.matchAll(/^### ([IVX]+) · (.+)$/gm)].map(match=>match[2]);
 const entries=[...source.matchAll(/^#### (.+?)(?: \((?:symbol|term|element page)\))?$/gm)].map(match=>match[1]);
-// 1.12.0 (issue #96) adds the Warded page to Core Terms: 32 entries precede Effects at a Glance, 63 pages in all.
-const expected=['Contents',...lessons,...entries.slice(0,32),'Effects at a Glance','The Nine Elements',...entries.slice(32)];
-equal(tome.pages.map(page=>page.title),expected,'all 63 source pages retain their approved order');
-equal(new Set(tome.pages.map(page=>page.id)).size,63,'page ids are unique');
+// 1.12.0 (issue #96) adds Warded and 1.13.0 (issue #99) adds Second Wind to Core Terms: 33 entries precede Effects at a Glance, 64 pages in all.
+const expected=['Contents',...lessons,...entries.slice(0,33),'Effects at a Glance','The Nine Elements',...entries.slice(33)];
+equal(tome.pages.map(page=>page.title),expected,'all 64 source pages retain their approved order');
+equal(new Set(tome.pages.map(page=>page.id)).size,64,'page ids are unique');
 
 // Approved content is preserved, including every Archivist line and Rules field.
 for(const page of tome.pages.filter(page=>page.archivist))check(source.includes(`**Archivist:** ${page.archivist}`)||source.includes(`- **Archivist:** ${page.archivist}`),`${page.title}: Archivist text comes from TOME.md`);

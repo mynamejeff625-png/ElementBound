@@ -14,6 +14,10 @@ function responseCard(el){return window.ElementBoundMatchFactory.createResponseC
 let EB_HYBRID_RESPONSE_CHOICE=null;
 // Alpha 0.7.8 Exhaustion Help hotfix — one source of truth for rules + gameplay.
 const EXHAUSTION_DAMAGE=2;
+// Second Wind (issue #99): from round 2, start your turn with fewer Manifestations than the rival and either 2 or
+// fewer cards in hand or 2+ fewer Manifestations → draw 1 extra card (never from an empty Deck). Same rule as lib/gameEngine.js.
+const SECOND_WIND_HAND=2;
+function ebSecondWindApplies(p,e,round){if(!p||!e)return false;let mine=p.slots.filter(Boolean).length,theirs=e.slots.filter(Boolean).length;if(Number(round)<2||!p.deck.length||mine>=theirs)return false;return p.hand.length<=SECOND_WIND_HAND||theirs-mine>=2}
 const GLOSSARY={
 'Bender':'That is you. Your Bender is the player you are protecting. If your Vitality reaches 0, you lose the duel.',
 'Vitality':'Your Bender’s life total. You begin a normal duel with 30. Damage lowers it; some effects can restore it. Reach 0 and that Bender loses.',
@@ -47,6 +51,7 @@ const GLOSSARY={
 'Momentum':'Air’s temporary stacking resource, up to 3. Multiple grants can stack during the round, and each Momentum gives that Manifestation +1 ATK. All Momentum expires at round end after both Benders have acted. Crosswind always grants 1 Momentum to a friendly Manifestation; Sky Raptor can ignore Guard while it has Momentum.',
 'Weakened':'A persistent -1 ATK debuff from Crosswind (both enemies it swaps) or Downdraft (one enemy). It does not stack on the same Manifestation and lasts until that Manifestation is destroyed.',
 'Warded':'Rally Ward: from round 2 on, a Manifestation summoned onto your empty field while the rival has Manifestations is Warded. It can\'t be attacked until your next turn begins. Techniques can still target it, and a Warded Guard still protects your Bender.',
+'Second Wind':'From round 2, if you start your turn with fewer Manifestations than the rival, and you hold 2 or fewer cards or are 2 or more Manifestations behind, you draw 1 extra card after your normal draw. It never draws from an empty Deck.',
 'Flow':'Deck control. Flow lets you inspect upcoming card(s) and decide whether to keep them on top or send them to the bottom, helping you find a better next draw.',
 'Prime':'A deck or card aligned to one core element: Fire, Water, Nature, Earth, Lightning, or Air.',
 'Hybrid':'A deck that combines two Prime elements and adds its own Hybrid cards. Hybrid play revolves around activating Resonance.',
@@ -979,7 +984,7 @@ function ebWarded(m){return !!(m&&(m.marks||[]).includes('Warded'))}
 function ebRallyWardApplies(p,e,round){return Number(round)>=2&&!p.slots.some(Boolean)&&e.slots.some(Boolean)}
 function ebPassTurn(next){if(next===ebStartSeat()){expireAllRoundEffects();G.turn++}G.active=next;turnStart()}
 function turnStart(){
- let p=current();p.slots.filter(Boolean).forEach(m=>{m.quick=null;m.turnFlags={};if(ebWarded(m))m.marks=m.marks.filter(x=>x!=='Warded')});p.turnState=freshTurnState(p.el);p.maxE=Math.min(7,2+Math.floor((G.turn-1)));p.e=p.maxE;p.slots.filter(Boolean).forEach(m=>{m.ready=true;m.sick=false});draw(p,true);G.chain=0;bump(`${p.name} turn begins`)}
+ let p=current();p.slots.filter(Boolean).forEach(m=>{m.quick=null;m.turnFlags={};if(ebWarded(m))m.marks=m.marks.filter(x=>x!=='Warded')});p.turnState=freshTurnState(p.el);p.maxE=Math.min(7,2+Math.floor((G.turn-1)));p.e=p.maxE;p.slots.filter(Boolean).forEach(m=>{m.ready=true;m.sick=false});draw(p,true);if(!G.trial&&ebSecondWindApplies(p,G.p[1-G.active],G.turn)){draw(p,false);add(p===me()?'SECOND WIND · you draw an extra card':`Rival SECOND WIND · ${p.name} draws an extra card`)}G.chain=0;bump(`${p.name} turn begins`)}
 /* Alpha 0.8.50 — shared AI target policy. Pure scoring: no state mutation, no slot-order preference. */
 function ebAITargetScore(att,t){
  if(!att||!t)return -Infinity;
@@ -1844,7 +1849,7 @@ const EB_BALANCE=(()=>{
  function simDamagedThisTurn(st,owner,x){return !!x&&x._ebDamagedTurn===simTurnKey(st,owner)}
  function guards(p){return p.slots.filter(x=>x&&x.guard)}
  function endCheck(st){if(st.winner!==null)return true;for(let i=0;i<2;i++)if(st.p[i].vit<=0){st.winner=1-i;st.reason='VITALITY';break}if(st.winner!==null){st.metrics.winReason=st.reason;return true}return false}
- function startTurn(st,i,doDraw=true){st.active=i;let p=st.p[i];st.metrics.initiative.actionTurns[i]++;if(st.metrics.initiative.turnSequence.length<40)st.metrics.initiative.turnSequence.push({round:st.turn,seat:i,role:i===st.startSeat?'FP':'SP',actionTurn:st.metrics.initiative.actionTurns[i]});p.chain=0;p.maxE=Math.min(7,2+Math.floor(st.turn-1));p.e=p.maxE;if(i!==st.startSeat&&!p._ebInitEnergyUsed){p.e+=Math.max(0,Number(st.options.secondPlayerFirstTurnEnergy)||0);p._ebInitEnergyUsed=true}if(st.metrics.initiative.openingEnergy[i]===null)st.metrics.initiative.openingEnergy[i]=p.e;p.slots.filter(Boolean).forEach(m=>{if(!m._ebFirstOpportunitySeen&&m._ebSummonedTurn<st.turn){m._ebFirstOpportunitySeen=true;st.metrics.initiative.survivedToFirstAttack[i]++;if((p.el==='LIGHTNING'||st.p[1-i].el==='LIGHTNING')&&st.trace.length<120)st.trace.push({ev:'FIRST_ATTACK_OPPORTUNITY',turn:st.turn,seat:i,unit:m.n});}m.ready=true;m.sick=false;m.quick=null;m.turnFlags={};if(ebWarded(m))unmark(m,'Warded')});p.turnState={resonance:{a:false,b:false,active:false},parents:HYBRIDS[p.el]?.parents||[],moved:[]};if(doDraw)draw(st,i);endCheck(st)}
+ function startTurn(st,i,doDraw=true){st.active=i;let p=st.p[i];st.metrics.initiative.actionTurns[i]++;if(st.metrics.initiative.turnSequence.length<40)st.metrics.initiative.turnSequence.push({round:st.turn,seat:i,role:i===st.startSeat?'FP':'SP',actionTurn:st.metrics.initiative.actionTurns[i]});p.chain=0;p.maxE=Math.min(7,2+Math.floor(st.turn-1));p.e=p.maxE;if(i!==st.startSeat&&!p._ebInitEnergyUsed){p.e+=Math.max(0,Number(st.options.secondPlayerFirstTurnEnergy)||0);p._ebInitEnergyUsed=true}if(st.metrics.initiative.openingEnergy[i]===null)st.metrics.initiative.openingEnergy[i]=p.e;p.slots.filter(Boolean).forEach(m=>{if(!m._ebFirstOpportunitySeen&&m._ebSummonedTurn<st.turn){m._ebFirstOpportunitySeen=true;st.metrics.initiative.survivedToFirstAttack[i]++;if((p.el==='LIGHTNING'||st.p[1-i].el==='LIGHTNING')&&st.trace.length<120)st.trace.push({ev:'FIRST_ATTACK_OPPORTUNITY',turn:st.turn,seat:i,unit:m.n});}m.ready=true;m.sick=false;m.quick=null;m.turnFlags={};if(ebWarded(m))unmark(m,'Warded')});p.turnState={resonance:{a:false,b:false,active:false},parents:HYBRIDS[p.el]?.parents||[],moved:[]};if(doDraw){draw(st,i);if(ebSecondWindApplies(p,st.p[1-i],st.turn)){draw(st,i);metric(st,'effect','Second Wind')}}endCheck(st)}
  function affinity(p,c){let h=HYBRIDS[p.el];if(!h||c.el===p.el)return;let rr=p.turnState.resonance;if(c.el===h.parents[0])rr.a=true;if(c.el===h.parents[1])rr.b=true;rr.active=rr.a&&rr.b;if(rr.active)metricDummy(p)}
  function metricDummy(){} // intentional no-op; state metric is recorded at action boundary.
  function attackBonus(st,owner,att,target){let p=st.p[owner],bonus=0;if(att.el==='FIRE'&&att.n==='Flare Hawk'&&(target.marks||[]).includes('Burning')){bonus++;simCombo(st,owner)}
