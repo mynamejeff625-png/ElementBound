@@ -1,16 +1,15 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.10.2',
-  label:'Turn Timer',
+  version:'1.10.3',
+  label:'Faithful Balance Lab',
   engine:'EB-1.1.2',
-  balanceLab:'Balance Lab XIX',
+  balanceLab:'Balance Lab XX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Online turns last 60 seconds; the clock turns red for the last 10',
+  focus:'Balance Lab now plays its cards the way the real rival does',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Online turns have a 60-second clock in the Rift',
-    'The last 10 seconds turn red and blink, then the turn passes',
-    'The clock pauses while a Response is being chosen'
+    'Balance Lab picks cards like the Hard rival, so its numbers match real duels',
+    'Live duel rules are unchanged'
   ])
 });
 
