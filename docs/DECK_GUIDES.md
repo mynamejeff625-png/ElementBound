@@ -3,7 +3,8 @@
 The source text for the "How this deck wins" sheet in the Codex and deck
 select (phase 2f-2). `js/deckGuides.js` holds the same text as data, and
 `tests/deck-guides-1.8.1.cjs` keeps the two identical. Rules claims match
-`lib/cardCatalog.js` and `lib/matchFactory.js` as of 1.8.0: a Hybrid deck holds
+`lib/cardCatalog.js` and `lib/matchFactory.js` as of 1.11.0: each Prime deck holds
+two Techniques, and a Hybrid deck holds
 8 cards from each parent element plus its own Hybrid cards, and uses one
 parent's Response.
 
@@ -16,7 +17,7 @@ The Archivist's voice follows `docs/TOME.md` §0.5.
 ## FIRE
 - **Archivist:** "Fire wins before the rival is ready. Count their Vitality, not your cards."
 - **Plan:**
-  1. Open with Cinder Adept: the rival Bender starts Burning.
+  1. Open with Cinder Adept or Searing Brand: the rival starts Burning.
   2. Cash it in: Flare Hawk hits a Burning target for +1, and Flame Burst deals 3 instead of 2.
   3. Keep Ember Guard on the field so their attacks can't reach your Bender.
 - **Key cards:** Cinder Adept, Flare Hawk, Flame Burst
@@ -28,7 +29,7 @@ The Archivist's voice follows `docs/TOME.md` §0.5.
 - **Plan:**
   1. Soak their biggest attacker before it swings, with Current Shift or River Serpent.
   2. Hold the line with Tide Warden: it has Guard, and it Flows each time it is hit.
-  3. Use Flow to keep the card you need on top instead of drawing blind.
+  3. Riptide finishes a Soaked enemy for 2. Use Flow to keep the card you need on top.
 - **Key cards:** River Serpent, Tide Warden, Current Shift
 - **Combo:** Current Shift → Soaked → their next hit −2
 - **Watch out:** Soaked only weakens a direct attack. Technique damage and other indirect damage still land in full.
@@ -38,7 +39,7 @@ The Archivist's voice follows `docs/TOME.md` §0.5.
 - **Plan:**
   1. Put Earthen Guard down early: Guard on a 5-health body.
   2. Armor the attacker that matters, with Stone Initiate or Fortify.
-  3. Boulder Ram with Armor hits for +1. Trade slowly and let the rival run out.
+  3. Turn Armor into damage: Boulder Ram with Armor hits for +1, and Stone Fist hits for 1 plus its Armor.
 - **Key cards:** Earthen Guard, Boulder Ram, Fortify
 - **Combo:** Fortify → Armor → Boulder Ram attacks +1
 - **Watch out:** Armor is gone at round end, and each Manifestation gains it only once per round. Give it on the turn you need it.
@@ -46,11 +47,11 @@ The Archivist's voice follows `docs/TOME.md` §0.5.
 ## NATURE
 - **Archivist:** "Nature loses the first turns on purpose. Count its board on the fourth."
 - **Plan:**
-  1. Summon the Manifestation you want to grow, then Sproutling to Seed it.
-  2. Verdant Mend gives a Seeded Manifestation Growth. Healing Root Keeper grows it too.
+  1. Summon the Manifestation you want to grow, then Seed it with Sproutling or Wild Growth.
+  2. Wild Growth Seeds and grows at once; Verdant Mend grows a Seeded Manifestation. Healing Root Keeper grows it too.
   3. Grove Beast with Growth is your finisher: +1 ATK for each Growth, up to 3.
-- **Key cards:** Sproutling, Verdant Mend, Grove Beast
-- **Combo:** Sproutling → Seeded → Verdant Mend → Growth
+- **Key cards:** Wild Growth, Verdant Mend, Grove Beast
+- **Combo:** Wild Growth → Seeded → Verdant Mend → Growth
 - **Watch out:** Nature starts slow. Second Bloom heals each Manifestation only once per duel, so spend it on the one you are growing.
 
 ## LIGHTNING
@@ -67,7 +68,7 @@ The Archivist's voice follows `docs/TOME.md` §0.5.
 - **Archivist:** "Air's strength lasts one round. Whatever you don't spend, the wind takes back."
 - **Plan:**
   1. Get Sky Raptor onto the field.
-  2. Next turn, give it Momentum with Crosswind or Breeze Disciple.
+  2. Next turn, give it Momentum with Crosswind, Downdraft or Breeze Disciple.
   3. With Momentum, Sky Raptor attacks the Bender straight past Guard.
 - **Key cards:** Sky Raptor, Crosswind, Breeze Disciple
 - **Combo:** Crosswind → Momentum → Sky Raptor ignores Guard

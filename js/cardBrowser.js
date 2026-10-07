@@ -42,6 +42,8 @@
     const units=(source.BASE[key]||[]).map(card=>normalizeCard(key,{n:card[0],c:card[1],a:card[2],h:card[3],text:card[4],tip:card[5]},'MANIFESTATION'));
     const technique=source.TECH[key],response=source.RESPONSES[key];
     if(technique)units.push(normalizeCard(key,{n:technique[0],c:technique[3],text:technique[1],tip:technique[2]},'TECHNIQUE'));
+    const second=source.TECH2&&source.TECH2[key];
+    if(second)units.push(normalizeCard(key,{n:second[0],c:second[3],text:second[1],tip:second[2]},'TECHNIQUE'));
     if(response)units.push(normalizeCard(key,response,'RESPONSE'));
     return units;
   }

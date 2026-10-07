@@ -6,7 +6,7 @@
  "FIRE": {
   "archivist": "\"Fire wins before the rival is ready. Count their Vitality, not your cards.\"",
   "plan": [
-   "Open with Cinder Adept: the rival Bender starts Burning.",
+   "Open with Cinder Adept or Searing Brand: the rival starts Burning.",
    "Cash it in: Flare Hawk hits a Burning target for +1, and Flame Burst deals 3 instead of 2.",
    "Keep Ember Guard on the field so their attacks can't reach your Bender."
   ],
@@ -27,7 +27,7 @@
   "plan": [
    "Soak their biggest attacker before it swings, with Current Shift or River Serpent.",
    "Hold the line with Tide Warden: it has Guard, and it Flows each time it is hit.",
-   "Use Flow to keep the card you need on top instead of drawing blind."
+   "Riptide finishes a Soaked enemy for 2. Use Flow to keep the card you need on top."
   ],
   "key": [
    "River Serpent",
@@ -46,7 +46,7 @@
   "plan": [
    "Put Earthen Guard down early: Guard on a 5-health body.",
    "Armor the attacker that matters, with Stone Initiate or Fortify.",
-   "Boulder Ram with Armor hits for +1. Trade slowly and let the rival run out."
+   "Turn Armor into damage: Boulder Ram with Armor hits for +1, and Stone Fist hits for 1 plus its Armor."
   ],
   "key": [
    "Earthen Guard",
@@ -63,17 +63,17 @@
  "NATURE": {
   "archivist": "\"Nature loses the first turns on purpose. Count its board on the fourth.\"",
   "plan": [
-   "Summon the Manifestation you want to grow, then Sproutling to Seed it.",
-   "Verdant Mend gives a Seeded Manifestation Growth. Healing Root Keeper grows it too.",
+   "Summon the Manifestation you want to grow, then Seed it with Sproutling or Wild Growth.",
+   "Wild Growth Seeds and grows at once; Verdant Mend grows a Seeded Manifestation. Healing Root Keeper grows it too.",
    "Grove Beast with Growth is your finisher: +1 ATK for each Growth, up to 3."
   ],
   "key": [
-   "Sproutling",
+   "Wild Growth",
    "Verdant Mend",
    "Grove Beast"
   ],
   "combo": [
-   "Sproutling",
+   "Wild Growth",
    "Seeded",
    "Verdant Mend",
    "Growth"
@@ -103,7 +103,7 @@
   "archivist": "\"Air's strength lasts one round. Whatever you don't spend, the wind takes back.\"",
   "plan": [
    "Get Sky Raptor onto the field.",
-   "Next turn, give it Momentum with Crosswind or Breeze Disciple.",
+   "Next turn, give it Momentum with Crosswind, Downdraft or Breeze Disciple.",
    "With Momentum, Sky Raptor attacks the Bender straight past Guard."
   ],
   "key": [

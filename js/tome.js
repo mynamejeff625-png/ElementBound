@@ -48,6 +48,7 @@
       if(page.rule){const rule=node('p','tome-rule');appendLinked(rule,page.rule);scroll.append(rule)}
       if(page.facts)scroll.append(facts(page));if(page.demo&&page.kind!=='lesson'){const demo=staticDemo(page);if(demo)scroll.append(demo)}
       if(page.confuse){const box=node('div','tome-confuse');box.append(node('b','','≠'),node('small','','Don’t confuse with'));const copy=node('p');appendLinked(copy,page.confuse);box.append(copy);scroll.append(box)}
+      if(page.techniques?.length){scroll.append(node('h3','tome-section-title','Techniques'));const chips=node('div','tome-chips');for(const card of page.techniques)chips.append(cardChip(card));scroll.append(chips)}
       if(page.seenOn?.length){scroll.append(node('h3','tome-section-title','Seen on'));const chips=node('div','tome-chips');for(const card of page.seenOn)chips.append(cardChip(card));scroll.append(chips)}
       for(const [field,label] of [['seeAlso','See also'],['inChapter','In this chapter'],['parents','Parents']])if(page[field]?.length){scroll.append(node('h3','tome-section-title',label));const chips=node('div','tome-chips');for(const link of page[field])chips.append(linkChip(link));scroll.append(chips)}
       if(page.hybrid){scroll.append(node('h3','tome-section-title','Hybrid'));const chips=node('div','tome-chips');chips.append(linkChip(page.hybrid));scroll.append(chips)}

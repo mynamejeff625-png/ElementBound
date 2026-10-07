@@ -213,7 +213,7 @@ Tab icon: sword. Pages follow this order.
 
 #### Technique
 - **Archivist:** "A Technique is gone the moment it works. Make sure it works."
-- **Rule:** A one-use action card. Pay its Essence, resolve its effect, and it goes to the [[Wake]] instead of staying on the field.
+- **Rule:** A one-use action card. Pay its Essence, resolve its effect, and it goes to the [[Wake]] instead of staying on the field. Each Prime deck carries two different Techniques.
 - **See also:** [[Quick]], [[Target]]
 
 #### Response
@@ -377,6 +377,7 @@ One page. It sits after Core Terms and is linked from every effect page's label.
 - **Archivist:** "Fire wants the duel short. Every turn you give it, it uses."
 - **Deck line:** **Blazing Fist** · PRESSURE · BURNING
 - **Rule:** Aggressive damage and finishers. Apply [[Burning]], then hit the Burning target with Fire payoffs.
+- **Techniques:** Flame Burst, Searing Brand
 - **Response:** Backdraft: after an enemy damages one of your Manifestations, it deals 2 damage to the attacker.
 - **In this chapter:** [[Burning]]
 - **Hybrid:** [[Magma]] · with Earth
@@ -389,7 +390,7 @@ One page. It sits after Core Terms and is linked from every effect page's label.
 - **Quick facts:** On: Manifestation or Bender · Lasts: Stays · Stacks: No
 - **Demo:** A rival plate with a breathing flame, showing "2 → 3".
 - **Don't confuse with:** damage over time. Burning never ticks; only the payoff deals damage.
-- **Seen on:** Cinder Adept, Flare Hawk, Flame Burst, Molten Channel, Obsidian Ravager, Pressure Forge
+- **Seen on:** Cinder Adept, Flare Hawk, Flame Burst, Searing Brand, Molten Channel, Obsidian Ravager, Pressure Forge
 - **See also:** [[Fire]], [[Magma]]
 - **Try it:** Trial of Flame
 
@@ -401,6 +402,7 @@ One page. It sits after Core Terms and is linked from every effect page's label.
 - **Archivist:** "Water rarely wins the trade. It changes what the trade is worth before it happens."
 - **Deck line:** **Shifting Tide** · CONTROL · SOAKED
 - **Rule:** Flow and battlefield manipulation. Weaken the next attack with [[Soaked]], and use [[Flow]] to set up your draws.
+- **Techniques:** Current Shift, Riptide
 - **Response:** Undertow: when one of your Manifestations is attacked, move it to another empty slot of yours. The attack is cancelled.
 - **In this chapter:** [[Soaked]], [[Flow]]
 - **Hybrid:** [[Bloom]] · with Nature
@@ -409,11 +411,11 @@ One page. It sits after Core Terms and is linked from every effect page's label.
 #### Soaked
 - **Label:** GLOSSARY · WATER · glyph `soaked`
 - **Archivist:** "Soak the biggest attacker before it swings. After the hit lands, it is too late."
-- **Rule:** Water's control mark. A Soaked Manifestation deals 2 less damage with its next direct attack (minimum 0), then Soaked is removed. Status and indirect damage are unaffected.
+- **Rule:** Water's control mark. A Soaked Manifestation deals 2 less damage with its next direct attack (minimum 0), then Soaked is removed. Status and indirect damage are unaffected. Riptide deals 2 damage to a Soaked Manifestation.
 - **Quick facts:** On: Manifestation · Lasts: Next attack · Stacks: No
 - **Demo:** Tide Brute with a drop glyph, showing "4 → 2".
 - **Don't confuse with:** [[Weakened]], which is −1 ⚔ until destroyed. Soaked is −2 once.
-- **Seen on:** River Serpent, Current Shift
+- **Seen on:** River Serpent, Current Shift, Riptide
 - **See also:** [[Water]], [[Bloom]]
 - **Try it:** Trial of Tides
 
@@ -423,7 +425,7 @@ One page. It sits after Core Terms and is linked from every effect page's label.
 - **Rule:** Deck control. Flow lets you look at the top card or cards of your [[Deck]] and keep each one on top or send it to the bottom.
 - **Quick facts:** On: Your deck · Lasts: Instant · Stacks: No
 - **Demo:** The top card flips face up. Choose between "Keep" (it stays on top) and "Bottom" (it slides under the deck).
-- **Seen on:** Mist Adept, Tide Warden, Current Shift, Static Step
+- **Seen on:** Mist Adept, Tide Warden, Current Shift, Static Step, Recharge
 - **See also:** [[Deck]], [[Exhaustion]]
 
 ---
@@ -434,6 +436,7 @@ One page. It sits after Core Terms and is linked from every effect page's label.
 - **Archivist:** "Earth does not need to win quickly. It only needs you to run out first."
 - **Deck line:** **Iron Mountain** · DEFENSE · ARMOR
 - **Rule:** Armor, Guard and attrition. Make every attack cost more than it gains.
+- **Techniques:** Fortify, Stone Fist
 - **Response:** Stonewall: when one of your Manifestations is attacked, give a friendly Manifestation 1 [[Armor]] until round end.
 - **In this chapter:** [[Armor]], [[Guard]]
 - **Hybrid:** [[Magma]] · with Fire
@@ -442,11 +445,11 @@ One page. It sits after Core Terms and is linked from every effect page's label.
 #### Armor
 - **Label:** GLOSSARY · EARTH · glyph `armor`
 - **Archivist:** "Armor is gone by round end, whether it was used or not. Give it to whatever is about to be hit."
-- **Rule:** Temporary protection on one Manifestation. Each Armor prevents 1 damage and is then used up. A Manifestation can gain Armor only once per round, and unused Armor is removed at round end.
+- **Rule:** Temporary protection on one Manifestation. Each Armor prevents 1 damage and is then used up. A Manifestation can gain Armor only once per round, and unused Armor is removed at round end. Stone Fist deals 1 damage plus 1 per Armor on the striker, without using that Armor up.
 - **Quick facts:** On: Manifestation · Lasts: Round end · Stacks: No (1 per round)
 - **Demo:** A plate with an Armor pip takes a "−3" hit. The pip cracks, and "−2" lands.
 - **Don't confuse with:** [[Guard]], which protects the Bender. Eruption Guard (Magma) is a [[Quick]] card: it reduces the next attack damage by 1 until your next turn and is not Armor.
-- **Seen on:** Stone Initiate, Boulder Ram, Fortify, Stonewall, Molten Channel, Pressure Forge, Obsidian Ravager
+- **Seen on:** Stone Initiate, Boulder Ram, Fortify, Stone Fist, Stonewall, Molten Channel, Pressure Forge, Obsidian Ravager
 - **See also:** [[Earth]], [[Magma]], [[Round]]
 
 #### Guard
@@ -467,6 +470,7 @@ One page. It sits after Core Terms and is linked from every effect page's label.
 - **Archivist:** "Nature loses the first two turns on purpose. Count what is on its board by the fourth."
 - **Deck line:** **Living Path** · GROWTH · SEEDED
 - **Rule:** Healing and scaling boards. [[Seeded]] Manifestations gain [[Growth]] and keep it.
+- **Techniques:** Verdant Mend, Wild Growth
 - **Response:** Second Bloom: when one of your Manifestations is attacked, heal a damaged friendly Manifestation for 1, once per Manifestation per duel.
 - **In this chapter:** [[Seeded]], [[Growth]], [[Second Bloom Used]]
 - **Hybrid:** [[Bloom]] · with Water
@@ -479,7 +483,7 @@ One page. It sits after Core Terms and is linked from every effect page's label.
 - **Quick facts:** On: Manifestation · Lasts: Stays · Stacks: No
 - **Demo:** A seed glyph drops onto Grove Beast. Verdant Mend is tapped, and a Growth pip sprouts.
 - **Don't confuse with:** [[Growth]]. Seeded is the soil; Growth is what grows in it.
-- **Seen on:** Sproutling, Verdant Mend, Rainseed, Flourishing Current, Reclaiming Tide
+- **Seen on:** Sproutling, Verdant Mend, Wild Growth, Rainseed, Flourishing Current, Reclaiming Tide
 - **See also:** [[Nature]], [[Bloom]]
 - **Try it:** Trial of Roots
 
@@ -490,7 +494,7 @@ One page. It sits after Core Terms and is linked from every effect page's label.
 - **Quick facts:** On: Manifestation · Lasts: Stays · Stacks: Up to 3
 - **Demo:** ⚔ 2 → 3 → 4 → 5 as three Growth pips fill, then a fourth bounces off the "max 3" cap.
 - **Don't confuse with:** [[Momentum]], which also gives +1 ⚔ but is gone at round end.
-- **Seen on:** Root Keeper, Grove Beast, Verdant Mend, Rainseed, Tidelily Guardian, Flourishing Current, Reclaiming Tide
+- **Seen on:** Root Keeper, Grove Beast, Verdant Mend, Wild Growth, Rainseed, Tidelily Guardian, Flourishing Current, Reclaiming Tide
 - **See also:** [[Seeded]], [[Bloom]]
 
 #### Second Bloom Used
@@ -509,6 +513,7 @@ One page. It sits after Core Terms and is linked from every effect page's label.
 - **Archivist:** "Three cards in the right order beat three stronger cards in the wrong one."
 - **Deck line:** **Flash Circuit** · COMBO · CHARGED
 - **Rule:** Fast [[Chain]]s and sequencing. Order your cards each turn so later ones gain the bonus.
+- **Techniques:** Static Step, Recharge
 - **Response:** Flash Step: when one of your Manifestations is attacked, deal 2 damage to the attacker before combat. If that destroys the attacker, the attack is cancelled.
 - **In this chapter:** [[Charged]], [[Chain]]
 - **Hybrid:** [[Storm]] · with Air
@@ -543,6 +548,7 @@ One page. It sits after Core Terms and is linked from every effect page's label.
 - **Archivist:** "Air's strength lasts one round. Whatever you do not spend, the wind takes back."
 - **Deck line:** **Dancing Gale** · TEMPO · MOMENTUM
 - **Rule:** Movement and tactical attacks. Stack [[Momentum]] and strike past [[Guard]] before it fades.
+- **Techniques:** Crosswind, Downdraft
 - **Response:** Slipstream: when one of your Manifestations is attacked, swap it with another friendly Manifestation. The attack continues against the replacement.
 - **In this chapter:** [[Momentum]], [[Weakened]]
 - **Hybrid:** [[Storm]] · with Lightning
@@ -555,18 +561,18 @@ One page. It sits after Core Terms and is linked from every effect page's label.
 - **Quick facts:** On: Manifestation · Lasts: Round end · Stacks: Up to 3
 - **Demo:** Wind streaks wrap Sky Raptor, ⚔ goes 3 → 4, and its arrow curves past the Guard to the Bender.
 - **Don't confuse with:** [[Growth]], which also gives +1 ⚔ but is permanent.
-- **Seen on:** Breeze Disciple, Gale Scout, Sky Raptor, Crosswind, Crosswind Spark, Thunderstep
+- **Seen on:** Breeze Disciple, Gale Scout, Sky Raptor, Crosswind, Downdraft, Crosswind Spark, Thunderstep
 - **See also:** [[Guard]], [[Storm]]
 - **Try it:** Trial of Winds
 
 #### Weakened
 - **Label:** GLOSSARY · AIR · glyph `weakened`
-- **Archivist:** "Crosswind does two things at once: it moves two enemies and weakens both. The −1 never goes away."
-- **Rule:** −1 ATK on both enemy Manifestations swapped by Crosswind. It does not stack on the same Manifestation and lasts until that Manifestation is destroyed.
+- **Archivist:** "Crosswind weakens both enemies it swaps; Downdraft weakens one. Either way, the −1 never goes away."
+- **Rule:** −1 ATK on an enemy Manifestation, from Crosswind (both swapped enemies) or Downdraft (one enemy). It does not stack on the same Manifestation and lasts until that Manifestation is destroyed.
 - **Quick facts:** On: Manifestation · Lasts: Until destroyed · Stacks: No
 - **Demo:** Two enemy plates swap places and both show ⚔ −1.
 - **Don't confuse with:** [[Soaked]], which is −2 for one attack only.
-- **Seen on:** Crosswind
+- **Seen on:** Crosswind, Downdraft
 - **See also:** [[Air]]
 
 ---

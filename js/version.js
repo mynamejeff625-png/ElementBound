@@ -1,15 +1,17 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.10.3',
-  label:'Faithful Balance Lab',
-  engine:'EB-1.1.2',
-  balanceLab:'Balance Lab XX',
-  ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Balance Lab now plays its cards the way the real rival does',
+  version:'1.11.0',
+  label:'Second Techniques',
+  engine:'EB-1.2.0',
+  balanceLab:'Balance Lab XXI',
+  ruleset:'EB-RULES-1.11.0-BALANCE-PASS',
+  focus:'Every Prime deck gets a second Technique',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Balance Lab picks cards like the Hard rival, so its numbers match real duels',
-    'Live duel rules are unchanged'
+    'New Techniques: Searing Brand, Riptide, Wild Growth, Stone Fist, Recharge and Downdraft',
+    'Each Prime deck now holds two different Techniques',
+    'Nature and Earth can grow and finish duels more reliably',
+    'The Codex and the Tome list both Techniques for every Prime'
   ])
 });
 

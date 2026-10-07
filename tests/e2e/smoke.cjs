@@ -400,10 +400,10 @@ async function run() {
       assert.deepEqual(codexTapSettle,codexSwipeSettle,'Codex medallion tap matches swipe settling');checks++;
       await page.waitForTimeout(350);await page.locator('#codex .codex-dial-option').nth(1).evaluate(button=>button.click());await page.waitForTimeout(350);
       const waterGrid=page.locator('.codex-grid-wrap[data-deck="WATER"]');
-      assert.equal(await waterGrid.locator('.codex-card').count(),5,'Water grid has five cards');checks++;
+      assert.equal(await waterGrid.locator('.codex-card').count(),6,'Water grid has six cards: three units, two Techniques, a Response');checks++;
       assert.equal(await waterGrid.getAttribute('aria-hidden'),'false','Water grid is active');checks++;
       const tabbableCodexCards=await page.evaluate(()=>[...document.querySelectorAll('.codex-grid-wrap')].filter(grid=>!grid.inert).flatMap(grid=>[...grid.querySelectorAll('.codex-card')]).length);
-      assert.equal(tabbableCodexCards,5,'only the active Codex grid exposes tabbable cards');checks++;
+      assert.equal(tabbableCodexCards,6,'only the active Codex grid exposes tabbable cards');checks++;
       assert.ok(await waterGrid.getByText('Mist Adept',{exact:true}).count(),'Water grid contains Mist Adept');checks++;
       await assertCardChrome('.codex-grid-wrap[data-deck="WATER"] .codex-card--s',12,'Codex S cards');
       await assertSmallCardLayout('#codex','Codex');
@@ -448,13 +448,13 @@ async function run() {
       assert.equal(await page.evaluate(()=>document.activeElement?.classList.contains('codex-guide-button')),true,'closing the guide returns focus to its button');checks++;
       await page.locator('#codex .codex-find-button').click();await page.locator('.tome-peek-backdrop.is-search.is-open').waitFor({timeout:5000});await page.waitForTimeout(400);
       assert.equal(await page.evaluate(()=>document.activeElement?.classList.contains('codex-finder-input')),true,'card finder opens with its input focused');checks++;
-      assert.match(await page.locator('.codex-finder-status').textContent(),/^42 cards$/,'card finder lists every unique card by default');checks++;
+      assert.match(await page.locator('.codex-finder-status').textContent(),/^48 cards$/,'card finder lists every unique card by default (42 + six second Techniques)');checks++;
       await page.locator('.codex-finder-chip[data-value="TECHNIQUE"]').click();await page.locator('.codex-finder-chip[data-value="2"]').click();
-      assert.equal(await page.locator('.codex-finder-result').count(),9,'Type and Cost filters combine (2-Essence Techniques)');checks++;
+      assert.equal(await page.locator('.codex-finder-result').count(),12,'Type and Cost filters combine (2-Essence Techniques, incl. Riptide, Wild Growth, Stone Fist)');checks++;
       assert.equal(await page.locator('.codex-finder-chip[data-value="TECHNIQUE"]').getAttribute('aria-pressed'),'true','selected filters expose aria-pressed');checks++;
       await page.locator('.codex-finder-chip[data-value="ALL"]').click();await page.locator('.codex-finder-chip[data-value="ANY"]').click();
       await page.locator('.codex-finder-chip[data-value="Burning"]').click();
-      assert.equal(await page.locator('.codex-finder-result').count(),6,'Effect filter finds every Burning card');checks++;
+      assert.equal(await page.locator('.codex-finder-result').count(),7,'Effect filter finds every Burning card (incl. Searing Brand)');checks++;
       await page.locator('.codex-finder-chip[data-value="Burning"]').click();
       await page.fill('.codex-finder-input','tidelily');await page.waitForTimeout(150);
       await shot('09-codex-finder');
@@ -591,7 +591,7 @@ async function run() {
       assert.deepEqual(deckTapSettle,codexTapSettle,'deck-select medallion tap settle matches Codex');checks++;
       await page.waitForTimeout(350);await page.locator('#setup .codex-dial-option').nth(1).evaluate(button=>button.click());await page.waitForTimeout(350);
       const selectWaterGrid=page.locator('#setup .codex-grid-wrap[data-deck="WATER"]');
-      assert.equal(await selectWaterGrid.locator('.codex-card').count(),5,'deck select Water grid shows five cards');checks++;
+      assert.equal(await selectWaterGrid.locator('.codex-card').count(),6,'deck select Water grid shows six cards');checks++;
       const deckCardSize=await selectWaterGrid.locator('.codex-card').first().evaluate(card=>({width:card.getBoundingClientRect().width,height:card.getBoundingClientRect().height}));
       assert.deepEqual(deckCardSize,{width:100,height:140},'deck-select cards stay 100 by 140 pixels at phone sizes');checks++;
       const titleLines=await page.locator('#setup .codex-title').evaluate(title=>Math.round(title.getBoundingClientRect().height/parseFloat(getComputedStyle(title).lineHeight)));
@@ -601,7 +601,7 @@ async function run() {
         assert.deepEqual(await carouselStyles(`#setup ${part}`),codexCarousel[part],`deck select matches Codex computed carousel styles for ${part}`);checks++;
       }
       const selectTabbable=await page.evaluate(()=>[...document.querySelectorAll('#setup .codex-grid-wrap')].filter(grid=>!grid.inert).flatMap(grid=>[...grid.querySelectorAll('.codex-card')]).length);
-      assert.equal(selectTabbable,5,'only the active deck-select grid exposes cards');checks++;
+      assert.equal(selectTabbable,6,'only the active deck-select grid exposes cards');checks++;
       await foundation('setup');
       await shot('05-setup');
       await shot('10-deck-select');
