@@ -33,7 +33,8 @@ console.log('Round-end decay 0.8.61: '+checks+' focused checks; self-test '+resu
 
 const version=fs.readFileSync('js/version.js','utf8');
 assert.match(version,/version:'\d+\.\d+\.\d+'/);
-assert.match(source,/expireAllRoundEffects\(\);G\.active=0;G\.turn\+\+/);
+// 1.11.1 (issue #96): live play ends the round when the turn returns to the starting Bender, like the engine and the Lab.
+assert.match(source,/function ebPassTurn\(next\)\{if\(next===ebStartSeat\(\)\)\{expireAllRoundEffects\(\);G\.turn\+\+\}/);
 assert.match(source,/if\(st\.active===st\.startSeat\)\{expireAllRoundEffectsSim\(st\)/);
 assert.doesNotMatch(source,/unused Armor expires at the start of your next turn/i);
 assert.doesNotMatch(source,/Momentum expires at the start of .* next turn/i);

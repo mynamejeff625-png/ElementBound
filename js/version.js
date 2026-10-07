@@ -1,17 +1,17 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.11.0',
-  label:'Second Techniques',
-  engine:'EB-1.2.0',
-  balanceLab:'Balance Lab XXI',
-  ruleset:'EB-RULES-1.11.0-BALANCE-PASS',
-  focus:'Every Prime deck gets a second Technique',
+  version:'1.12.0',
+  label:'Rally Ward',
+  engine:'EB-1.3.0',
+  balanceLab:'Balance Lab XXIII',
+  ruleset:'EB-RULES-1.12.0-BALANCE-PASS',
+  focus:'A swept field gets one protected comeback summon',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'New Techniques: Searing Brand, Riptide, Wild Growth, Stone Fist, Recharge and Downdraft',
-    'Each Prime deck now holds two different Techniques',
-    'Nature and Earth can grow and finish duels more reliably',
-    'The Codex and the Tome list both Techniques for every Prime'
+    'Rally Ward: from round 2, a Manifestation summoned onto your empty field is Warded until your next turn',
+    'Warded Manifestations cannot be attacked; Techniques still reach them',
+    'Both fields stay contested far longer, so comebacks are possible',
+    'New Warded page in the Tome and a Ward chip in the Arena'
   ])
 });
 

@@ -5,7 +5,7 @@
 (function(root){
   'use strict';
   const document=root.document,KEY='ebArena',MAX_VITALITY=30,LOW_VITALITY=10;
-  const STATUS_ICONS=new Set(['burning','charged','soaked','seeded','momentum','weakened','guard','armor','growth']);
+  const STATUS_ICONS=new Set(['burning','charged','soaked','seeded','momentum','weakened','guard','armor','growth','warded']);
   let enabled=readFlag(),lastLogKey='',tickerTimer=0,lastRender=null;
 
   function readFlag(){
@@ -188,7 +188,6 @@
     if(!state.winner){if(lethalShown){lethalShown=null;battle.classList.remove('fx-lethal');document.querySelectorAll('.arena-plate.is-shattered').forEach(el=>el.classList.remove('is-shattered'))}return}
     const key=`${state.winner}|${state.turn}`;if(lethalShown===key)return;lethalShown=key;
     const loser=state.winner===you.name?byId('eplate'):byId('pplate');
-    if(state.winReason==='CARD_DEPLETION'&&!(Number(loser===byId('eplate')?rival.vit:you.vit)<=0)){loser?.classList.add('is-shattered');return}
     loser?.classList.add('is-shattered');
     if(!reducedMotion()){battle.classList.remove('fx-lethal');void battle.offsetWidth;battle.classList.add('fx-lethal')}
   }
@@ -265,6 +264,7 @@
     Seeded:{icon:'seeded',word:'Seed',what:'Can gain Growth.'},
     Charged:{icon:'charged',word:'Chg',what:'The next Lightning hit on it deals +1.'},
     Guard:{icon:'guard',word:'Guard',what:'Attacks cannot reach its Bender while it stands.'},
+    Warded:{icon:'warded',word:'Ward',what:'Rally Ward: it cannot be attacked until its owner\'s next turn.'},
     Momentum:{icon:'momentum',what:'+1 ⚔ per stack until round end.',up:true},
     Growth:{icon:'growth',what:'+1 ⚔ per stack.',up:true},
     Armor:{icon:'armor',what:'Blocks 1 damage per point until round end.'}
