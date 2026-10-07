@@ -1,17 +1,15 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.10.1',
-  label:'Faster Online',
+  version:'1.10.3',
+  label:'Faithful Balance Lab',
   engine:'EB-1.1.2',
-  balanceLab:'Balance Lab XIX',
+  balanceLab:'Balance Lab XX',
   ruleset:'EB-RULES-0.8.62-BALANCE-PASS',
-  focus:'Online moves land faster: 10 s Responses, Auto-pass, lighter updates and self-healing',
+  focus:'Balance Lab now plays its cards the way the real rival does',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Online Response windows now last 10 seconds instead of 30',
-    'New Auto-pass switch: the Initiation Token alone no longer pauses the duel',
-    'Online updates are smaller, and a stalled board refreshes itself',
-    'The Chronicle shows how long your last online move took'
+    'Balance Lab picks cards like the Hard rival, so its numbers match real duels',
+    'Live duel rules are unchanged'
   ])
 });
 
