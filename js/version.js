@@ -1,16 +1,17 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
   version:'1.11.1',
-  label:'One Deck-Out Rule',
+  label:'Same Rules Everywhere',
   engine:'EB-1.2.1',
   balanceLab:'Balance Lab XXII',
   ruleset:'EB-RULES-1.11.1-BALANCE-PASS',
-  focus:'Running out of cards no longer ends the duel',
+  focus:'Single-player now follows the same rules as online duels',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
     'An empty Hand and Deck no longer loses the duel; only 0 Vitality does',
     'Exhaustion grows each time: 2 damage, then 3, then 4',
     'Online and single-player duels now end the same way',
+    'When the rival goes first, rounds, Essence and round effects now count correctly',
     'The Tome and Lesson VII explain the new rule'
   ])
 });
