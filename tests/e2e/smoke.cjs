@@ -198,6 +198,10 @@ async function run() {
 
       await page.goto(base, { waitUntil: 'load' });
       await visible('#home.on', 'home screen');
+      // The in-game System Check (runEBVerification) only ran when opened by hand, so stale checks went unnoticed (issue #96).
+      const systemCheck=await page.evaluate(()=>{const results=runEBVerification();return{total:results.length,failed:results.filter(r=>!r.ok).map(r=>`${r.group} · ${r.name}${r.error?`: ${r.error}`:''}`)}});
+      assert.ok(systemCheck.total>=100,`System Check runs its full list (${systemCheck.total})`);checks++;
+      assert.deepEqual(systemCheck.failed,[],'every System Check passes');checks++;
       const homeLayout=await page.evaluate(()=>{
         const logo=document.querySelector('.main-logo'),canvas=document.createElement('canvas');
         canvas.width=logo.naturalWidth;canvas.height=logo.naturalHeight;

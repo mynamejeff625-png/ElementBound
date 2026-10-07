@@ -188,7 +188,6 @@
     if(!state.winner){if(lethalShown){lethalShown=null;battle.classList.remove('fx-lethal');document.querySelectorAll('.arena-plate.is-shattered').forEach(el=>el.classList.remove('is-shattered'))}return}
     const key=`${state.winner}|${state.turn}`;if(lethalShown===key)return;lethalShown=key;
     const loser=state.winner===you.name?byId('eplate'):byId('pplate');
-    if(state.winReason==='CARD_DEPLETION'&&!(Number(loser===byId('eplate')?rival.vit:you.vit)<=0)){loser?.classList.add('is-shattered');return}
     loser?.classList.add('is-shattered');
     if(!reducedMotion()){battle.classList.remove('fx-lethal');void battle.offsetWidth;battle.classList.add('fx-lethal')}
   }

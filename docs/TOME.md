@@ -147,9 +147,9 @@ under it in the narrator font.
 
 ### VII · When the Cards Run Out
 - **Archivist:** "Long duels are lost in the deck, not on the field. Count your cards before you spend them."
-- **Rules:** If you must draw from an empty [[Deck]], you suffer [[Exhaustion]] and take 2 damage. If your [[Hand]] and Deck are both empty, [[Card Depletion]] ends the duel and you lose. [[Card Re-cycle]] swaps a card you cannot use, 3 times per match.
-- **Demo:** A deck counter ticks 1 → 0, a draw arrow hits the empty deck, and ♡ drops by 2. Then the hand empties too and a "Card Depletion" seal stamps down.
-- **Demo says:** "Empty deck: 2 damage." → "Empty deck and hand: the duel is over."
+- **Rules:** If you must draw from an empty [[Deck]], you suffer [[Exhaustion]]: 2 damage the first time, then 3, then 4, growing each time. Running out of cards never ends the duel by itself, so your field can still win it. [[Card Re-cycle]] swaps a card you cannot use, 3 times per match.
+- **Demo:** A deck counter ticks 1 → 0, a draw arrow hits the empty deck, and ♡ drops by 2. The next empty draw drops it by 3, and an "Exhaustion grows" seal stamps down.
+- **Demo says:** "Empty deck: 2 damage." → "Again: 3 damage. It keeps growing."
 
 ---
 
@@ -334,17 +334,17 @@ Tab icon: sword. Pages follow this order.
 - **See also:** [[Resonance]], [[Quick]]
 
 #### Exhaustion
-- **Archivist:** "The empty deck does not end you at once. It just costs 2 Vitality every turn until something else does."
-- **Rule:** If your [[Deck]] is empty when you would draw, your Bender takes 2 damage instead. The duel continues while you still hold cards.
-- **Quick facts:** On: Bender · Lasts: Each draw · Stacks: No
-- **Don't confuse with:** [[Card Depletion]], which ends the duel.
+- **Archivist:** "The empty deck does not end you at once. It costs 2 Vitality, then 3, then 4, until something else does."
+- **Rule:** If your [[Deck]] is empty when you would draw, your Bender takes Exhaustion damage instead: 2 the first time, then 1 more each time after (3, 4, 5…). The duel goes on.
+- **Quick facts:** On: Bender · Lasts: Each draw · Stacks: Counts up
+- **Don't confuse with:** [[Card Depletion]]: running out of cards does not end the duel.
 - **See also:** [[Deck]], [[Flow]]
 
 #### Card Depletion
-- **Archivist:** "Cards on the field do not count. An empty hand and an empty deck is a lost duel, however strong your board."
-- **Rule:** If your [[Hand]] and [[Deck]] are both empty after an action resolves, you lose at once. If the same action also brings a Bender to 0 [[Vitality]], Vitality is checked first.
-- **Don't confuse with:** [[Exhaustion]], which only deals damage.
-- **See also:** [[Wake]]
+- **Archivist:** "An empty hand is not a lost duel. Whatever is still on your field keeps fighting."
+- **Rule:** Running out of cards does not end the duel. With an empty [[Hand]] and [[Deck]] you keep taking turns: your Manifestations still attack, and each draw becomes [[Exhaustion]], which grows every time. Only 0 [[Vitality]] ends the duel.
+- **Don't confuse with:** [[Exhaustion]], the damage that replaces each draw from an empty Deck.
+- **See also:** [[Exhaustion]], [[Vitality]]
 
 ---
 
@@ -621,6 +621,6 @@ One page. It sits after Core Terms and is linked from every effect page's label.
   dev checks look for: Soaked "Water's control mark" and "2 less damage"; Growth
   "+1 ATK" without "maximum HP".
 - **Numbers:** these are read from the code as of 1.6.3. Vitality 30, Essence 2 →
-  7, opening hand 4, Exhaustion 2 damage, Response 2 Essence, Response Window 30
+  7, opening hand 4, Exhaustion 2 damage (+1 each time after, from 1.11.1), Response 2 Essence, Response Window 30
   s, Re-cycle 3 uses. A rules change that touches any of them must update this
   file (AGENTS.md §4).

@@ -1,17 +1,17 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.11.0',
-  label:'Second Techniques',
-  engine:'EB-1.2.0',
-  balanceLab:'Balance Lab XXI',
-  ruleset:'EB-RULES-1.11.0-BALANCE-PASS',
-  focus:'Every Prime deck gets a second Technique',
+  version:'1.11.1',
+  label:'One Deck-Out Rule',
+  engine:'EB-1.2.1',
+  balanceLab:'Balance Lab XXII',
+  ruleset:'EB-RULES-1.11.1-BALANCE-PASS',
+  focus:'Running out of cards no longer ends the duel',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'New Techniques: Searing Brand, Riptide, Wild Growth, Stone Fist, Recharge and Downdraft',
-    'Each Prime deck now holds two different Techniques',
-    'Nature and Earth can grow and finish duels more reliably',
-    'The Codex and the Tome list both Techniques for every Prime'
+    'An empty Hand and Deck no longer loses the duel; only 0 Vitality does',
+    'Exhaustion grows each time: 2 damage, then 3, then 4',
+    'Online and single-player duels now end the same way',
+    'The Tome and Lesson VII explain the new rule'
   ])
 });
 
