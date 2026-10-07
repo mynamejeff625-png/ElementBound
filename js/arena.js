@@ -5,7 +5,7 @@
 (function(root){
   'use strict';
   const document=root.document,KEY='ebArena',MAX_VITALITY=30,LOW_VITALITY=10;
-  const STATUS_ICONS=new Set(['burning','charged','soaked','seeded','momentum','weakened','guard','armor','growth']);
+  const STATUS_ICONS=new Set(['burning','charged','soaked','seeded','momentum','weakened','guard','armor','growth','warded']);
   let enabled=readFlag(),lastLogKey='',tickerTimer=0,lastRender=null;
 
   function readFlag(){
@@ -264,6 +264,7 @@
     Seeded:{icon:'seeded',word:'Seed',what:'Can gain Growth.'},
     Charged:{icon:'charged',word:'Chg',what:'The next Lightning hit on it deals +1.'},
     Guard:{icon:'guard',word:'Guard',what:'Attacks cannot reach its Bender while it stands.'},
+    Warded:{icon:'warded',word:'Ward',what:'Rally Ward: it cannot be attacked until its owner\'s next turn.'},
     Momentum:{icon:'momentum',what:'+1 ⚔ per stack until round end.',up:true},
     Growth:{icon:'growth',what:'+1 ⚔ per stack.',up:true},
     Armor:{icon:'armor',what:'Blocks 1 damage per point until round end.'}

@@ -95,6 +95,7 @@ The search in the Tome header matches titles first, then these words players bri
 | Card Depletion | mill, decked, lose by cards |
 | Card Re-cycle | mulligan, redraw, swap card |
 | Summoning sickness | summon sick, sick, cannot attack |
+| Warded | rally ward, ward, protected, cannot be attacked |
 | Attack ⚔ | atk, attack, power, damage |
 | Initiative | coin flip, who goes first, first player |
 | Chain | combo, sequence, storm count |
@@ -295,6 +296,14 @@ Tab icon: sword. Pages follow this order.
 - **Archivist:** "The right target matters more than the biggest number."
 - **Rule:** The Bender or Manifestation an attack or Technique is aimed at. When a choice is needed, the game highlights every legal target.
 - **See also:** [[Guard]]
+
+#### Warded
+- **Label:** GLOSSARY · CORE TERMS · glyph `warded`
+- **Archivist:** "A swept field gets one breath. Use it to put back something that can last."
+- **Rule:** Rally Ward: from round 2 on, a Manifestation summoned onto your empty field while the rival has Manifestations is Warded. It can't be attacked until your next turn begins. Techniques can still target it, and a Warded [[Guard]] still protects your Bender.
+- **Quick facts:** On: Manifestation · Lasts: Until your next turn · Stacks: No
+- **Don't confuse with:** [[Guard]], which protects your Bender, not the Manifestation itself.
+- **See also:** [[Target]], [[Summoning sickness]]
 
 #### Elemental effect
 - **Archivist:** "An effect does little on its own. It is a promise that a later card will keep."

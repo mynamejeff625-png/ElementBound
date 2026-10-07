@@ -1,18 +1,17 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.11.1',
-  label:'Same Rules Everywhere',
-  engine:'EB-1.2.1',
-  balanceLab:'Balance Lab XXII',
-  ruleset:'EB-RULES-1.11.1-BALANCE-PASS',
-  focus:'Single-player now follows the same rules as online duels',
+  version:'1.12.0',
+  label:'Rally Ward',
+  engine:'EB-1.3.0',
+  balanceLab:'Balance Lab XXIII',
+  ruleset:'EB-RULES-1.12.0-BALANCE-PASS',
+  focus:'A swept field gets one protected comeback summon',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'An empty Hand and Deck no longer loses the duel; only 0 Vitality does',
-    'Exhaustion grows each time: 2 damage, then 3, then 4',
-    'Online and single-player duels now end the same way',
-    'When the rival goes first, rounds, Essence and round effects now count correctly',
-    'The Tome and Lesson VII explain the new rule'
+    'Rally Ward: from round 2, a Manifestation summoned onto your empty field is Warded until your next turn',
+    'Warded Manifestations cannot be attacked; Techniques still reach them',
+    'Both fields stay contested far longer, so comebacks are possible',
+    'New Warded page in the Tome and a Ward chip in the Arena'
   ])
 });
 
