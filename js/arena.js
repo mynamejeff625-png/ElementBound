@@ -1,7 +1,7 @@
 // Element Bound · Arena duel field (Phase 3, issue #81 · 3-1).
 // A one-screen layout for the existing duel. It only re-arranges and re-draws
 // what game.js already renders; it never changes duel state or rules.
-// Enabled by ?arena=1 (remembered on the device); ?arena=0 turns it off.
+// The default duel screen since 1.10.0. ?arena=0 switches back to the classic layout (remembered on the device); ?arena=1 restores it.
 (function(root){
   'use strict';
   const document=root.document,KEY='ebArena',MAX_VITALITY=30,LOW_VITALITY=10;
@@ -9,11 +9,12 @@
   let enabled=readFlag(),lastLogKey='',tickerTimer=0,lastRender=null;
 
   function readFlag(){
+    let query=null;
+    try{query=new URLSearchParams(root.location.search).get('arena')}catch(error){}
     try{
-      const query=new URLSearchParams(root.location.search).get('arena');
       if(query==='1'||query==='0')root.localStorage.setItem(KEY,query);
-      return root.localStorage.getItem(KEY)==='1';
-    }catch(error){return false}
+      return root.localStorage.getItem(KEY)!=='0';
+    }catch(error){return query!=='0'}
   }
   function byId(id){return document.getElementById(id)}
   function node(tag,className,text){const el=document.createElement(tag);if(className)el.className=className;if(text!=null)el.textContent=String(text);return el}
@@ -159,6 +160,22 @@
     if(aim.attackerId!=null||aim.choosing)decorateAim();
     combos(context);
     comboBeats(state,current);
+    terrain(battle,you,rival);
+    lethal(battle,state,you,rival);
+  }
+
+  // ---------- 3-6 · Terrain and the lethal moment ----------
+  // A3: each half of the field takes on its Bender's element (still under reduced motion).
+  function terrain(battle,you,rival){battle.dataset.terrainYou=String(you.el||'').toLowerCase();battle.dataset.terrainRival=String(rival.el||'').toLowerCase()}
+  // B4: the final hit slows, the losing medallion shatters, then the result shows (peak-end).
+  let lethalShown=null;
+  function lethal(battle,state,you,rival){
+    if(!state.winner){if(lethalShown){lethalShown=null;battle.classList.remove('fx-lethal');document.querySelectorAll('.arena-plate.is-shattered').forEach(el=>el.classList.remove('is-shattered'))}return}
+    const key=`${state.winner}|${state.turn}`;if(lethalShown===key)return;lethalShown=key;
+    const loser=state.winner===you.name?byId('eplate'):byId('pplate');
+    if(state.winReason==='CARD_DEPLETION'&&!(Number(loser===byId('eplate')?rival.vit:you.vit)<=0)){loser?.classList.add('is-shattered');return}
+    loser?.classList.add('is-shattered');
+    if(!reducedMotion()){battle.classList.remove('fx-lethal');void battle.offsetWidth;battle.classList.add('fx-lethal')}
   }
 
   // ---------- 3-5 · Combo language: set-up hums, payoff threads, the combo beat ----------
@@ -256,7 +273,7 @@
     let stats='';
     if(unit){
       const hurt=Number(card.h)<Number(card.max),trend=down?'<span class="arena-trend" aria-hidden="true">▼</span>':up?'<span class="arena-trend" aria-hidden="true">▲</span>':'';
-      const attack=opts.soakedPreview?`<span class="arena-soaked"><s>${card.a}</s>→${Math.max(0,card.a-2)}</span>`:String(card.a);
+      const attack=opts.soakedPreview?`<span class="arena-soaked trial-soaked-preview"><s>${card.a}</s>→${Math.max(0,card.a-2)}</span>`:String(card.a);
       stats=`<span class="codex-card-stats"><span class="codex-card-stat${down?' is-down':''}${up&&!down?' is-up':''}">${iconHtml('sword','Attack')}${attack}${trend}</span><span class="codex-card-stat${hurt?' is-hurt':''}">${iconHtml('heart',`Health ${card.h} of ${card.max}`)}${card.h}</span></span>`;
     }
     const guard=card.guard?`<span class="arena-top-guard">${iconHtml('guard','Guard')}</span>`:'';
@@ -267,7 +284,7 @@
   // Live card detail: the Codex close-up plus a "Right now" panel with the card's current state.
   function inspect(card){
     const tome=root.EB_Tome,parts=card&&root.EB_CardBrowser?.cardDetail?.(card.n);
-    if(!tome?.sheet||!parts)return false;
+    if(!tome?.sheet||!parts||!byId('battle')?.classList.contains('on'))return false;
     const momentum=root.momentumStacks?root.momentumStacks(card):0,statuses=cardStatuses(card,momentum);
     const onField=!!lastRender?.state?.p?.some(side=>side.slots.some(slot=>slot&&slot.id===card.id));
     tome.sheet({label:card.n,render:()=>{
