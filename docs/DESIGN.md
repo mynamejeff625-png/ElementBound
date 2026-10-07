@@ -195,7 +195,7 @@ accessible name (`aria-label` or visible text).
 | Set | Style | Symbols |
 |---|---|---|
 | Elements | filled silhouette | `fire` `water` `nature` `earth` `lightning` `air` `magma` `storm` `bloom` |
-| Statuses | filled silhouette, readable at 12 px | `burning` `charged` `guard` `soaked` `seeded` `momentum` `armor` `growth` `weakened` `token` |
+| Statuses | filled silhouette, readable at 12 px | `burning` `charged` `guard` `soaked` `seeded` `momentum` `armor` `growth` `weakened` `warded` `token` |
 | UI | 1.75 px stroke, round caps and joins, no fill | `back` `close` `log` `settings` `hand` `deck` `wake` `recycle` `trophy` `heart` `search` |
 
 Element glyphs must stay distinguishable by shape alone (Fire vs Magma, Water vs

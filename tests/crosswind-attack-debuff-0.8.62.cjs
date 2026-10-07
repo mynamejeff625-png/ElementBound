@@ -54,7 +54,8 @@ assert.match(version,/version:'\d+\.\d+\.\d+'/);
 // Current Balance Lab provenance. Update deliberately only when single-player rules change (AGENTS.md §5).
 // 1.11.0 (issue #93) added the second Prime Techniques; 1.11.1 (issue #96) made Exhaustion grow and removed the
 // Card Depletion loss, so the ruleset and Balance Lab identifiers moved on.
-assert.match(version,/ruleset:'EB-RULES-1\.11\.1-BALANCE-PASS'/);
-assert.match(version,/balanceLab:'Balance Lab XXII'/);
+// 1.12.0 (issue #96) added Rally Ward.
+assert.match(version,/ruleset:'EB-RULES-1\.12\.0-BALANCE-PASS'/);
+assert.match(version,/balanceLab:'Balance Lab XXIII'/);
 assert.match(source,/CROSSWIND-ATTACK-DEBUFF-0\.8\.62/);
 assert.match(index,/both become Weakened/);

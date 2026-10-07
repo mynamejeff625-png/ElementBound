@@ -14,6 +14,7 @@
     REVISION_MISMATCH:'The match changed before that move arrived. The board has been refreshed.',
     ROOM_NOT_FOUND:'This multiplayer room no longer exists.',
     RESPONSE_WINDOW_REQUIRED:'Your opponent has a response available.',
+    TARGET_WARDED:'That Manifestation is Warded until its owner\'s next turn.',
     NETWORK_ERROR:'The move could not reach the server. Check your connection and try again.',
     VIEW_UNAVAILABLE:'The live match view is unavailable.'
   });
