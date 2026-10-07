@@ -136,7 +136,8 @@
     tome.sheet({label:'Chronicle',top:true,render:()=>{
       const wrap=node('section','arena-chronicle-sheet');
       const head=node('div','arena-chronicle-head');head.append(node('h2','arena-chronicle-title','Chronicle'));
-      const info=[lastRender.online?'Online duel':lastRender.difficulty?`Rival: ${lastRender.difficulty}`:'',`Turn ${lastRender.state.turn}`].filter(Boolean).join(' · ');
+      const net=lastRender.online&&root.EB_NET?.last?`last move ${(root.EB_NET.last.boardMs/1000).toFixed(1)} s`:'';
+      const info=[lastRender.online?'Online duel':lastRender.difficulty?`Rival: ${lastRender.difficulty}`:'',net,`Turn ${lastRender.state.turn}`].filter(Boolean).join(' · ');
       head.append(node('div','arena-chronicle-info',info));
       const list=node('ol','arena-chronicle-list');
       (lastRender.state.logs||[]).forEach(line=>list.append(node('li','',cleanLog(line))));

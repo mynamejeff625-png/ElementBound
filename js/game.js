@@ -85,7 +85,10 @@ function ebNavigate(toId,{direction='forward'}={}){
 }
 function goDeckSelect(){EB_VIS=null;window.EB_DeckSelect.open();return ebNavigate('setup')}
 function goDeckSelectBack(){window.EB_DeckSelect.changeDeck();return ebNavigate('home',{direction:'back'})}
-function goFriends(){const moved=ebNavigate('friends');ebAutoConnectFriends();return moved}
+function goFriends(){const moved=ebNavigate('friends');ebBindAutoPass();ebAutoConnectFriends();return moved}
+// Auto-pass (issue #88): remembered on the device and sent with Create/Join; the server then never opens a Response window for the Initiation Token alone.
+function ebAutoPass(){try{return localStorage.getItem('ebAutoPass')==='1'}catch(e){return false}}
+function ebBindAutoPass(){let b=document.getElementById('mpAutoPass');if(!b)return;b.setAttribute('aria-checked',String(ebAutoPass()));if(b.dataset.bound)return;b.dataset.bound='1';b.addEventListener('click',()=>{let on=!ebAutoPass();try{localStorage.setItem('ebAutoPass',on?'1':'0')}catch(e){}b.setAttribute('aria-checked',String(on))})}
 function ebAutoConnectFriends(){if(ebMatchmakingSession()){ebSetMatchmakingEnabled(true);return}if(!EB_MP.authPromise)ebEnsureMatchmakingAuth().catch(()=>{})}
 function goFriendsBack(){return ebNavigate('home',{direction:'back'})}
 function startSelectedMatch(deckKey,difficultyKey,responseElement=null){choice=deckKey;diff=difficultyKey;EB_HYBRID_RESPONSE_CHOICE=responseElement;startMatch()}
@@ -1449,14 +1452,19 @@ function ebMpSubscribeCompat(db){
    next(snapshot.data());
  },error);
 }
+function ebMpFetchView(db){return async(roomId,uid)=>{let ref=db.collection('rooms').doc(roomId).collection('views').doc(uid),snapshot;try{snapshot=await ref.get({source:'server'})}catch(error){snapshot=await ref.get()}return snapshot.exists?snapshot.data():null}}
+// Move timing (issue #88): send = tap → server accepted; board = tap → the new board is on screen. Kept for System Check and the Chronicle.
+const EB_NET={moves:[],last:null};window.EB_NET=EB_NET;
+function ebMpRecordTiming(t){EB_NET.last=t;EB_NET.moves.push(t);if(EB_NET.moves.length>30)EB_NET.moves.shift();if(t.boardMs>3000)ebMpStatus({kind:'pending',text:`Slow connection · last move took ${(t.boardMs/1000).toFixed(1)} s${t.healed?' (refreshed)':''}`});console.debug('[ElementBound] move timing',t)}
 function ebStartMultiplayer({roomId,user,db,fetchImpl=window.fetch.bind(window)}){
  if(!window.ElementBoundMultiplayer)throw new Error('Multiplayer client unavailable');
  if(!roomId||!user?.uid||typeof user.getIdToken!=='function'||!db)throw new Error('Authenticated user, roomId, and Firestore are required');
  EB_MP.client?.stop();let newVisualRoom=EB_MP.visualRoomId!==roomId;EB_MP.enabled=true;EB_MP.roomId=roomId;EB_MP.uid=user.uid;if(newVisualRoom){EB_MP.visualRoomId=roomId;EB_MP.lastAnimatedSeq=null;EB_MP.initiativeShown=false;EB_MP.attackFxContext=null;EB_VIS=null;EB_INIT_LOCK=false;ebInitiativeCancelPresentation();document.getElementById('initiativeOverlay')?.classList.add('hide')}
  EB_MP.serverClockOffset=0;EB_MP.serverClockReady=false;
- EB_MP.input=window.ElementBoundMultiplayer.createInputCoordinator({onView:ebMpRenderAuthoritativeView,onPending:ebMpPendingChanged,onPendingTimeout:()=>ebMpStatus({kind:'pending',text:'Connection slow — board will refresh when the match updates.'})});
+ EB_MP.input=window.ElementBoundMultiplayer.createInputCoordinator({onView:ebMpRenderAuthoritativeView,onPending:ebMpPendingChanged,onPendingTimeout:()=>{ebMpStatus({kind:'pending',text:'Connection slow — refreshing the board…'});EB_MP.client?.resync()}});
  EB_MP.inputSafetyCleanup?.();EB_MP.inputSafetyCleanup=window.ElementBoundMultiplayer.bindInteractionSafety(EB_MP.input,document,ebCancelActivePointerInteraction);
- EB_MP.client=window.ElementBoundMultiplayer.createMultiplayerClient({roomId,uid:user.uid,getIdToken:()=>user.getIdToken(),subscribeView:ebMpSubscribeCompat(db),fetchImpl,onView:ebMpApplyView,onMessage:ebMpStatus});
+ EB_MP.client=window.ElementBoundMultiplayer.createMultiplayerClient({roomId,uid:user.uid,getIdToken:()=>user.getIdToken(),subscribeView:ebMpSubscribeCompat(db),fetchView:ebMpFetchView(db),onTiming:ebMpRecordTiming,fetchImpl,onView:ebMpApplyView,onMessage:ebMpStatus});
+ if(!EB_MP.visibilityBound){EB_MP.visibilityBound=true;document.addEventListener('visibilitychange',()=>{if(!document.hidden&&EB_MP.enabled)EB_MP.client?.resync()})}
  ebMpStatus({kind:'pending',text:'Connecting to live match…'});EB_MP.client.start();return EB_MP.client;
 }
 function ebStopMultiplayer(){EB_MP.client?.stop();EB_MP.inputSafetyCleanup?.();EB_MP.input?.reset();ebMpClearResponseTimer();EB_MP.enabled=false;EB_MP.roomId=null;EB_MP.uid=null;EB_MP.client=null;EB_MP.input=null;EB_MP.inputSafetyCleanup=null;ebMpStatus(null)}
@@ -1526,13 +1534,13 @@ function ebSetupMatchmaking(){
 async function ebCreateMatch(){
  let session=ebMatchmakingSession();if(!session){try{session=await ebEnsureMatchmakingAuth()}catch(error){return}}
  let element=document.getElementById('mpDeck')?.value,client=window.ElementBoundMatchmaking.createMatchmakingClient({getIdToken:()=>session.user.getIdToken(),fetchImpl:session.fetchImpl});ebMatchmakingMessage('Creating room…');
- let result=await client.createRoom({element,responseElement:ebOnlineResponse()});if(!result.ok)return ebMatchmakingMessage(`Could not create room: ${result.error}`,true);
+ let result=await client.createRoom({element,responseElement:ebOnlineResponse(),autoPass:ebAutoPass()});if(!result.ok)return ebMatchmakingMessage(`Could not create room: ${result.error}`,true);
  let liveUrl=new URL(location.href);liveUrl.search='';liveUrl.searchParams.set('roomId',result.roomId);history.replaceState(null,'',liveUrl);let inviteUrl=new URL(liveUrl);inviteUrl.search='';inviteUrl.searchParams.set('join',result.roomId);ebMatchmakingMessage(`Room ${result.roomId} · Share ${inviteUrl.href}`);ebStartMultiplayer({roomId:result.roomId,...session});
 }
 async function ebJoinMatch(){
  let session=ebMatchmakingSession();if(!session){try{session=await ebEnsureMatchmakingAuth()}catch(error){return}}
  let roomId=String(document.getElementById('mpRoomCode')?.value||'').trim().toUpperCase(),element=document.getElementById('mpDeck')?.value,client=window.ElementBoundMatchmaking.createMatchmakingClient({getIdToken:()=>session.user.getIdToken(),fetchImpl:session.fetchImpl});ebMatchmakingMessage('Joining room…');
- let result=await client.joinRoom(roomId,{element,responseElement:ebOnlineResponse()});if(!result.ok)return ebMatchmakingMessage(`Could not join room: ${result.error}`,true);
+ let result=await client.joinRoom(roomId,{element,responseElement:ebOnlineResponse(),autoPass:ebAutoPass()});if(!result.ok)return ebMatchmakingMessage(`Could not join room: ${result.error}`,true);
  let link=new URL(location.href);link.search='';link.searchParams.set('roomId',result.roomId);history.replaceState(null,'',link);ebMatchmakingMessage(`Joined room ${result.roomId}.`);ebStartMultiplayer({roomId:result.roomId,...session});
 }
 function ebMpInitializeFromUrl(){

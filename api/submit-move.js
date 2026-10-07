@@ -78,7 +78,8 @@ function createSubmitMoveHandler({auth,db,rulesEngine=engine,now=Date.now}){
           const viewRef=roomRef.collection('views').doc(players[playerSeat]);
           transaction.set(viewRef,{state:buildPlayerView(resolution.state,playerSeat,events,serverNow),updatedAt:serverNow});
         }
-        return {status:200,body:{ok:true,autoResolved:!!resolution.autoResolved,state:buildPlayerView(resolution.state,seat,events,serverNow)}};
+        // The board comes only from the view snapshot (AGENTS.md §8), so the reply carries just the new revision.
+        return {status:200,body:{ok:true,autoResolved:!!resolution.autoResolved,rev:Number(resolution.state.rev)||0,serverNow}};
       });
       return send(res,result.status,result.body);
     }catch(error){

@@ -505,6 +505,20 @@ Top to bottom, mirrored, with no page scroll:
 - **Anchors:** in the Arena the Bender anchors sit on the plates (`#eplate`,
   `#pplate`), one per side; slot and hand-card anchors are unchanged.
 
+### Online speed *(3b, issue #88)*
+
+- The Response window lasts **10 s** online (server clock). The ring and the
+  status line count it down.
+- **Auto-pass** is a switch on Play with Friends (remembered on the device,
+  sent with Create and Join, fixed for that match). When it's on, the server
+  opens no window for a player whose only option is the Initiation Token; an
+  affordable Response card still asks.
+- If the board hasn't updated 4 s after a move is accepted, the client fetches
+  the view once (and again at 8 s); a dropped listener re-subscribes with
+  backoff; returning to the app refreshes the board. "Slow connection · N s"
+  appears only when a move really took longer than 3 s, and the Chronicle shows
+  the last move's time.
+
 ### Field anchors
 
 Trial overlays are layout-agnostic and may locate duel UI only through these
@@ -609,3 +623,4 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-06 | Arena choices (Response, Flow, targets, Re-cycle) rise into the thumb zone above the hand instead of a centred pop-up; a Response dims all but attacker and target and shows the online countdown ring |
 | 2026-10-06 | Arena combo language: Combo tag and set-up hum on live payoffs, a bronze thread to the target, a hit-stop and Combo ×N banner when it lands; unspent Essence on the rival turn shows as Reserve |
 | 2026-10-06 | Phase 3 exit: the Arena becomes the default duel screen (`?arena=0` keeps the classic layout); every Trial passes on it; elemental terrain and the lethal moment ship; the online 60 s turn timer moves to 3b because it needs a server-enforced deadline |
+| 2026-10-06 | Online speed (issue #88, Owner approved): 10 s Response window, an Auto-pass switch on Play with Friends, views trimmed to the last 40 events, a submit-move reply of {ok, rev, serverNow}, self-healing snapshots, Firestore REST transport and functions pinned to cle1 near nam5; the 60 s turn timer follows in its own PR |

@@ -278,7 +278,13 @@ async function run() {
       let createBody=null;await page.route('**/api/create-room',route=>{createBody=route.request().postDataJSON();route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:false,error:'SMOKE_TEST'})})});
       await page.evaluate(()=>{window.EB_MULTIPLAYER_DEPS={user:{uid:'smoke',getIdToken:async()=>'smoke-token'},db:{},fetchImpl:window.fetch.bind(window)};ebSetMatchmakingEnabled(true)});
       await page.locator('#mpCreateMatch').click();await page.waitForFunction(()=>/SMOKE_TEST/.test(document.getElementById('mpMatchmakingResult').textContent),null,{timeout:5000});
-      assert.deepEqual(createBody,{element:'STORM',responseElement:'AIR'},'Create Match sends the chosen Hybrid Response');checks++;
+      assert.deepEqual(createBody,{element:'STORM',responseElement:'AIR',autoPass:false},'Create Match sends the chosen Hybrid Response and the Auto-pass choice');checks++;
+      await page.locator('#mpAutoPass').click();
+      assert.equal(await page.locator('#mpAutoPass').getAttribute('aria-checked'),'true','the Auto-pass switch turns on');checks++;
+      createBody=null;await page.evaluate(()=>{document.getElementById('mpMatchmakingResult').textContent=''});
+      await page.locator('#mpCreateMatch').click();await page.waitForFunction(()=>/SMOKE_TEST/.test(document.getElementById('mpMatchmakingResult').textContent),null,{timeout:5000});
+      assert.equal(createBody.autoPass,true,'Create Match sends Auto-pass when it is on');checks++;
+      await page.locator('#mpAutoPass').click();
       await page.unroute('**/api/create-room');await page.evaluate(()=>{delete window.EB_MULTIPLAYER_DEPS;ebSetMatchmakingEnabled(false)});
       await page.locator('#mpDeckPicker').click();await visible('.mp-deck-sheet','reopened online deck picker');
       assert.equal(await page.locator('.mp-deck-option[data-deck="STORM"]').getAttribute('aria-selected'),'true','reopened picker marks Storm selected');checks++;

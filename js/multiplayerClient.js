@@ -28,26 +28,50 @@
     return safe;
   }
 
-  function createMultiplayerClient({roomId,uid,getIdToken,subscribeView,fetchImpl,onView,onMessage=()=>{}}){
+  // Self-healing (issue #88): a stalled listener is re-subscribed with backoff, and an accepted move whose
+  // snapshot is late is fetched once from the server. The board still comes only from the viewer's own view doc.
+  function createMultiplayerClient({roomId,uid,getIdToken,subscribeView,fetchImpl,onView,onMessage=()=>{},fetchView=null,onTiming=()=>{},healAfterMs=4000,setTimer=setTimeout,clearTimer=clearTimeout,clock=()=>Date.now()}){
     if(!roomId||!uid||typeof getIdToken!=='function'||typeof subscribeView!=='function'||typeof fetchImpl!=='function'){
       throw new TypeError('roomId, uid, getIdToken, subscribeView, fetchImpl, and onView are required');
     }
     if(typeof onView!=='function')throw new TypeError('onView is required');
-    let unsubscribe=null;
+    let unsubscribe=null,lastRev=-1,retryTimer=null,retryDelay=1000,healTimer=null,watch=null,stopped=true;
 
     function notify(kind,text,error=null){onMessage({kind,text,error})}
+    function deliver(view,source){
+      if(view?.status==='WAITING'){notify('waiting','Room created. Waiting for the invited player…');return}
+      if(!view||!view.state){if(source==='listener')notify('error',messageFor('VIEW_UNAVAILABLE'),'VIEW_UNAVAILABLE');return}
+      const rev=Number(view.state.rev)||0;
+      if(rev<lastRev||(source==='fetch'&&rev===lastRev))return;
+      lastRev=rev;retryDelay=1000;
+      onView(view.state);
+      if(!view.state.pendingResponse)notify('connected','Live match connected.');
+      if(watch&&rev>=watch.target){const done=watch;watch=null;if(healTimer!==null){clearTimer(healTimer);healTimer=null}onTiming({sendMs:done.sendMs,boardMs:clock()-done.t0,healed:source==='fetch'})}
+    }
+    function listen(){
+      unsubscribe=subscribeView(roomId,uid,view=>deliver(view,'listener'),()=>{
+        if(unsubscribe){try{unsubscribe()}catch(error){}unsubscribe=null}
+        if(stopped)return;
+        notify('pending','Connection lost — reconnecting…','RECONNECTING');
+        retryTimer=setTimer(()=>{retryTimer=null;if(!stopped){listen();resync()}},retryDelay);
+        retryDelay=Math.min(15000,retryDelay*2);
+      });
+    }
     function start(){
       if(unsubscribe)return unsubscribe;
-      unsubscribe=subscribeView(roomId,uid,view=>{
-        if(view?.status==='WAITING'){notify('waiting','Room created. Waiting for the invited player…');return}
-        if(!view||!view.state){notify('error',messageFor('VIEW_UNAVAILABLE'),'VIEW_UNAVAILABLE');return}
-        onView(view.state);
-        if(!view.state.pendingResponse)notify('connected','Live match connected.');
-      },()=>notify('error',messageFor('VIEW_UNAVAILABLE'),'VIEW_UNAVAILABLE'));
+      stopped=false;listen();
       return unsubscribe;
     }
-    function stop(){if(unsubscribe){unsubscribe();unsubscribe=null}}
+    function stop(){stopped=true;if(retryTimer!==null){clearTimer(retryTimer);retryTimer=null}if(healTimer!==null){clearTimer(healTimer);healTimer=null}watch=null;if(unsubscribe){unsubscribe();unsubscribe=null}}
+    async function resync(){
+      if(typeof fetchView!=='function'||stopped)return false;
+      try{deliver(await fetchView(roomId,uid),'fetch');return true}catch(error){return false}
+    }
+    function heal(attempt){
+      healTimer=setTimer(async()=>{healTimer=null;if(!watch||lastRev>=watch.target)return;await resync();if(watch&&lastRev<watch.target&&attempt<2)heal(attempt+1)},healAfterMs*attempt);
+    }
     async function submit(move){
+      const t0=clock();
       try{
         const token=await getIdToken();
         const response=await fetchImpl('/api/submit-move',{
@@ -59,17 +83,23 @@
         try{body=await response.json()}catch(error){body={ok:false,error:'INVALID_SERVER_RESPONSE'}}
         if(!response.ok||!body.ok){
           const code=body.error||`HTTP_${response.status}`;
+          if(code==='REVISION_MISMATCH')resync();
           if(code!=='RESPONSE_NOT_EXPIRED'&&!(move.type==='RESOLVE_EXPIRED'&&code==='REVISION_MISMATCH'))notify('error',messageFor(code),code);
           return {ok:false,error:code,detail:body.detail||null};
         }
+        const sendMs=clock()-t0,target=Number(body.rev);
+        if(Number.isFinite(target)){
+          if(lastRev>=target)onTiming({sendMs,boardMs:sendMs,healed:false});
+          else{watch={target,t0,sendMs};if(healTimer!==null)clearTimer(healTimer);heal(1)}
+        }
         notify('pending',body.autoResolved?'Response window expired — the attack continued.':'Move accepted. Waiting for the live board…');
-        return {ok:true,autoResolved:!!body.autoResolved};
+        return {ok:true,autoResolved:!!body.autoResolved,rev:Number.isFinite(target)?target:null};
       }catch(error){
         notify('error',messageFor('NETWORK_ERROR'),'NETWORK_ERROR');
         return {ok:false,error:'NETWORK_ERROR'};
       }
     }
-    return Object.freeze({start,stop,submit,isStarted:()=>!!unsubscribe});
+    return Object.freeze({start,stop,submit,resync,isStarted:()=>!!unsubscribe,lastRev:()=>lastRev});
   }
 
   function createActionDispatcher({isMultiplayer,multiplayerClient,localReduce,onLocalState=()=>{}}){
