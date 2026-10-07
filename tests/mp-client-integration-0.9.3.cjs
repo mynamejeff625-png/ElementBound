@@ -112,7 +112,7 @@ const {createMultiplayerClient,createActionDispatcher,createInputCoordinator,bin
     check(/mp-pending/.test(css)&&/Placing…/.test(css),'pending multiplayer cards must have visible placing and activation states');
     check(/bindInteractionSafety\(EB_MP\.input,document,ebCancelActivePointerInteraction\)/.test(game),'multiplayer installs document-level interaction release and drag cleanup safety');
     check(/dragState\.cancel=.*cancel/.test(game),'visibility safety can cancel and clean up the active drag');
-    check(/Connection slow — board will refresh when the match updates\./.test(game),'pending timeout surfaces the slow-connection status message');
+    check(/Connection slow — refreshing the board…/.test(game)&&/EB_MP\.client\?\.resync\(\)/.test(game),'pending timeout surfaces the slow-connection status message and refreshes the board');
   }
 
   console.log(`Multiplayer client integration 0.9.3: ${checks} checks passed`);

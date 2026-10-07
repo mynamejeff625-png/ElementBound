@@ -224,8 +224,8 @@ Tab icon: sword. Pages follow this order.
 
 #### Response Window
 - **Archivist:** "The game stops and asks you a question. Most of the time, the right answer is the one your rival didn't plan for."
-- **Rule:** A short pause created when an enemy attack qualifies. You may play one legal [[Response]] or [[Pass]]. The attack is then checked again and continues only if it is still legal. Online, you have 30 seconds to choose.
-- **Demo:** An attack arrow freezes mid-flight. The window rises with one Response card and Pass, and a 30-second ring counts down.
+- **Rule:** A short pause created when an enemy attack qualifies. You may play one legal [[Response]] or [[Pass]]. The attack is then checked again and continues only if it is still legal. Online, you have 10 seconds to choose. With Auto-pass on, the Initiation Token alone never opens a window.
+- **Demo:** An attack arrow freezes mid-flight. The window rises with one Response card and Pass, and a 10-second ring counts down.
 - **See also:** [[Response]], [[Pass]]
 
 #### Pass

@@ -28,7 +28,7 @@ function createJoinRoomHandler({auth,db,random=Math.random,now=Date.now}){
         if(players[1]!=null)return{status:409,body:{ok:false,error:'ROOM_FULL'}};
         const creatorSelection=room.deckSelections?.[0];
         if(!creatorSelection||!matchFactory.validElement(creatorSelection.element))return{status:500,body:{ok:false,error:'INVALID_ROOM'}};
-        const joinSelection={element,responseElement:matchFactory.responseElement(element,responseElement)};
+        const joinSelection={element,responseElement:matchFactory.responseElement(element,responseElement),autoPass:req.body?.autoPass===true};
         const state=matchFactory.createInitialState({players:[{name:'Player 1',...creatorSelection},{name:'Player 2',...joinSelection}],random});
         const events=engine.createMatchEvents(state).map((item,index)=>({...item,seq:index+1})),eventSeq=events.length;
         const activePlayers=[players[0],user.uid];

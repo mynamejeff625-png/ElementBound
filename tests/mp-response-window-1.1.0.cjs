@@ -22,7 +22,7 @@ let checks=0;const check=(value,message)=>{assert.ok(value,message);checks++};
 
 {
   const original=battle('WATER',{token:true}),offered=engine.validateAndApplyMove(original,attackMove(),{now:1000});
-  check(offered.ok&&offered.state.pendingResponse.timing==='BEFORE'&&offered.state.pendingResponse.deadline===31000,'legal body attack opens a deterministic 30-second BEFORE window');
+  check(offered.ok&&offered.state.pendingResponse.timing==='BEFORE'&&offered.state.pendingResponse.deadline===11000,'legal body attack opens a deterministic 10-second BEFORE window (Owner, issue #88)');
   check(types(offered).includes('RESPONSE_OFFERED')&&offered.state.p[1].slots[0].h===3,'damage waits while the response is pending');
   const essence=offered.state.p[1].e,hand=offered.state.p[1].hand.length;
   const used=engine.validateAndApplyMove(offered.state,action('RESPOND',1,1,{element:'WATER',source:'TOKEN',targetId:'target'}),{now:2000});
@@ -79,7 +79,7 @@ let checks=0;const check=(value,message)=>{assert.ok(value,message);checks++};
 
 {
   const original=battle('FIRE',{responseCard:response('FIRE','Backdraft')}),hit=engine.validateAndApplyMove(original,attackMove(),{now:100});
-  check(hit.ok&&hit.state.p[1].slots[0].h===1&&hit.state.pendingResponse?.timing==='AFTER'&&hit.state.pendingResponse.deadline===30100,'Backdraft opens a separate AFTER window only after positive damage');
+  check(hit.ok&&hit.state.p[1].slots[0].h===1&&hit.state.pendingResponse?.timing==='AFTER'&&hit.state.pendingResponse.deadline===10100,'Backdraft opens a separate AFTER window only after positive damage');
   const used=engine.validateAndApplyMove(hit.state,action('RESPOND',1,1,{element:'FIRE',source:'CARD',cardId:'response-FIRE',targetId:'target'}),{now:200});
   check(used.state.p[0].slots[0].h===1&&types(used).includes('RESPONSE_USED'),'Backdraft retaliates after the original damage');
   const armored=battle('FIRE',{responseCard:response('FIRE','Backdraft'),targetArmor:3}),blocked=engine.validateAndApplyMove(armored,attackMove(),{now:0});
@@ -96,20 +96,20 @@ let checks=0;const check=(value,message)=>{assert.ok(value,message);checks++};
 {
   const original=battle('STORM',{token:true,responseCard:response('FIRE','Backdraft'),attackerHp:3});original.p[1].turnState.parents=['LIGHTNING','FIRE'];
   const before=engine.validateAndApplyMove(original,attackMove(),{now:100}),responded=engine.validateAndApplyMove(before.state,action('RESPOND',1,1,{element:'LIGHTNING',source:'TOKEN',targetId:'target'}),{now:200});
-  check(before.state.pendingResponse.timing==='BEFORE'&&before.state.pendingResponse.deadline===30100,'hybrid attack begins with its own BEFORE deadline');
-  check(responded.state.pendingResponse?.timing==='AFTER'&&responded.state.pendingResponse.deadline===30200,'positive damage opens a distinct Backdraft AFTER deadline');
+  check(before.state.pendingResponse.timing==='BEFORE'&&before.state.pendingResponse.deadline===10100,'hybrid attack begins with its own BEFORE deadline');
+  check(responded.state.pendingResponse?.timing==='AFTER'&&responded.state.pendingResponse.deadline===10200,'positive damage opens a distinct Backdraft AFTER deadline');
 }
 
 {
   const original=battle('WATER',{token:true}),offered=engine.validateAndApplyMove(original,attackMove(),{now:1000});
   check(engine.validateAndApplyMove(offered.state,action('RESPOND',0,1,{element:'WATER',source:'TOKEN',targetId:'target'}),{now:1001}).error==='NOT_RESPONSE_DEFENDER','attacker cannot spoof RESPOND');
   check(engine.validateAndApplyMove(offered.state,action('END_TURN',0,1),{now:1001}).error==='RESPONSE_PENDING','all ordinary actions are blocked while pending');
-  check(engine.validateAndApplyMove(offered.state,action('RESOLVE_EXPIRED',0,1),{now:30999}).error==='RESPONSE_NOT_EXPIRED','auto-pass is rejected before the deadline');
-  const auto=engine.validateAndApplyMove(offered.state,action('RESOLVE_EXPIRED',0,1),{now:31000});
+  check(engine.validateAndApplyMove(offered.state,action('RESOLVE_EXPIRED',0,1),{now:10999}).error==='RESPONSE_NOT_EXPIRED','auto-pass is rejected before the deadline');
+  const auto=engine.validateAndApplyMove(offered.state,action('RESOLVE_EXPIRED',0,1),{now:11000});
   check(auto.ok&&auto.autoResolved&&types(auto).includes('RESPONSE_AUTO_PASSED')&&auto.state.p[1].slots[0].h===1,'attacker deadline resolution auto-passes and continues the attack');
-  const defenderAuto=engine.validateAndApplyMove(offered.state,action('RESOLVE_EXPIRED',1,1),{now:31000});
+  const defenderAuto=engine.validateAndApplyMove(offered.state,action('RESOLVE_EXPIRED',1,1),{now:11000});
   check(defenderAuto.ok&&defenderAuto.autoResolved,'either connected client can resolve an expired window');
-  const late=engine.validateAndApplyMove(offered.state,action('RESPOND',1,1,{element:'WATER',source:'TOKEN',targetId:'target'}),{now:31000});
+  const late=engine.validateAndApplyMove(offered.state,action('RESPOND',1,1,{element:'WATER',source:'TOKEN',targetId:'target'}),{now:11000});
   check(late.ok&&late.autoResolved&&late.state.p[1].initiationToken,'late RESPOND auto-resolves as PASS instead of applying the submitted response');
 }
 
@@ -159,7 +159,7 @@ let checks=0;const check=(value,message)=>{assert.ok(value,message);checks++};
   async function request(uid,type){const db=mockDb({players:['attacker-uid','defender-uid'],state:offered,events:[],eventSeq:0}),handler=createSubmitMoveHandler({auth:{async verifyIdToken(){return{uid}}},db,now:()=>2000}),res=httpResponse();await handler({method:'POST',headers:{authorization:'Bearer token'},body:{roomId:'ROOM01',move:{v:1,type,rev:1,payload:type==='RESPOND'?{element:'WATER',source:'TOKEN',targetId:'target'}:{}}}},res);return{res,db}}
   const spoof=await request('attacker-uid','RESPOND');check(spoof.res.statusCode===403&&spoof.res.body.error==='NOT_RESPONSE_DEFENDER'&&spoof.db.writes.length===0,'server rejects authenticated attacker spoofing RESPOND without writes');
   const defender=await request('defender-uid','PASS');check(defender.res.statusCode===200&&defender.db.writes.length===3,'server accepts PASS from authenticated defender and updates room plus both views');
-  check(defender.res.body.state.serverNow===2000&&defender.db.writes.filter(write=>write.path.includes('/views/')).every(write=>write.data.state.serverNow===2000),'submit-move stamps both views and its response with server time');
+  check(defender.res.body.serverNow===2000&&defender.res.body.rev===offered.rev+1&&defender.res.body.state===undefined&&defender.db.writes.filter(write=>write.path.includes('/views/')).every(write=>write.data.state.serverNow===2000),'submit-move stamps both views and its response with server time');
   const game=fs.readFileSync('js/game.js','utf8');
   check(/Opponent is deciding…/.test(game)&&/Response available/.test(game)&&/setInterval\(update,250\)/.test(game),'client renders attacker waiting and defender countdown states');
   check(/ebMpSubmit\('RESPOND'/.test(game)&&/ebMpSubmit\('PASS'/.test(game)&&/ebMpSubmit\('RESOLVE_EXPIRED'/.test(game),'client submits response, pass, and attacker expiry actions');
