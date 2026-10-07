@@ -165,6 +165,20 @@
     lethal(battle,state,you,rival);
   }
 
+  // ---------- Online turn clock (issue #88 · N6) ----------
+  // Shows the server's 60 s turn deadline in the Rift. Red and blinking for the last 10 s; paused during a Response.
+  function turnClock(leftMs,paused=false){
+    const rift=byId('rift'),center=rift?.querySelector('.rift-center');if(!center)return;
+    let clock=center.querySelector('.rift-clock');
+    if(leftMs==null||!enabled){clock?.remove();return}
+    if(!clock){clock=node('span','rift-clock');clock.setAttribute('role','timer');clock.append(icon('hourglass'),node('span','rift-clock-num'));center.querySelector('.rift-turn')?.append(clock)}
+    const secs=Math.ceil(leftMs/1000),urgent=!paused&&secs<=10;
+    clock.querySelector('.rift-clock-num').textContent=paused?`${secs}s · paused`:`${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`;
+    clock.classList.toggle('is-urgent',urgent);clock.classList.toggle('is-out',!paused&&secs<=0);clock.classList.toggle('is-paused',paused);
+    const label=paused?`Turn timer paused at ${secs} seconds`:`${secs} seconds left in this turn`;
+    if(clock.getAttribute('aria-label')!==label&&(secs%5===0||urgent||paused))clock.setAttribute('aria-label',label);
+  }
+
   // ---------- 3-6 · Terrain and the lethal moment ----------
   // A3: each half of the field takes on its Bender's element (still under reduced motion).
   function terrain(battle,you,rival){battle.dataset.terrainYou=String(you.el||'').toLowerCase();battle.dataset.terrainRival=String(rival.el||'').toLowerCase()}
@@ -657,6 +671,6 @@
     return true;
   }
 
-  root.EB_Arena=Object.freeze({enabled:()=>enabled,setEnabled,render,apply,cardMarkup,wireHand,beginAttack,endAim,inspect,afterSelection,panel:showPanel,closePanel,countdown,responseContext,get panelOpen(){return !!panel.el&&!panel.el.hidden},get aiming(){return aim.attackerId}});
+  root.EB_Arena=Object.freeze({enabled:()=>enabled,setEnabled,render,apply,cardMarkup,wireHand,beginAttack,endAim,inspect,afterSelection,turnClock,panel:showPanel,closePanel,countdown,responseContext,get panelOpen(){return !!panel.el&&!panel.el.hidden},get aiming(){return aim.attackerId}});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
 })(window);

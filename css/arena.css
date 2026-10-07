@@ -308,3 +308,12 @@
 @keyframes arenaResultIn{from{opacity:0;scale:.94}to{opacity:1;scale:1}}
 @media (prefers-reduced-motion:reduce){.arena-plate.is-shattered .arena-medal img{animation:none;opacity:.3;filter:grayscale(1)}}
 #battle.arena.fx-lethal .arena-panel.is-open{transition-delay:.8s}
+
+/* Online turn clock (issue #88 · N6): last 10 s turn red and blink; reduced motion keeps it solid red. */
+.rift-clock{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 7px;border-radius:9px;background:var(--eb-plate-edge);box-shadow:inset 0 0 0 1px var(--eb-bronze-lo);font:800 var(--eb-text-xs)/1.4 var(--eb-font-ui);color:var(--eb-ink);font-variant-numeric:tabular-nums}
+.rift-clock .eb-icon{width:11px;height:11px}
+.rift-clock.is-urgent{background:color-mix(in srgb,var(--eb-danger) 30%,var(--eb-plate-edge));box-shadow:inset 0 0 0 1px var(--eb-hp-hi);color:#fff;animation:riftClockBlink 1s steps(2,jump-none) infinite}
+.rift-clock.is-out{animation-duration:.4s}
+.rift-clock.is-paused{color:var(--eb-ink-quiet)}
+@keyframes riftClockBlink{0%{opacity:1}50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.rift-clock.is-urgent{animation:none}}

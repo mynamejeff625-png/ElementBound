@@ -796,6 +796,9 @@ async function run() {
       const reserve=await page.evaluate(()=>{const p=me();p.e=3;G.active=1;render();const shown=document.getElementById('pplate').classList.contains('has-reserve')&&/Reserve/.test(document.querySelector('#pplate .arena-essence').getAttribute('aria-label'));G.active=0;render();return shown&&!document.getElementById('pplate').classList.contains('has-reserve')});
       assert.ok(reserve,'unspent Essence shows as Reserve only during the rival turn');checks++;
       await page.evaluate(()=>{selectedCardId=null;renderSelectionOnly()});
+      // Online turn clock (issue #88): shown in the Rift, red and blinking for the last 10 s, paused during a Response.
+      const clock=await page.evaluate(()=>{EB_Arena.turnClock(42000);const a=document.querySelector('#rift .rift-clock'),calm={text:a?.textContent,urgent:a?.classList.contains('is-urgent')};EB_Arena.turnClock(9000);const b=document.querySelector('#rift .rift-clock'),urgent={text:b.textContent,urgent:b.classList.contains('is-urgent'),anim:getComputedStyle(b).animationName===(matchMedia('(prefers-reduced-motion: reduce)').matches?'none':'riftClockBlink')};EB_Arena.turnClock(30000,true);const paused=document.querySelector('#rift .rift-clock').textContent;EB_Arena.turnClock(null);return {calm,urgent,paused,gone:!document.querySelector('#rift .rift-clock')}});
+      assert.deepEqual(clock,{calm:{text:'0:42',urgent:false},urgent:{text:'0:09',urgent:true,anim:true},paused:'30s · paused',gone:true},`the Rift turn clock counts down, turns red and blinks under 10 s, and pauses (${JSON.stringify(clock)})`);checks++;
       await shot('06b-duel-arena');
       await page.locator('.arena-chronicle').click();
       await page.locator('.tome-peek .arena-chronicle-list').waitFor({timeout:5000});
