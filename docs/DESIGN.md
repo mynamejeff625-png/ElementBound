@@ -499,9 +499,7 @@ Top to bottom, mirrored, with no page scroll:
 - **Lethal moment (3-6):** when the duel ends at 0 Vitality the field pushes in
   briefly, the losing medallion flares and shatters, and the result panel rises
   0.8 s later. Reduced motion: the medallion simply greys out.
-- **Online turn timer:** deferred to 3b · Speed and connection. A real 60 s
-  timer needs a server-enforced deadline (an `/api/submit-move` and view-shape
-  change), which belongs with the latency work, not a presentation step.
+- **Online turn timer:** shipped in 3b (see Online speed).
 - **Anchors:** in the Arena the Bender anchors sit on the plates (`#eplate`,
   `#pplate`), one per side; slot and hand-card anchors are unchanged.
 
@@ -518,6 +516,13 @@ Top to bottom, mirrored, with no page scroll:
   backoff; returning to the app refreshes the board. "Slow connection · N s"
   appears only when a move really took longer than 3 s, and the Chronicle shows
   the last move's time.
+
+- **Turn timer (N6):** online turns last **60 s** on the server clock (the
+  first turn starts after the 5 s coin flip). The Rift shows an hourglass and
+  `m:ss` beside "Your turn"; at 10 s it turns red and blinks (solid red under
+  reduced motion) and at 0 any client reports `TURN_EXPIRED`, the server checks
+  its own clock and ends the active turn. A Response window pauses the clock
+  ("Ns · paused") and the remaining time resumes after it.
 
 ### Field anchors
 
@@ -624,3 +629,4 @@ license that allows use in the game (e.g. CC0), recorded in an
 | 2026-10-06 | Arena combo language: Combo tag and set-up hum on live payoffs, a bronze thread to the target, a hit-stop and Combo ×N banner when it lands; unspent Essence on the rival turn shows as Reserve |
 | 2026-10-06 | Phase 3 exit: the Arena becomes the default duel screen (`?arena=0` keeps the classic layout); every Trial passes on it; elemental terrain and the lethal moment ship; the online 60 s turn timer moves to 3b because it needs a server-enforced deadline |
 | 2026-10-06 | Online speed (issue #88, Owner approved): 10 s Response window, an Auto-pass switch on Play with Friends, views trimmed to the last 40 events, a submit-move reply of {ok, rev, serverNow}, self-healing snapshots, Firestore REST transport and functions pinned to cle1 near nam5; the 60 s turn timer follows in its own PR |
+| 2026-10-06 | Online turn timer (Owner): 60 s per turn on the server clock, red and blinking for the last 10 s, the turn passes at 0; paused during Response windows |

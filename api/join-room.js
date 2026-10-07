@@ -33,6 +33,8 @@ function createJoinRoomHandler({auth,db,random=Math.random,now=Date.now}){
         const events=engine.createMatchEvents(state).map((item,index)=>({...item,seq:index+1})),eventSeq=events.length;
         const activePlayers=[players[0],user.uid];
         const serverNow=now();
+        // The first turn's clock starts after the initiative coin flip (about 5 s on screen).
+        state.turnDeadline=serverNow+engine.TURN_MS+5000;
         transaction.update(roomRef,{status:'ACTIVE',players:activePlayers,deckSelections:[creatorSelection,joinSelection],state,events,eventSeq,updatedAt:serverNow});
         for(let seat=0;seat<2;seat++)transaction.set(roomRef.collection('views').doc(activePlayers[seat]),{status:'ACTIVE',roomId,seat,state:buildPlayerView(state,seat,events,serverNow),updatedAt:serverNow});
         return{status:200,body:{ok:true,roomId,status:'ACTIVE',seat:1}};

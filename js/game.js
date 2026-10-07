@@ -1407,7 +1407,7 @@ function ebMpQueueVisualEvents(events){let context=EB_MP.attackFxContext||{el:'A
  else if(item.type==='WIN')ebQueueFx({kind:'announce',el:'LIGHTNING',label:item.text||'DUEL COMPLETE'})
  }}
 function ebMpPrepareVisualEvents(){let events=Array.isArray(G?.events)?G.events:[],latest=events.at(-1)?.seq||0;if(EB_MP.lastAnimatedSeq===null){EB_MP.lastAnimatedSeq=latest;let initiative=events.find(item=>item.type==='INITIATIVE');if(Number(G?.rev||0)===0&&initiative&&!EB_MP.initiativeShown){EB_MP.initiativeShown=true;G.initiative={...(G.initiative||{}),starter:initiative.starter,revealed:false,finished:false};EB_INIT_LOCK=true;setTimeout(ebInitiativeShow,140)}return}let fresh=events.filter(item=>Number(item.seq)>EB_MP.lastAnimatedSeq).sort((a,b)=>a.seq-b.seq);if(fresh.length){EB_MP.lastAnimatedSeq=fresh.at(-1).seq;ebMpQueueVisualEvents(fresh)}}
-function ebMpRenderAuthoritativeView(view){ebMpSyncServerClock(view?.serverNow);let next=ebMpPerspective(view),presenting=EB_INIT_LOCK&&EB_MP.initiativeShown&&G?.initiative&&!G.initiative.finished;if(presenting)next.initiative={...(next.initiative||{}),revealed:!!G.initiative.revealed,finished:false};G=next;selectedCardId=null;if(!presenting&&(!G.initiative||G.initiative.finished))EB_INIT_LOCK=false;diff='Online';go('battle');ebMpPrepareVisualEvents();render();ebMpHandleResponseWindow()}
+function ebMpRenderAuthoritativeView(view){ebMpSyncServerClock(view?.serverNow);let next=ebMpPerspective(view),presenting=EB_INIT_LOCK&&EB_MP.initiativeShown&&G?.initiative&&!G.initiative.finished;if(presenting)next.initiative={...(next.initiative||{}),revealed:!!G.initiative.revealed,finished:false};G=next;selectedCardId=null;if(!presenting&&(!G.initiative||G.initiative.finished))EB_INIT_LOCK=false;diff='Online';go('battle');ebMpPrepareVisualEvents();render();ebMpHandleResponseWindow();ebMpHandleTurnTimer()}
 function ebMpClearResponseTimer(){if(EB_MP.responseTimer){clearInterval(EB_MP.responseTimer);EB_MP.responseTimer=null}if(EB_MP.responseRetryTimer){clearTimeout(EB_MP.responseRetryTimer);EB_MP.responseRetryTimer=null}EB_MP.responseKey=null;EB_MP.responseExpirySent=false}
 function ebMpResponseLabel(option,targetId){let target=me().slots.find(card=>card&&card.id===targetId),funding=option.source==='TOKEN'?'INITIATION':'USE';return `${funding} · ${option.responseName}${option.targetIds.length>1&&target?' → '+target.n:''}`}
 function ebMpServerNow(){return Date.now()+Number(EB_MP.serverClockOffset||0)}
@@ -1427,6 +1427,16 @@ function ebMpHandleResponseWindow(){
    if(pending.defenderSeat===0)ebMpOpenResponsePrompt();
    update();EB_MP.responseTimer=setInterval(update,250);
  }
+}
+// Online turn timer (issue #88 · N6): the server owns the deadline; any client that sees it pass reports TURN_EXPIRED once.
+function ebMpTurnRemainingMs(){if(!EB_MP.enabled||!G||G.winner)return null;if(Number.isFinite(G.turnPausedMs))return G.turnPausedMs;return Number.isFinite(G.turnDeadline)?Math.max(0,G.turnDeadline-ebMpServerNow()):null}
+function ebMpHandleTurnTimer(){
+ clearInterval(EB_MP.turnTimer);EB_MP.turnTimer=null;
+ if(!EB_MP.enabled||!G||G.winner||!Number.isFinite(G.turnDeadline))return;
+ let key=`${G.turnDeadline}:${G.rev}`;
+ let tick=()=>{let left=ebMpTurnRemainingMs();window.EB_Arena?.turnClock?.(left,Number.isFinite(G.turnPausedMs));
+   if(left===0&&!G.pendingResponse&&EB_MP.turnExpiryKey!==key){EB_MP.turnExpiryKey=key;ebMpSubmit('TURN_EXPIRED',{}, {kind:'TURN_EXPIRY'}).then(result=>{if(result?.error==='TURN_NOT_EXPIRED'){let wait=Math.max(100,Number(result.detail?.remainingMs)||300);setTimeout(()=>{if(EB_MP.turnExpiryKey===key)EB_MP.turnExpiryKey=null},wait)}else if(result&&!result.ok&&result.error==='MOVE_PENDING')EB_MP.turnExpiryKey=null})}};
+ tick();EB_MP.turnTimer=setInterval(tick,250);
 }
 function ebMpApplyView(state){
  let apply=ebMpRenderAuthoritativeView;
@@ -1467,7 +1477,7 @@ function ebStartMultiplayer({roomId,user,db,fetchImpl=window.fetch.bind(window)}
  if(!EB_MP.visibilityBound){EB_MP.visibilityBound=true;document.addEventListener('visibilitychange',()=>{if(!document.hidden&&EB_MP.enabled)EB_MP.client?.resync()})}
  ebMpStatus({kind:'pending',text:'Connecting to live match…'});EB_MP.client.start();return EB_MP.client;
 }
-function ebStopMultiplayer(){EB_MP.client?.stop();EB_MP.inputSafetyCleanup?.();EB_MP.input?.reset();ebMpClearResponseTimer();EB_MP.enabled=false;EB_MP.roomId=null;EB_MP.uid=null;EB_MP.client=null;EB_MP.input=null;EB_MP.inputSafetyCleanup=null;ebMpStatus(null)}
+function ebStopMultiplayer(){clearInterval(EB_MP.turnTimer);EB_MP.turnTimer=null;window.EB_Arena?.turnClock?.(null);EB_MP.client?.stop();EB_MP.inputSafetyCleanup?.();EB_MP.input?.reset();ebMpClearResponseTimer();EB_MP.enabled=false;EB_MP.roomId=null;EB_MP.uid=null;EB_MP.client=null;EB_MP.input=null;EB_MP.inputSafetyCleanup=null;ebMpStatus(null)}
 function ebMatchmakingSession(){
  let deps=window.EB_MULTIPLAYER_DEPS;if(deps?.user&&deps?.db)return{user:deps.user,db:deps.db,fetchImpl:deps.fetchImpl||window.fetch.bind(window)};
  if(EB_MP.authSession)return EB_MP.authSession;
