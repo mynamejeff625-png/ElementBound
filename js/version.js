@@ -1,17 +1,17 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.12.0',
-  label:'Rally Ward',
-  engine:'EB-1.3.0',
-  balanceLab:'Balance Lab XXIII',
-  ruleset:'EB-RULES-1.12.0-BALANCE-PASS',
-  focus:'A swept field gets one protected comeback summon',
+  version:'1.13.0',
+  label:'Second Wind',
+  engine:'EB-1.4.0',
+  balanceLab:'Balance Lab XXIV',
+  ruleset:'EB-RULES-1.13.0-BALANCE-PASS',
+  focus:'Falling behind on the field brings an extra card',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Rally Ward: from round 2, a Manifestation summoned onto your empty field is Warded until your next turn',
-    'Warded Manifestations cannot be attacked; Techniques still reach them',
-    'Both fields stay contested far longer, so comebacks are possible',
-    'New Warded page in the Tome and a Ward chip in the Arena'
+    'Second Wind: start your turn behind on the field with 2 or fewer cards, or 2+ Manifestations behind, and draw 1 extra card',
+    'An early field lead no longer snowballs as hard; comebacks happen far more often',
+    'Second Wind never draws from an empty Deck',
+    'New Second Wind page in the Tome'
   ])
 });
 
