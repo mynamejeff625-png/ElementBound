@@ -66,6 +66,8 @@ jobs:
       - run: node tests/second-techniques-1.11.0.cjs
       - run: node --check tests/deck-out-1.11.1.cjs
       - run: node tests/deck-out-1.11.1.cjs
+      - run: node --check tests/round-parity-1.11.1.cjs
+      - run: node tests/round-parity-1.11.1.cjs
       - run: node --check tests/ui-foundation-1.2.0.cjs
       - run: node tests/ui-foundation-1.2.0.cjs
       - run: node --check js/game.js

@@ -966,7 +966,12 @@ function attack(att,t){
  let before=t.h;ebAttackCore(att,t);if(G.winner)return;
  if(t&&t.h<before){let post=ebChooseAIResponse(defending,att,t,'AFTER');if(post.ok)bump()}
 }
-function endTurn(){if(!G||EB_INIT_LOCK||G.winner||G.pendingResponse||G.active!==0)return;if(G.trial)return G.trial.element==='WATER'?resolveTidesTrial():undefined;if(EB_MP.enabled){ebMpSubmit('END_TURN',{});return}G.active=1;turnStart();setTimeout(ai,350)}
+function endTurn(){if(!G||EB_INIT_LOCK||G.winner||G.pendingResponse||G.active!==0)return;if(G.trial)return G.trial.element==='WATER'?resolveTidesTrial():undefined;if(EB_MP.enabled){ebMpSubmit('END_TURN',{});return}ebPassTurn(1);setTimeout(ai,350)}
+// A round ends when the turn returns to the Bender who started the duel, as in lib/gameEngine.js endTurn().
+// Before 1.11.1 live play ended the round after the rival's turn even when the rival started, which gave the
+// player +1 Essence every turn and expired round effects (Armor, Momentum, Charged) one turn early.
+function ebStartSeat(){return Number.isInteger(G?.startSeat)?G.startSeat:(Number.isInteger(G?.initiative?.starter)?G.initiative.starter:0)}
+function ebPassTurn(next){if(next===ebStartSeat()){expireAllRoundEffects();G.turn++}G.active=next;turnStart()}
 function turnStart(){
  let p=current();p.slots.filter(Boolean).forEach(m=>{m.quick=null;m.turnFlags={}});p.turnState=freshTurnState(p.el);p.maxE=Math.min(7,2+Math.floor((G.turn-1)));p.e=p.maxE;p.slots.filter(Boolean).forEach(m=>{m.ready=true;m.sick=false});draw(p,true);G.chain=0;bump(`${p.name} turn begins`)}
 /* Alpha 0.8.50 — shared AI target policy. Pure scoring: no state mutation, no slot-order preference. */
@@ -1008,7 +1013,7 @@ for(let step=0;step<budget;step++){let legal=p.hand.filter(c=>c.c<=p.e&&(c.type=
 }
 if(G.winner){bump();return}
 let attackers=p.slots.filter(x=>x&&x.ready&&!x.sick);if(diff==='Easy')attackers=attackers.slice(0,1);
- function finishAI(){bump();if(!G.winner){expireAllRoundEffects();G.active=0;G.turn++;turnStart()}}
+ function finishAI(){bump();if(!G.winner)ebPassTurn(0)}
  function nextAttack(i){if(G.winner||i>=attackers.length)return finishAI();let m=attackers[i];if(!p.slots.includes(m)||!m.ready||m.sick)return nextAttack(i+1);m.ready=false;let guards=activeGuards(e),targets=e.slots.filter(Boolean),t=null;let canBypass=guards.length>0&&attackBypassesGuard(m,p);if(canBypass&&diff==='Difficult')t=null;else if(targets.length){t=diff==='Easy'?targets[Math.floor(Math.random()*targets.length)]:ebPickAITarget(m,targets,Math.random)}
   if(!t){applyObsidianRavagerTrigger(m,e,p);let power=ebSoakedAttackPower(m,Math.max(0,m.a+elementalAttackBonus(m,e,p))); e.vit-=power;ebQueueFx({kind:'benderHit',side:0,damage:power,el:m.el,label:m.n});add(`Rival ${m.n} hits Bender for ${power}`);winCheck();return nextAttack(i+1)}
   ebChooseHumanResponse(m,t,'BEFORE',rr=>{if(rr.cancel||G.winner)return nextAttack(i+1);t=rr.target;if(!e.slots.includes(t))return nextAttack(i+1);applyObsidianRavagerTrigger(m,t,p);applyQuickBeforeAttack(e,t);let q=t.quick&&t.quick.kind==='REDUCE'?t.quick.value:0;if(q)t.quick=null;let power=ebSoakedAttackPower(m,Math.max(0,m.a+elementalAttackBonus(m,t,p)-q)),preHitHP=t.h,guardsAtImpact=activeGuards(e).length;let d=hit(t,power,m.el,m.n);add(`Rival ${m.n} attacks ${t.n} for ${d}`);if(m.el==='WATER'&&m.n==='River Serpent'&&d>0){addMark(t,'Soaked');add(`Rival River Serpent → Soaked`)}applyQuickAfterDamage(e,t);resolveOverflowDamage(e,t,d,preHitHP,guardsAtImpact,m.el,m.n,0);let survived=e.slots.includes(t);death(e);winCheck();if(G.winner)return nextAttack(i+1);if(d>0){ebChooseHumanResponse(m,t,'AFTER',()=>nextAttack(i+1))}else nextAttack(i+1)})
