@@ -65,7 +65,7 @@
   "plan": [
    "Summon the Manifestation you want to grow, then Seed it with Sproutling or Wild Growth.",
    "Wild Growth Seeds and grows at once; Verdant Mend grows a Seeded Manifestation. Healing Root Keeper grows it too.",
-   "Grove Beast with Growth is your finisher: +1 ATK for each Growth, up to 3."
+   "Grove Beast with Growth is your finisher: +2 ATK for each Growth, up to 3."
   ],
   "key": [
    "Wild Growth",

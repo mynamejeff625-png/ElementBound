@@ -1,16 +1,16 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.13.1',
-  label:'Even Decks',
-  engine:'EB-1.4.0',
-  balanceLab:'Balance Lab XXV',
-  ruleset:'EB-RULES-1.13.1-BALANCE-PASS',
-  focus:'Every deck now wins 45–55% of simulated duels',
+  version:'1.14.0',
+  label:'Deep Roots',
+  engine:'EB-1.5.0',
+  balanceLab:'Balance Lab XXVI',
+  ruleset:'EB-RULES-1.14.0-BALANCE-PASS',
+  focus:'Nature\'s Growth cards now do what they say',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Arc Runner: 3 → 4 ATK',
-    'All nine decks win between 45% and 55% in Balance Lab round robins',
-    'Lightning and Storm duels are stronger; Water no longer leads'
+    'Root Keeper gains 1 Growth whenever it is healed',
+    'Grove Beast gets +2 ATK for each Growth instead of +1',
+    'Nature plays 2 Wild Growth and 5 Verdant Mend (was 3 and 4)'
   ])
 });
 

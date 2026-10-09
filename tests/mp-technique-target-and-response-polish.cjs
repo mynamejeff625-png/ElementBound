@@ -63,7 +63,8 @@ for(const burning of [false,true])for(const guarded of [false,true]){
   check(result.ok&&result.state.p[0].slots[0].marks.includes('Seeded'),'Bloom friendId reaches the intended friendly card');
 }
 {
-  const {original,tech}=techniqueState('LIGHTNING');original.chain=2;const result=engine.validateAndApplyMove(original,move(payload(tech,{auto:true})));
+  // One card already played, so Static Step is the second card and Charges (1.13.2 fixed the engine, which used to need two).
+  const {original,tech}=techniqueState('LIGHTNING');original.chain=1;const result=engine.validateAndApplyMove(original,move(payload(tech,{auto:true})));
   check(result.ok&&result.state.p[1].marks.includes('Charged'),'Lightning auto-target behavior remains independent of attack targetId fields');
 }
 

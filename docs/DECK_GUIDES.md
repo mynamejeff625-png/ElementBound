@@ -3,7 +3,7 @@
 The source text for the "How this deck wins" sheet in the Codex and deck
 select (phase 2f-2). `js/deckGuides.js` holds the same text as data, and
 `tests/deck-guides-1.8.1.cjs` keeps the two identical. Rules claims match
-`lib/cardCatalog.js` and `lib/matchFactory.js` as of 1.11.0: each Prime deck holds
+`lib/cardCatalog.js` and `lib/matchFactory.js` as of 1.14.0: each Prime deck holds
 two Techniques, and a Hybrid deck holds
 8 cards from each parent element plus its own Hybrid cards, and uses one
 parent's Response.
@@ -49,7 +49,7 @@ The Archivist's voice follows `docs/TOME.md` §0.5.
 - **Plan:**
   1. Summon the Manifestation you want to grow, then Seed it with Sproutling or Wild Growth.
   2. Wild Growth Seeds and grows at once; Verdant Mend grows a Seeded Manifestation. Healing Root Keeper grows it too.
-  3. Grove Beast with Growth is your finisher: +1 ATK for each Growth, up to 3.
+  3. Grove Beast with Growth is your finisher: +2 ATK for each Growth, up to 3.
 - **Key cards:** Wild Growth, Verdant Mend, Grove Beast
 - **Combo:** Wild Growth → Seeded → Verdant Mend → Growth
 - **Watch out:** Nature starts slow. Second Bloom heals each Manifestation only once per duel, so spend it on the one you are growing.

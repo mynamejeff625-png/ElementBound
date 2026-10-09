@@ -10,7 +10,7 @@ assert.equal(EB_Trials.starsForRun({completed:true,rewound:false,wrongMoves:1}),
 assert.equal(EB_Trials.starsForRun({completed:true,rewound:true,wrongMoves:0}),2);
 assert.deepEqual(EB_Trials.litSegments({FIRE:1,WATER:1,EARTH:0}),[true,true,false,false,false]);
 assert.equal(EB_Trials.completedTokens(EB_Trials.TRIAL_DATA.WATER.strip,{played:['Current Shift'],statuses:['Soaked'],actions:['End Turn'],progress:{soaked:true,survived:true}}),4);
-assert.equal(EB_Trials.completedTokens(EB_Trials.TRIAL_DATA.NATURE.strip,{played:['Sproutling','Verdant Mend','Grove Beast'],statuses:['Seeded','Growth'],progress:{seeded:true,grew:true},hit:3}),6);
+assert.equal(EB_Trials.completedTokens(EB_Trials.TRIAL_DATA.NATURE.strip,{played:['Sproutling','Verdant Mend','Grove Beast'],statuses:['Seeded','Growth'],progress:{seeded:true,grew:true},hit:4}),6);
 assert.equal(EB_Trials.completedTokens(EB_Trials.TRIAL_DATA.AIR.strip,{played:['Crosswind','Sky Raptor'],statuses:['Momentum'],progress:{momentum:true},hit:4}),4);
 assert.deepEqual(EB_Trials.MAP_POINTS,{FIRE:[108,96],WATER:[282,266],EARTH:[108,436],NATURE:[282,606],LIGHTNING:[108,776],AIR:[282,946],MAGMA:[56,632],BLOOM:[334,802],STORM:[108,1096]});
 for(const [hybrid,parents] of Object.entries(EB_Trials.PARENTS))for(const parent of parents)assert.ok(EB_Trials.MAP_POINTS[hybrid][1]>EB_Trials.MAP_POINTS[parent][1],`${hybrid} follows ${parent}`);
