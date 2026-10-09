@@ -74,6 +74,8 @@ jobs:
       - run: node tests/second-wind-1.13.0.cjs
       - run: node --check tests/deck-band-1.13.1.cjs
       - run: node tests/deck-band-1.13.1.cjs
+      - run: node --check tests/rules-parity-1.13.2.cjs
+      - run: node tests/rules-parity-1.13.2.cjs
       - run: node --check tests/ui-foundation-1.2.0.cjs
       - run: node tests/ui-foundation-1.2.0.cjs
       - run: node --check js/game.js

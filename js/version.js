@@ -1,16 +1,16 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.13.1',
-  label:'Even Decks',
-  engine:'EB-1.4.0',
+  version:'1.13.2',
+  label:'True Rules',
+  engine:'EB-1.4.1',
   balanceLab:'Balance Lab XXV',
   ruleset:'EB-RULES-1.13.1-BALANCE-PASS',
-  focus:'Every deck now wins 45–55% of simulated duels',
+  focus:'The rival plays fair, and online duels follow the same rules as single-player',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Arc Runner: 3 → 4 ATK',
-    'All nine decks win between 45% and 55% in Balance Lab round robins',
-    'Lightning and Storm duels are stronger; Water no longer leads'
+    'Fixed: the rival could put its Response card on the field as a Manifestation',
+    'Online: Static Step Charges on your second card, Gale Scout\'s Crosswind bonus counts, and Tidelily Guardian heals',
+    'Static Step text now says it Charges instead of Flowing on your second card'
   ])
 });
 
