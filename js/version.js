@@ -1,16 +1,16 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.14.0',
-  label:'Deep Roots',
+  version:'1.15.0',
+  label:'Resonant Rivals',
   engine:'EB-1.5.0',
-  balanceLab:'Balance Lab XXVI',
+  balanceLab:'Balance Lab XXVII',
   ruleset:'EB-RULES-1.14.0-BALANCE-PASS',
-  focus:'Nature\'s Growth cards now do what they say',
+  focus:'The Hard rival builds Resonance before it casts its Hybrid payoffs',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Root Keeper gains 1 Growth whenever it is healed',
-    'Grove Beast gets +2 ATK for each Growth instead of +1',
-    'Nature plays 2 Wild Growth and 5 Verdant Mend (was 3 and 4)'
+    'Hard rival: plays a card from each parent element first, then its Resonance payoff',
+    'Hard rival: keeps Resonance payoffs in hand until Resonance is on',
+    'Hard rival (Storm): moves a ready Tempest Striker before it attacks'
   ])
 });
 
