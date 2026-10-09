@@ -11,7 +11,8 @@ const browser=require('../js/cardBrowser.js');
 let checks=0;const check=(value,message)=>{assert.ok(value,message);checks++};
 const {TECH,TECH2,HYBRIDS}=ElementBoundCards;
 const PRIMES=['FIRE','WATER','NATURE','EARTH','LIGHTNING','AIR'];
-const EXPECTED={FIRE:['Searing Brand',1,2],WATER:['Riptide',2,3],NATURE:['Wild Growth',2,3],EARTH:['Stone Fist',2,3],LIGHTNING:['Recharge',1,2],AIR:['Downdraft',1,3]};
+// 1.14.0 (issue #103, Owner-approved): Nature plays 2 Wild Growth and 5 Verdant Mend to offset Grove Beast's +2 ATK per Growth.
+const EXPECTED={FIRE:['Searing Brand',1,2],WATER:['Riptide',2,3],NATURE:['Wild Growth',2,2],EARTH:['Stone Fist',2,3],LIGHTNING:['Recharge',1,2],AIR:['Downdraft',1,3]};
 
 // Catalog, deck split, Codex.
 check(Object.isFrozen(ElementBoundCards)&&Object.keys(TECH2).sort().join()===PRIMES.slice().sort().join(),'every Prime, and only Primes, has a second Technique');

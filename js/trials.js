@@ -12,7 +12,7 @@
     FIRE:{title:'Trial of Flame',strip:[{kind:'card',name:'Cinder Adept'},{kind:'status',name:'Burning'},{kind:'card',name:'Flame Burst'},{kind:'hit',value:3}]},
     WATER:{title:'Trial of Tides',strip:[{kind:'card',name:'Current Shift'},{kind:'status',name:'Soaked'},{kind:'action',name:'End Turn'},{kind:'shield'}]},
     EARTH:{title:'Trial of Stone',strip:[{kind:'card',name:'Fortify'},{kind:'status',name:'Armor'},{kind:'card',name:'Earthen Guard'},{kind:'shield'}]},
-    NATURE:{title:'Trial of Roots',strip:[{kind:'card',name:'Sproutling'},{kind:'status',name:'Seeded'},{kind:'card',name:'Verdant Mend'},{kind:'status',name:'Growth'},{kind:'card',name:'Grove Beast'},{kind:'hit',value:3}]},
+    NATURE:{title:'Trial of Roots',strip:[{kind:'card',name:'Sproutling'},{kind:'status',name:'Seeded'},{kind:'card',name:'Verdant Mend'},{kind:'status',name:'Growth'},{kind:'card',name:'Grove Beast'},{kind:'hit',value:4}]},
     LIGHTNING:{title:'Trial of Storms',strip:[{kind:'card',name:'Static Step'},{kind:'status',name:'Charged'},{kind:'card',name:'Spark Runner'},{kind:'hit',value:1}]},
     AIR:{title:'Trial of Winds',strip:[{kind:'card',name:'Crosswind'},{kind:'status',name:'Momentum'},{kind:'card',name:'Sky Raptor'},{kind:'hit',value:4}]}
   });
