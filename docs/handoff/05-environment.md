@@ -57,3 +57,19 @@ These are lessons from the previous chat. Read them once; they save time.
   - Adding a Core Terms page changes the counts in `tests/tome-1.7.0.cjs`: 33 entries before Effects at a Glance, 64 pages in total.
 - **Version bumps:** `js/version.js` plus the `crosswind-attack-debuff-0.8.62` pin for `ruleset` and `balanceLab`.
 - **Owner on a phone:** use the `AskUserQuestion` tool (2–4 options, recommended first) for decisions. Keep chat summaries short, and put the detail in GitHub.
+
+## Lessons from the second chat (9 Oct)
+
+- **Long runs:**
+  - Foreground `sleep` is blocked; use Bash `run_in_background` with an `until …; do sleep 5; done` loop, or the Monitor tool.
+  - A full 81-matchup run is about 30–60 s per 150 seeds per variant.
+- **Background jobs and shell variables:**
+  - In `cd … && S=… && cmd1 > $S/a & cmd2 > $S/b &`, the variable assignment belongs to the first backgrounded list only. `cmd2` then writes to `/b` in the container root.
+  - Use absolute paths, or `cmd1 & cmd2 & wait` inside a single non-backgrounded command.
+- **Lab patches:** every new script checks that its anchors appear exactly once in `js/game.js` and throws otherwise. Keep that habit, because `harness.cjs` silently skips missing anchors.
+- **Prototype honestly:** when a deck-list variant removes a card, check *which* card. The first "2 copies" test removed Arc Runner and made the idea look bad.
+- **PR flow that worked:**
+  - Open each release PR into `main`.
+  - Subscribe to its activity; CI and Codex reviews arrive as events.
+  - Add the CI run, job and `phone-screenshots` links to the PR body once green.
+  - A stacked PR can target `main` with a "merge #N first" note; it shrinks automatically once #N merges.

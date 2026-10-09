@@ -31,6 +31,8 @@ The rival AI is Hard-level card choice in both seats.
 | 1.12.0 · Rally Ward (round 2+) | Contested 60 → 79%, one-sided 28 → 0.6%, comeback 17 → 26%, spread 9.8, first player 54%. |
 | 1.13.0 · Second Wind (low hand or 2+ behind) | +1 wins 91 → 82%, −2 wins 8 → 18%, comeback 27 → 38%, first to 3: 63 → 57%, rounds 17 → 16.3. Lightning fell to 43%. |
 | 1.13.1 · Arc Runner 3/3 → 4/3 | 9/9 decks in band; spread 5.1–6.9. |
+| 1.13.2 · Rules-parity hotfix | No Lab change (the Lab was already correct); live rival and online engine fixed. |
+| 1.14.0 · Root Keeper grows when healed, Grove Beast +2 ATK per Growth, Wild Growth 3 → 2 | Nature 50.7 / 51.9; spread 4.0–5.3. |
 
 ## The snowball, explained (#95, #99)
 
@@ -61,9 +63,41 @@ The rival AI is Hard-level card choice in both seats.
 
 **Stat-pass alternative kept for reference:** Spark Runner 2/2 → 2/3 also gives 9/9 in band, with a spread of 8–8.7 and Storm at the 55% edge.
 
+## Card, effect and combo audit (issue #103, on 1.13.1 / 1.14.0)
+
+Tools: `audit.cjs`, `mulligan.cjs`, `hybrid.cjs`, `hybridfix.cjs`, `proto103.cjs`, `package103.cjs` (see `tools/balance/README.md`). Full tables: #103 and its comments.
+
+- **"Drawn vs not drawn" is useless here.**
+  - Duels outlast the deck: at least one seat takes Exhaustion in 60–91% of duels, so nearly every card is drawn.
+  - Use the **early-hand** win rate instead (opening 4 + the first 3 draws).
+- **Draws matter:**
+  - Win rate by 2+ cost units in the first 7 cards: 0 → 25–38%, 3+ → 52–59%.
+  - Per card, the 2–3 cost bodies (Arc Runner, Boulder Ram, Gale Scout, Tide Warden…) are worth +10 to +17 points early.
+  - The 1-cost units and setup Techniques are worth −10 to −17 points early.
+- **Skill matters:** Hard − Random pilot = 24–43 points per deck.
+  - Fire (25) and Lightning (29) play themselves most; Nature, Bloom and Storm (42–43) least.
+  - The live Easy setting (2 plays, 1 attack) wins 0–1% against Hard; it measures action budget, not decisions.
+- **Effects that rarely pay:**
+  - Charged: released 4% of the time.
+  - Riptide: its damage mode fires on about 8% of casts.
+  - Burning: about 0.28 payoffs per application in Fire, about 0 in Magma.
+  - Hybrid signature combos: 1–7% of duels.
+- **Why Hybrid combos fail:**
+  - The signature card is a single copy, in hand on only about 10% of turns.
+  - On those turns the "parent, parent, payoff" plan is possible only 11–23% of the time: a parent is missing (about 42%), Essence is short (18–25%), or slots are full (17–21%).
+  - The rival casts payoffs before Resonance. A **planner** AI lifts Magma and Bloom to about 60% on its own.
+  - Storm needs a 2nd Tempest Striker and a 2nd Crosswind Spark to reach about 47%.
+- **Grove Beast's stats are knife-edge:** ±1 on it moves Nature by 15–25 points. Balance it through the deck list instead.
+- **Mulligan:**
+  - For both players: first player 58–59%. Rejected.
+  - For the second player only: first player about 51%, weak openings 47% → 35%. Recommended (pending the Owner's decision).
+- **Tried and not useful:** "Hybrid cards count as a parent" (combos 95%+, so it plays itself), an opening-hand guarantee, and self-targeting 1-drops.
+- **Charged C2:** a Bender Charge released by any Lightning attack this turn → 77–79% released. It needs Spark Runner 2/1 to keep Lightning in band.
+
 ## Known simulator limits
 
 - **Placement:** the Lab places Manifestations in the first empty slot. Real players place on purpose, which matters most for lane-style ideas.
 - **Flame Burst overflow:** the Lab lets Flame Burst damage overflow to the Bender; live play and the engine don't. Measured: no effect on win rates.
 - **Online Flow:** the online client never sends a Flow choice, so Current Shift, Static Step, Mist Adept, Tide Warden and Recharge always keep the top card online. The Lab's Flow sends the top card to the bottom 35% of the time. This is a known gap, not yet fixed.
-- **No skill axis yet:** Easy and Medium rivals have never been measured, so there is no skill-expression data so far.
+- **Skill axis:** `audit.cjs skill` measures Hard, Medium, Easy, Random and Hold pilots. Random (full action budget, random choices) is the meaningful skill baseline.
+- **Rival sequencing:** the Hard rival and the Lab never plan a turn; they play the highest-scoring card each step. Hybrid numbers therefore understate a skilled pilot until the planner ships.
