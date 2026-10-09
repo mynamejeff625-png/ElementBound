@@ -58,7 +58,8 @@ assert.match(version,/version:'\d+\.\d+\.\d+'/);
 // 1.14.0 (issue #103): Root Keeper grows when healed, Grove Beast gets +2 ATK per Growth, Nature plays 2 Wild Growth.
 // 1.15.0 (issue #103): the Lab plays Hybrids with the Hard rival's Resonance planner (rules unchanged, Lab identifier moves).
 // 1.16.0 (issue #103): Charged Bender released by any Lightning attack, Storm's extra Striker and Spark, Arc Runner 4/3 → 3/3.
-assert.match(version,/ruleset:'EB-RULES-1\.16\.0-BALANCE-PASS'/);
-assert.match(version,/balanceLab:'Balance Lab XXVIII'/);
+// 1.17.0 (issue #103): the second Bender may mulligan once (shuffle back, draw that many).
+assert.match(version,/ruleset:'EB-RULES-1\.17\.0-BALANCE-PASS'/);
+assert.match(version,/balanceLab:'Balance Lab XXIX'/);
 assert.match(source,/CROSSWIND-ATTACK-DEBUFF-0\.8\.62/);
 assert.match(index,/both become Weakened/);

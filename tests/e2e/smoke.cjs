@@ -697,6 +697,14 @@ async function run() {
       await foundation('duel');
       await shot('06-duel');
 
+      {
+        // 1.17.0 mulligan (forced so it runs whatever the coin flip): put back one card, draw one, hand stays at 4.
+        const result=await page.evaluate(()=>{const realRandom=Math.random;Math.random=()=>0.999;/* the shuffle keeps Deck order, so the put-back card stays at the bottom */let p=me(),first=p.hand[0].id;p.mulligan='OPEN';let done=false;ebOfferMulligan(()=>{done=true});
+          const btns=()=>[...document.querySelectorAll('#arenaPanel .arena-panel-btn, #mb button')];
+          btns().find(b=>b.textContent.includes(p.hand[0].n))?.click();btns().find(b=>/^PUT BACK 1/.test(b.textContent.trim()))?.click();
+          Math.random=realRandom;return{hand:p.hand.length,used:p.mulligan,gone:!p.hand.some(c=>c.id===first),done}});
+        assert.ok(result.hand===4&&result.used==='USED'&&result.gone&&result.done,`mulligan puts a card back and draws one: ${JSON.stringify(result)}`);checks++;
+      }
       await page.evaluate(()=>exitBattle());
       await visible('#setup.on','deck select after leaving duel');
       await navUnlocked();
@@ -711,6 +719,16 @@ async function run() {
       await page.locator('#initiativeOverlay').waitFor({ state: 'visible', timeout: 5000 });
       await page.waitForFunction(() => { if (!G.initiative.finished) ebInitiativeSkip(); return G.initiative.finished; }, null, { timeout: 5000, polling: 100 });
       await page.locator('#initiativeOverlay').waitFor({ state: 'hidden', timeout: 5000 });
+      // 1.17.0: going second opens the mulligan panel first. Check it once (phone screenshot, 44 px targets), then keep the hand.
+      if(await page.evaluate(()=>G.p[0].mulligan==='OPEN')){
+        await page.locator('#arenaPanel.is-open').waitFor({state:'visible',timeout:5000});
+        const mull=await page.evaluate(()=>{const btns=[...document.querySelectorAll('#arenaPanel .arena-panel-btn')];return{labels:btns.map(b=>b.textContent.trim()),big:btns.every(b=>{const r=b.getBoundingClientRect();return r.width>=44&&r.height>=44}),title:document.querySelector('#arenaPanel .arena-panel-title')?.textContent}});
+        assert.ok(/Mulligan/.test(mull.title)&&mull.labels.length===5&&mull.labels.includes('KEEP HAND'),`mulligan panel lists 4 cards and Keep hand: ${JSON.stringify(mull)}`);checks++;
+        assert.ok(mull.big,'mulligan buttons are at least 44×44 px');checks++;
+        await page.waitForTimeout(600); // let the panel finish its open transition before the screenshot
+        await shot('06b-mulligan');
+        await page.evaluate(()=>[...document.querySelectorAll('#arenaPanel .arena-panel-btn')].find(b=>b.textContent.trim()==='KEEP HAND').click());
+      }
       await page.waitForFunction(()=>G.active===0&&!G.pendingResponse,null,{timeout:15000});
       const arena=await page.evaluate(()=>{
         const benders=side=>[...document.querySelectorAll(`[data-eb-anchor="bender"][data-eb-side="${side}"]`)].map(el=>el.id);
