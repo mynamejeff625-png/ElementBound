@@ -1,16 +1,16 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.17.0',
-  label:'Second Chance',
+  version:'1.17.1',
+  label:'Steady Link',
   engine:'EB-1.7.0',
   balanceLab:'Balance Lab XXIX',
   ruleset:'EB-RULES-1.17.0-BALANCE-PASS',
-  focus:'The Bender who goes second may mulligan once',
+  focus:'Online Techniques no longer freeze the board',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Going second: shuffle any cards from your opening hand back and draw that many, once',
-    'The rival uses the mulligan too; the first Bender still cannot',
-    'The rival mulligans only a weak opening hand'
+    'Tapping ACTIVATE no longer closes the target panel or picks a target for you',
+    'After a rejected online move the board refreshes at once instead of staying stale until the turn ends',
+    'The online status line stops saying "waiting" once the board is up to date'
   ])
 });
 

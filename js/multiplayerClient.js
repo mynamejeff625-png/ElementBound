@@ -31,6 +31,8 @@
 
   // Self-healing (issue #88): a stalled listener is re-subscribed with backoff, and an accepted move whose
   // snapshot is late is fetched once from the server. The board still comes only from the viewer's own view doc.
+  // Issue #111: a forced refresh re-applies the newest view even at the same revision, because the input layer may
+  // have parked that revision instead of showing it (a stale board then failed every move with REVISION_MISMATCH).
   function createMultiplayerClient({roomId,uid,getIdToken,subscribeView,fetchImpl,onView,onMessage=()=>{},fetchView=null,onTiming=()=>{},healAfterMs=4000,setTimer=setTimeout,clearTimer=clearTimeout,clock=()=>Date.now()}){
     if(!roomId||!uid||typeof getIdToken!=='function'||typeof subscribeView!=='function'||typeof fetchImpl!=='function'){
       throw new TypeError('roomId, uid, getIdToken, subscribeView, fetchImpl, and onView are required');
@@ -39,13 +41,13 @@
     let unsubscribe=null,lastRev=-1,retryTimer=null,retryDelay=1000,healTimer=null,watch=null,stopped=true;
 
     function notify(kind,text,error=null){onMessage({kind,text,error})}
-    function deliver(view,source){
+    function deliver(view,source,force=false){
       if(view?.status==='WAITING'){notify('waiting','Room created. Waiting for the invited player…');return}
       if(!view||!view.state){if(source==='listener')notify('error',messageFor('VIEW_UNAVAILABLE'),'VIEW_UNAVAILABLE');return}
       const rev=Number(view.state.rev)||0;
-      if(rev<lastRev||(source==='fetch'&&rev===lastRev))return;
+      if(rev<lastRev||(source==='fetch'&&rev===lastRev&&!force))return;
       lastRev=rev;retryDelay=1000;
-      onView(view.state);
+      onView(view.state,{force});
       if(!view.state.pendingResponse)notify('connected','Live match connected.');
       if(watch&&rev>=watch.target){const done=watch;watch=null;if(healTimer!==null){clearTimer(healTimer);healTimer=null}onTiming({sendMs:done.sendMs,boardMs:clock()-done.t0,healed:source==='fetch'})}
     }
@@ -64,9 +66,9 @@
       return unsubscribe;
     }
     function stop(){stopped=true;if(retryTimer!==null){clearTimer(retryTimer);retryTimer=null}if(healTimer!==null){clearTimer(healTimer);healTimer=null}watch=null;if(unsubscribe){unsubscribe();unsubscribe=null}}
-    async function resync(){
+    async function resync(force=false){
       if(typeof fetchView!=='function'||stopped)return false;
-      try{deliver(await fetchView(roomId,uid),'fetch');return true}catch(error){return false}
+      try{deliver(await fetchView(roomId,uid),'fetch',force===true);return true}catch(error){return false}
     }
     function heal(attempt){
       healTimer=setTimer(async()=>{healTimer=null;if(!watch||lastRev>=watch.target)return;await resync();if(watch&&lastRev<watch.target&&attempt<2)heal(attempt+1)},healAfterMs*attempt);
@@ -84,7 +86,7 @@
         try{body=await response.json()}catch(error){body={ok:false,error:'INVALID_SERVER_RESPONSE'}}
         if(!response.ok||!body.ok){
           const code=body.error||`HTTP_${response.status}`;
-          if(code==='REVISION_MISMATCH')resync();
+          if(code==='REVISION_MISMATCH')resync(true);
           const expiry=move.type==='RESOLVE_EXPIRED'||move.type==='TURN_EXPIRED';
           if(code!=='RESPONSE_NOT_EXPIRED'&&code!=='TURN_NOT_EXPIRED'&&code!=='NO_TURN_TIMER'&&!(expiry&&(code==='REVISION_MISMATCH'||code==='RESPONSE_PENDING')))notify('error',messageFor(code),code);
           return {ok:false,error:code,detail:body.detail||null};
@@ -94,7 +96,9 @@
           if(lastRev>=target)onTiming({sendMs,boardMs:sendMs,healed:false});
           else{watch={target,t0,sendMs};if(healTimer!==null)clearTimer(healTimer);heal(1)}
         }
-        notify('pending',body.autoResolved?'Response window expired — the attack continued.':'Move accepted. Waiting for the live board…');
+        // The live board often lands before this reply; only say "waiting" while it really is behind.
+        if(body.autoResolved)notify('pending','Response window expired — the attack continued.');
+        else if(!(Number.isFinite(target)&&lastRev>=target))notify('pending','Move accepted. Waiting for the live board…');
         return {ok:true,autoResolved:!!body.autoResolved,rev:Number.isFinite(target)?target:null};
       }catch(error){
         notify('error',messageFor('NETWORK_ERROR'),'NETWORK_ERROR');
