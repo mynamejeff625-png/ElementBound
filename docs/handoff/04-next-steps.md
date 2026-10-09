@@ -6,9 +6,9 @@
 - **Step 1, the card, effect and combo audit:** done. Report on **#103**. It led to:
   - 1.13.2 (#104): rules-parity fixes;
   - 1.14.0 (#105): Root Keeper and Grove Beast.
-- **Open:** the #103 follow-up (Hybrid combos, Charged, draw variance). Analysis and a measured package are posted on #103 (latest comment). **It waits on the Owner's choices.**
+- **Open:** the #103 follow-up (Hybrid combos, Charged, draw variance). The analysis and measured package are on #103. **The Owner approved the full package on 9 Oct**; build it in the three PRs below.
 
-## Step 2 · #103 follow-up package (proposed; build only what the Owner picks)
+## Step 2 · #103 follow-up package (Owner-approved 9 Oct)
 
 Measured together, the package gives:
 - 9/9 decks in band, spread 6.6–7.9;
