@@ -1004,7 +1004,7 @@ function ebPickAITarget(att,targets,randomFn=Math.random){
 function ai(){if(EB_INIT_LOCK||G.winner)return;let p=foe(),e=me(),budget=diff==='Difficult'?5:2;
 function bodyScore(c){return (c.a||0)*2+(c.h||0)+(c.guard?3:0)-c.c*.4}
 function techScore(c){if(TECH2_NAMES.has(c.n))return secondTechniqueScore(p,e,c);if(HYBRIDS[c.el])return resonant(p)?7:4;if(c.el==='FIRE')return e.slots.some(Boolean)?7:2;if(c.el==='EARTH')return p.slots.some(Boolean)?6:0;if(c.el==='NATURE')return p.slots.some(m=>m&&(m.marks||[]).includes('Seeded')&&(m.growth||0)<3)?7:1;if(c.el==='WATER')return 4;if(c.el==='LIGHTNING')return G.chain>=1?6:3;if(c.el==='AIR')return e.slots.filter(Boolean).length>=2?5:p.slots.some(Boolean)?4:0;return 2}
-for(let step=0;step<budget;step++){let legal=p.hand.filter(c=>c.c<=p.e&&(c.type==='TECHNIQUE'?(c.el!=='AIR'||p.slots.some(Boolean))&&secondTechniqueLegal(p,e,c):p.slots.some(s=>!s)));if(!legal.length)break;let c;
+for(let step=0;step<budget;step++){let legal=p.hand.filter(c=>c.type!=='RESPONSE'&&c.c<=p.e&&(c.type==='TECHNIQUE'?(c.el!=='AIR'||p.slots.some(Boolean))&&secondTechniqueLegal(p,e,c):p.slots.some(s=>!s)));if(!legal.length)break;let c;
  if(diff==='Easy')c=legal[Math.floor(Math.random()*legal.length)];
  else {let ranked=legal.sort((a,b)=>(b.type==='TECHNIQUE'?techScore(b):bodyScore(b))-(a.type==='TECHNIQUE'?techScore(a):bodyScore(a)));c=(diff==='Medium'&&ranked.length>1&&Math.random()<0.40)?ranked[1]:ranked[0];}
  p.e-=c.c;p.hand=p.hand.filter(x=>x.id!==c.id);G.chain++;
