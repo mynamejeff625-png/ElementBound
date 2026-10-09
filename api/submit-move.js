@@ -21,7 +21,7 @@ function statusForEngineError(error){
   return 400;
 }
 
-function createSubmitMoveHandler({auth,db,rulesEngine=engine,now=Date.now}){
+function createSubmitMoveHandler({auth,db,rulesEngine=engine,now=Date.now,random=Math.random}){
   if(!auth||!db)throw new TypeError('auth and db are required');
 
   return async function submitMove(req,res){
@@ -65,7 +65,8 @@ function createSubmitMoveHandler({auth,db,rulesEngine=engine,now=Date.now}){
         }
 
         const move={...requestedMove,actor:seat},serverNow=now();
-        const resolution=rulesEngine.validateAndApplyMove(room.state,move,{now:serverNow});
+        // The engine shuffles only for the second-player mulligan (1.17.0); the random source stays on the server.
+        const resolution=rulesEngine.validateAndApplyMove(room.state,move,{now:serverNow,random});
         if(!resolution.ok){
           return {status:statusForEngineError(resolution.error),body:{ok:false,error:resolution.error,detail:resolution.detail||null}};
         }

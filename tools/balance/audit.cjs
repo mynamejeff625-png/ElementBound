@@ -52,7 +52,7 @@ const PATCHES=[
   `let _sk=${sk('owner')};if(_sk==='Hold'&&!p.turnState.resonance.active)legal=legal.filter(c=>!AUD_HOLD.has(c.n));if(!legal.length)return null;if(_sk==='Easy'||_sk==='Random')return legal[Math.floor(st.rng()*legal.length)];legal=[...legal].sort((a,b)=>score(b,p,e)-score(a,p,e)||a.c-b.c||a.n.localeCompare(b.n));return(_sk==='Medium'&&legal.length>1&&st.rng()<0.4)?legal[1]:legal[0]}`],
  ["let owner=st.active,p=st.p[owner],budget=5,",`let owner=st.active,p=st.p[owner],budget=['Easy','Medium'].includes(${sk('st.active')})?2:5,`],
  ["for(const a of attackers.slice(0,cap)){",`for(const a of attackers.slice(0,${sk('owner')}==='Easy'?Math.min(cap,1):cap)){`],
- ["if(targets.length){t=ebPickAITarget(att,targets,st.rng)}",`if(targets.length){t=['Easy','Random'].includes(${sk('owner')})?targets[Math.floor(st.rng()*targets.length)]:ebPickAITarget(att,targets,st.rng)}`],
+ ["if(targets.length){t=ebPickAITarget(att,targets,st.rng,att.el==='LIGHTNING'&&(e.marks||[]).includes('Charged')?1:0)}",`if(targets.length){t=['Easy','Random'].includes(${sk('owner')})?targets[Math.floor(st.rng()*targets.length)]:ebPickAITarget(att,targets,st.rng,att.el==='LIGHTNING'&&(e.marks||[]).includes('Charged')?1:0)}`],
  ["let direct=!targets.length||((guards(e).length>0)&&canBypass(att,p));",`let direct=!targets.length||((guards(e).length>0)&&canBypass(att,p)&&['Hard','Hold'].includes(${sk('owner')}));`],
  ["if(!simShouldRespond(st,def,att,t,opt,phase)){",`if((${sk('1-owner')}==='Easy'&&st.rng()<0.55)||(${sk('1-owner')}==='Random'&&st.rng()<0.5)||!simShouldRespond(st,def,att,t,opt,phase)){`]
 ];

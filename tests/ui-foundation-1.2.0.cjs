@@ -75,6 +75,8 @@ check(icon.outerHTML==='<svg class="eb-icon" aria-hidden="true"><use href="asset
     G:{active:0,winner:null,initiative:{finished:false,revealed:false}},EB_INIT_LOCK:true,EB_INIT_T:0,
     EB_INIT_RAF1:0,EB_INIT_RAF2:0,EB_INIT_RUN:0,EB_MP:{enabled:true},
     clearTimeout(){},setTimeout(){},cancelAnimationFrame(){},requestAnimationFrame(){},render(){},ai(){},
+    // 1.17.0: finishing the coin flip online may offer the second Bender's mulligan (defined outside this slice).
+    ebMpMaybeOfferMulligan(){},
     document:{getElementById:id=>id==='initiativeOverlay'?overlay:null}
   });
   vm.runInContext(game.slice(start,end),context);

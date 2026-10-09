@@ -8,7 +8,9 @@ const ElementBoundMatchFactory=require('../lib/matchFactory.js');
 let source=fs.readFileSync('js/game.js','utf8');source=source.slice(0,source.lastIndexOf('\nsetup();'));
 const ctx=vm.createContext({console:{log(){},error(){},warn(){},debug(){}},Math,window:{ElementBoundCards,ElementBoundMatchFactory},document:{getElementById:()=>null},setTimeout:()=>0,clearTimeout(){},requestAnimationFrame(){}});
 vm.runInContext(source,ctx);
-const B=vm.runInContext('EB_BALANCE',ctx),SEEDS=60,LO=45,HI=55;
+// 1.17.0 (issue #103, Owner-approved): 200 seeds instead of 60. At 60 a deck near the band edge read ±1.5 points of noise
+// (Fire and Air at 45–46% read 44.6–44.8%); the band itself is unchanged.
+const B=vm.runInContext('EB_BALANCE',ctx),SEEDS=200,LO=45,HI=55;
 const wins={},games={};for(const d of B.DECKS){wins[d]=0;games[d]=0}
 let stalls=0;
 for(const a of B.DECKS)for(const b of B.DECKS)for(let i=0;i<SEEDS;i++){const r=B.simulate(a,b,{seed:`DECK-BAND|${a}|${b}|${i}`});if(r.stalled)stalls++;games[a]++;games[b]++;if(r.winner===0)wins[a]++;if(r.winner===1)wins[b]++}

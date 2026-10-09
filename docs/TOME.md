@@ -313,6 +313,13 @@ Tab icon: sword. Pages follow this order.
 - **Don't confuse with:** [[Warded]], which protects a Manifestation you summon onto an empty field.
 - **See also:** [[Hand]], [[Warded]]
 
+#### Mulligan
+- **Archivist:** "Not every opening is a good one. The Bender who goes second may trade a weak hand for a better one, once."
+- **Rule:** Before your first play, attack or end of turn, the Bender who goes second may shuffle any cards from their [[Hand]] back into their [[Deck]] and draw that many, once per duel. The first Bender cannot mulligan; the second also holds the [[Initiation Token]].
+- **Quick facts:** On: Your deck · Lasts: Instant · Stacks: No
+- **Don't confuse with:** [[Second Wind]], which draws 1 extra card later in the duel when you fall behind.
+- **See also:** [[Hand]], [[Second Wind]]
+
 #### Elemental effect
 - **Archivist:** "An effect does little on its own. It is a promise that a later card will keep."
 - **Rule:** A visible mark such as [[Burning]], [[Soaked]], [[Seeded]], [[Growth]], [[Charged]], [[Momentum]], [[Armor]] or [[Weakened]]. Other cards check for these marks to gain bonuses.
