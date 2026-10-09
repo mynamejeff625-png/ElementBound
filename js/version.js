@@ -1,16 +1,16 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.13.2',
-  label:'True Rules',
-  engine:'EB-1.4.1',
-  balanceLab:'Balance Lab XXV',
-  ruleset:'EB-RULES-1.13.1-BALANCE-PASS',
-  focus:'The rival plays fair, and online duels follow the same rules as single-player',
+  version:'1.14.0',
+  label:'Deep Roots',
+  engine:'EB-1.5.0',
+  balanceLab:'Balance Lab XXVI',
+  ruleset:'EB-RULES-1.14.0-BALANCE-PASS',
+  focus:'Nature\'s Growth cards now do what they say',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Fixed: the rival could put its Response card on the field as a Manifestation',
-    'Online: Static Step Charges on your second card, Gale Scout\'s Crosswind bonus counts, and Tidelily Guardian heals',
-    'Static Step text now says it Charges instead of Flowing on your second card'
+    'Root Keeper gains 1 Growth whenever it is healed',
+    'Grove Beast gets +2 ATK for each Growth instead of +1',
+    'Nature plays 2 Wild Growth and 5 Verdant Mend (was 3 and 4)'
   ])
 });
 
