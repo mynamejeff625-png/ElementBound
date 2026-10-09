@@ -16,6 +16,8 @@ const HELP=`function simHybDiag(st,i){let p=st.p[i],h=HYBRIDS[p.el];if(!h)return
 const P=[["function metric(st,kind,key,n=1){",HELP],
  ["let owner=st.active,p=st.p[owner],budget=5,","simHybDiag(st,st.active);let owner=st.active,p=st.p[owner],budget=5,"],
  ["function playTechnique(st,owner,c){let p=st.p[owner],e=st.p[1-owner],res=!!p.turnState.resonance.active;",`function playTechnique(st,owner,c){let p=st.p[owner],e=st.p[1-owner],res=!!p.turnState.resonance.active;if(res&&st._hybCat&&st._hybCat[0]===owner&&c.n===${JSON.stringify(SIG)}[p.el]){st.metrics._hyb.cat[owner][st._hybCat[1]].done++;st._hybCat=null}`]];
+const fs=require('node:fs'),RAW=fs.readFileSync(require('node:path').resolve(__dirname,'../../js/game.js'),'utf8');
+for(const [a] of P)if(RAW.split(a).length!==2)throw Error('anchor not unique: '+a.slice(0,60));
 function run(seeds,tag,extra=[],opt={}){const B=load([...P,...extra]),out={};
   for(const d of Object.keys(SIG))out[d]={duels:0,turns:0,sigTurns:0,cat:{},striker:{ready:0,mover:0,slot:0,both:0}};
   for(const r of games(B,seeds,opt,tag)){const H=r.metrics._hyb;if(!H)continue;for(const s of [0,1]){const d=r.decks[s];if(!SIG[d])continue;const o=out[d];o.duels++;o.turns+=H.turns[s];o.sigTurns+=H.sigTurns[s];

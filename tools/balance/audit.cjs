@@ -1,6 +1,7 @@
 // Card, effect and combo audit (docs/handoff/04-next-steps.md step 1). Scratch-grade, not in CI.
 // Instruments the Balance Lab through source patches (the game is not changed) and adds Easy and Medium
 // card choosers that mirror the live rival, so a deck's Hard-vs-Easy gap measures how much piloting matters.
+// "Early" means each Bender's first 7 cards drawn (the opening 4 plus the next 3, Second Wind included), the same for both seats.
 //   node tools/balance/audit.cjs cards 150 TAG     → per-card, effect and combo tables (Hard vs Hard), JSON on stdout
 //   node tools/balance/audit.cjs skill 100 TAG     → per-deck win rate for Hard, Medium and Easy pilots against a Hard field
 const fs=require('node:fs'),path=require('node:path');
@@ -14,7 +15,7 @@ const HELPERS=`const AUD_HOLD=new Set(['Molten Channel','Pressure Forge','Crossw
  const AUD_DEF=new Set(['Soaked mitigation','Rally Ward blocked','Eruption Guard reduction','Static Reversal movement','Reclaiming Tide survival','Backdraft retaliation','Undertow move','Second Bloom healing','Stonewall Armor','Flash Step damage','Slipstream redirect','Armor blocked']);
  function simAud(st){return st.metrics._aud||(st.metrics._aud={drawn:[{},{}],early:[{},{}],played:[[],[]],fx:[{},{}],tech:[],dmg:{},resp:[{},{}]})}
  function simAudMetric(st,kind,key,n){if(kind!=='effect'&&kind!=='effects')return;let s=AUD_DEF.has(key)?1-st.active:st.active,fx=simAud(st).fx[s];fx[key]=(fx[key]||0)+n}
- function simAudDraw(st,i,c){let A=simAud(st);A.drawn[i][c.n]=(A.drawn[i][c.n]||0)+1;if(st.metrics.initiative.actionTurns[i]<=3)A.early[i][c.n]=(A.early[i][c.n]||0)+1}
+ function simAudDraw(st,i,c){let A=simAud(st);A.drawn[i][c.n]=(A.drawn[i][c.n]||0)+1;A.count=A.count||[0,0];if(A.count[i]++<7)A.early[i][c.n]=(A.early[i][c.n]||0)+1}
  function simAudSnap(st){return JSON.stringify(st.p.map(x=>({v:x.vit,m:x.marks,s:x.slots.map(m=>m&&[m.sid,m.h,m.a,m.armor,m.growth,m.momentum,m.marks,m.quick]),ao:!!x.turnState.airOpening,mv:(x.turnState.moved||[]).length})))}
  function simAudTech(st,owner,c,before,flow0,res){let changed=simAudSnap(st)!==before,flowed=(st.metrics.effects['Flow 1']||0)>flow0;simAud(st).tech.push({seat:owner,n:c.n,res,out:changed?'effect':flowed?'flow':'none'})}
  function simAudDmg(st,owner,src,d){if(!src||!src.sid||!(d>0))return;let k=owner+'|'+src.sid,D=simAud(st).dmg;D[k]=(D[k]||0)+d}

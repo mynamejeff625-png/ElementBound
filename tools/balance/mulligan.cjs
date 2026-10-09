@@ -6,6 +6,8 @@ const {load,games,DECKS}=require('./harness.cjs');
 const {PATCHES}=require('./audit.cjs');
 const MULL=[["for(let i=0;i<2;i++)for(let n=0;n<st.options.openingHand;n++)draw(st,i);",
  "for(let i=0;i<2;i++)for(let n=0;n<st.options.openingHand;n++)draw(st,i);for(let i=0;i<2;i++){let p=st.p[i];if(st.options.mulligan){let one=0,back=p.hand.filter(c=>{if(c.type==='RESPONSE')return false;if(c.type==='MANIFESTATION'&&c.c>=2)return false;if(c.type==='MANIFESTATION'&&c.c<=1&&!one){one=1;return false}return true});back.forEach(c=>p.hand.splice(p.hand.indexOf(c),1));p.deck.push(...back);shuffle(p.deck,st.rng);for(let k=0;k<back.length;k++)draw(st,i);st.metrics.mulligans=(st.metrics.mulligans||0)+back.length}st.metrics['open'+i]=p.hand.filter(c=>c.type==='MANIFESTATION'&&c.c>=2).length}"]];
+const fs=require('node:fs'),RAW=fs.readFileSync(require('node:path').resolve(__dirname,'../../js/game.js'),'utf8');
+for(const [a] of MULL)if(RAW.split(a).length!==2)throw Error('anchor not unique: '+a.slice(0,60));
 function run(seeds,tag,opt){const B=load([...PATCHES,...MULL]),pct=(a,b)=>b?+(100*a/b).toFixed(1):0,w={},g={},q={};let fp=0,dec=0,G=0,back=0,rounds=0;
   for(const r of games(B,seeds,opt,tag)){G++;rounds+=r.turns;back+=r.metrics.mulligans||0;if(r.winner===0||r.winner===1){dec++;if(r.winner===r.startSeat)fp++}
     for(const s of [0,1]){const d=r.decks[s];g[d]=(g[d]||0)+1;if(r.winner===s)w[d]=(w[d]||0)+1;const k=Math.min(2,r.metrics['open'+s]),b=q[k]||(q[k]={g:0,w:0});b.g++;if(r.winner===s)b.w++}}

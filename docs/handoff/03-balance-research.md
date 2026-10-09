@@ -71,9 +71,10 @@ Tools: `audit.cjs`, `mulligan.cjs`, `hybrid.cjs`, `hybridfix.cjs`, `proto103.cjs
   - Duels outlast the deck: at least one seat takes Exhaustion in 60–91% of duels, so nearly every card is drawn.
   - Use the **early-hand** win rate instead (opening 4 + the first 3 draws).
 - **Draws matter:**
-  - Win rate by 2+ cost units in the first 7 cards: 0 → 25–38%, 3+ → 52–59%.
-  - Per card, the 2–3 cost bodies (Arc Runner, Boulder Ram, Gale Scout, Tide Warden…) are worth +10 to +17 points early.
-  - The 1-cost units and setup Techniques are worth −10 to −17 points early.
+  - Win rate by 2+ cost units in each Bender's first 7 cards: 0–1 → 29–45%, 2 → 37–47%, 3+ → 53–62%.
+  - Per card, the 2–3 cost bodies (Arc Runner, Boulder Ram, Tide Warden, Grove Beast, Flare Hawk…) are worth +8 to +20 points early.
+  - The 1-cost units (Mist Adept, Breeze Disciple, Spark Runner, Cinder Adept) and setup Techniques (Fortify, Verdant Mend) are worth −7 to −13 points early.
+  - The first report on #103 counted only 6 cards for the first player (Codex review on #106). These are the corrected 7-card numbers; the conclusions did not change.
 - **Skill matters:** Hard − Random pilot = 24–43 points per deck.
   - Fire (25) and Lightning (29) play themselves most; Nature, Bloom and Storm (42–43) least.
   - The live Easy setting (2 plays, 1 attack) wins 0–1% against Hard; it measures action budget, not decisions.
