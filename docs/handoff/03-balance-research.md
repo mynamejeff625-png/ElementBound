@@ -33,6 +33,9 @@ The rival AI is Hard-level card choice in both seats.
 | 1.13.1 · Arc Runner 3/3 → 4/3 | 9/9 decks in band; spread 5.1–6.9. |
 | 1.13.2 · Rules-parity hotfix | No Lab change (the Lab was already correct); live rival and online engine fixed. |
 | 1.14.0 · Root Keeper grows when healed, Grove Beast +2 ATK per Growth, Wild Growth 3 → 2 | Nature 50.7 / 51.9; spread 4.0–5.3. |
+| 1.15.0 · Hybrid planner (AI) | Magma and Bloom combos about 59%, Storm about 20%; spread 3.9. |
+| 1.16.0 · Charged on any Lightning attack, Storm extras, Arc Runner 3/3 | Charged released about 70%, Storm combo about 49%; spread 6.9–7.4. |
+| 1.17.0 · Second-player mulligan (shuffle back, selective AI) | First player 52.5%; spread 8.0–8.6; Air 45.2–45.8 (edge). |
 
 ## The snowball, explained (#95, #99)
 
@@ -93,7 +96,17 @@ Tools: `audit.cjs`, `mulligan.cjs`, `hybrid.cjs`, `hybridfix.cjs`, `proto103.cjs
   - For both players: first player 58–59%. Rejected.
   - For the second player only: first player about 51%, weak openings 47% → 35%. Recommended (pending the Owner's decision).
 - **Tried and not useful:** "Hybrid cards count as a parent" (combos 95%+, so it plays itself), an opening-hand guarantee, and self-targeting 1-drops.
-- **Charged C2:** a Bender Charge released by any Lightning attack this turn → 77–79% released. It needs Spark Runner 2/1 to keep Lightning in band.
+- **Charged C2:** a Bender Charge released by any Lightning attack this turn → 77–79% released.
+  - Shipped in 1.16.0. Once the rival aimed with the +1, Lightning needed Arc Runner 3/3 rather than Spark Runner 2/1.
+- **Knife-edge stats, generalised:** every ±1 HP or ATK on a Fire or Air card moved that deck by 8–30 points (Grove Beast showed the same). Prefer deck-list (copy-count) or rule levers for fine tuning.
+- **Mulligan variants measured on the real code (1.17.0):**
+
+  | Variant | First player |
+  |---|---|
+  | Bottom of Deck | 48–49% |
+  | Shuffle back | 51–52% |
+  | Shuffle back, AI mulligans only weak hands | about 52.5–53% |
+  | No mulligan | 53.5–54.4% |
 
 ## Known simulator limits
 
