@@ -70,7 +70,9 @@ const move=(state,actor,type,payload,random)=>engine.validateAndApplyMove(state,
 // Live single-player, the rival AI and the Balance Lab.
 let source=fs.readFileSync('js/game.js','utf8');
 source=source.slice(0,source.lastIndexOf('\nsetup();')).replace('return Object.freeze({DECKS:','return Object.freeze({_makeState:makeState,DECKS:');
-const ctx=vm.createContext({console,Math,window:{ElementBoundCards,ElementBoundMatchFactory:matchFactory,ElementBoundEngine:engine,localStorage:null},document:{getElementById:()=>null,querySelector:()=>null,querySelectorAll:()=>[]},setTimeout:()=>0,clearTimeout(){},requestAnimationFrame(){}});
+// A fixed random source keeps the live shuffle deterministic (0.999 leaves the Deck order unchanged).
+let RNG=()=>0.999;const fixedMath=Object.create(Math);fixedMath.random=()=>RNG();
+const ctx=vm.createContext({console,Math:fixedMath,window:{ElementBoundCards,ElementBoundMatchFactory:matchFactory,ElementBoundEngine:engine,localStorage:null},document:{getElementById:()=>null,querySelector:()=>null,querySelectorAll:()=>[]},setTimeout:()=>0,clearTimeout(){},requestAnimationFrame(){}});
 vm.runInContext(source,ctx);
 vm.runInContext(`add=()=>{};render=()=>{};bump=()=>{};ebQueueFx=()=>{};hideModal=()=>{};go=()=>{};var LAST_MODAL=null;modal=(t,b,o)=>{LAST_MODAL={t,b,o}};`,ctx);
 const live=vm.runInContext(`(()=>{let out={};
@@ -92,7 +94,9 @@ check(live.strong===0,'AI: a hand with two 2+ cost units is kept');
 check(live.offered,'live: going second opens a non-dismissible panel listing the 4 cards and Keep hand');
 check(live.toggled,'live: tapping a card marks it "PUT BACK" in words');
 check(live.after.hand===4&&live.after.used==='USED'&&live.after.firstGone&&live.after.inDeck&&live.after.done,`live: the chosen card is shuffled back, 1 card drawn, and the rival turn continues (${JSON.stringify(live.after)})`);
+RNG=seeded(11); // vary the coin flip so both starting seats are covered
 const rival=vm.runInContext(`(()=>{diff='Difficult';choice='FIRE';EB_HYBRID_RESPONSE_CHOICE=null;let seen=[];for(let i=0;i<40;i++){startMatch();seen.push({second:G.p[1].mulligan,first:G.p[0].mulligan,starter:G.startSeat})}return seen})()`,ctx);
+check(rival.some(x=>x.starter===0)&&rival.some(x=>x.starter===1),'both starting seats were exercised');
 check(rival.every(x=>x.starter===0?(x.second==='USED'&&x.first===undefined):(x.first==='OPEN')),'live: when you start, the rival mulligans at once; when it starts, your mulligan is open');
 const lab=vm.runInContext(`(()=>{let used=0;for(let i=0;i<20;i++){let st=EB_BALANCE._makeState('FIRE','WATER','mull-'+i,{startSeat:i%2});let s=st.p[1-st.startSeat];if(s.mulligan==='USED')used++;if(st.p[st.startSeat].mulligan)return -1}return used})()`,ctx);
 check(lab===20,'Balance Lab: the second seat takes its mulligan decision every duel; the first never does');

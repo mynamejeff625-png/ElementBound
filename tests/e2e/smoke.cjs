@@ -699,10 +699,10 @@ async function run() {
 
       {
         // 1.17.0 mulligan (forced so it runs whatever the coin flip): put back one card, draw one, hand stays at 4.
-        const result=await page.evaluate(()=>{let p=me(),first=p.hand[0].id;p.mulligan='OPEN';let done=false;ebOfferMulligan(()=>{done=true});
+        const result=await page.evaluate(()=>{const realRandom=Math.random;Math.random=()=>0.999;/* the shuffle keeps Deck order, so the put-back card stays at the bottom */let p=me(),first=p.hand[0].id;p.mulligan='OPEN';let done=false;ebOfferMulligan(()=>{done=true});
           const btns=()=>[...document.querySelectorAll('#arenaPanel .arena-panel-btn, #mb button')];
           btns().find(b=>b.textContent.includes(p.hand[0].n))?.click();btns().find(b=>/^PUT BACK 1/.test(b.textContent.trim()))?.click();
-          return{hand:p.hand.length,used:p.mulligan,gone:!p.hand.some(c=>c.id===first),done}});
+          Math.random=realRandom;return{hand:p.hand.length,used:p.mulligan,gone:!p.hand.some(c=>c.id===first),done}});
         assert.ok(result.hand===4&&result.used==='USED'&&result.gone&&result.done,`mulligan puts a card back and draws one: ${JSON.stringify(result)}`);checks++;
       }
       await page.evaluate(()=>exitBattle());
