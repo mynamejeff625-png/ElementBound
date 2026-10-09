@@ -1,18 +1,18 @@
-# 01 · Project state (main @ 1.14.0, 9 Oct 2026)
+# 01 · Project state (main @ 1.17.0, 9 Oct 2026)
 
-`main` = PR #105 merged. Open: the `[docs]` PR that carries this update and the audit tools.
+`main` = PR #109 merged. No open release PRs.
 
 ## Release identifiers (`js/version.js`)
 
 | Field | Value |
 |---|---|
-| version / label | `1.14.0` · "Deep Roots" |
-| engine | `EB-1.5.0` |
-| ruleset | `EB-RULES-1.14.0-BALANCE-PASS` |
-| balanceLab | `Balance Lab XXVI` |
+| version / label | `1.17.0` · "Second Chance" |
+| engine | `EB-1.7.0` |
+| ruleset | `EB-RULES-1.17.0-BALANCE-PASS` |
+| balanceLab | `Balance Lab XXIX` |
 
 Bump `ruleset` and `balanceLab` on any rule or stat change. `tests/crosswind-attack-debuff-0.8.62.cjs` pins both on purpose; update that pin with a one-line reason. Three older tests (`balance-pass-0.8.55/56/57`) require the ruleset name to end in `-BALANCE-PASS`.
-Bump `engine` when `lib/gameEngine.js` rules change (1.13.2 and 1.14.0 did).
+Bump `engine` when `lib/gameEngine.js` rules change (1.13.2, 1.14.0, 1.16.0 and 1.17.0 did).
 
 ## The duel, as it plays now
 
@@ -46,6 +46,17 @@ Bump `engine` when `lib/gameEngine.js` rules change (1.13.2 and 1.14.0 did).
   - From round 2, at turn start after the normal draw: if you have fewer Manifestations than the rival **and** (2 or fewer cards in hand **or** 2+ fewer Manifestations), draw 1 extra card.
   - It never draws from an empty Deck.
   - Online it adds a `SECOND_WIND` event; both draws stay private `DRAW` events.
+- **Mulligan (1.17.0):** once, before their first play, attack or end of turn, the Bender who goes second may shuffle any cards from hand back into the Deck and draw that many.
+  - Engine move `MULLIGAN`. The second seat's `side.mulligan` is `'OPEN'` from the match factory, and becomes `'USED'` or `'CLOSED'` (closed when the seat acts).
+  - The shuffle uses the server-only `options.random`, which `/api/submit-move` passes in.
+  - The rival and the Lab mulligan only weak hands (fewer than two 2+ cost units).
+- **Charged (1.16.0):** a Charged enemy Bender is released by the next Lightning attack this round, whatever it targets (+1). A Charged target is used first.
+  - The Hard rival's target scoring counts that +1 (`ebPickAITarget(..., extraAtk)`).
+- **Hybrid planner (1.15.0, AI only):** the Hard rival and the Lab share `ebPlanHybridPlay()`.
+  - Play the missing parent cards first, choosing the cheapest affordable pairing.
+  - Hold the Resonance payoffs (Molten Channel, Pressure Forge, Crosswind Spark, Thunderstep, Rainseed, Flourishing Current) until Resonance is on.
+  - Move a ready Tempest Striker.
+  - Medium and Easy rivals don't use it.
 - **Growth (1.14.0):** each Growth gives +1 ATK; **Grove Beast gets +2**. Reclaiming Tide removes the matching ATK with the Growth.
 - **Root Keeper (1.14.0):** gains 1 Growth whenever it is actually healed (Second Bloom, Rainseed, Flourishing Current, Tidelily Guardian). One heal path per surface: `ebHeal` (live), `simHeal` (Lab), `heal` (engine).
 - **Static Step:** Flow 1, *or*, as your second card this turn, Charge the enemy Bender instead (text fixed in 1.13.2).
@@ -59,10 +70,10 @@ Bump `engine` when `lib/gameEngine.js` rules change (1.13.2 and 1.14.0 did).
 | Water · Shifting Tide | Mist Adept 1c 1/3, Tide Warden 2c 2/4 Guard, River Serpent 3c 2/4 | Current Shift 1c (4), **Riptide** 2c (3) | Undertow |
 | Nature · Living Path | Sproutling 1c 1/3, Root Keeper 2c 2/4 (grows when healed), Grove Beast 4c 2/5 (+2 ATK per Growth) | Verdant Mend 2c (5), **Wild Growth** 2c (2) (1.14.0) | Second Bloom |
 | Earth · Iron Mountain | Stone Initiate 1c 1/3, Earthen Guard 2c 1/5 Guard, Boulder Ram 3c 3/5 | Fortify 2c (4), **Stone Fist** 2c (3) | Stonewall |
-| Lightning · Flash Circuit | Spark Runner 1c 2/2, **Arc Runner 2c 4/3** (1.13.1), Volt Lynx 3c 3/3 | Static Step 1c (5), **Recharge** 1c (2) | Flash Step |
+| Lightning · Flash Circuit | Spark Runner 1c 2/2, **Arc Runner 2c 3/3** (4/3 in 1.13.1, back to 3/3 in 1.16.0), Volt Lynx 3c 3/3 | Static Step 1c (5), **Recharge** 1c (2) | Flash Step |
 | Air · Dancing Gale | Breeze Disciple 1c 1/3, Gale Scout 2c 2/3, Sky Raptor 3c 3/3 | Crosswind 1c (4), **Downdraft** 1c (3) | Slipstream |
 | Magma (Fire+Earth) | 8 Fire + 8 Earth cards (7 units + 1 first Technique each) + Molten Channel, **Obsidian Ravager 4c 4/5**, Pressure Forge, Eruption Guard | Hybrids use only each parent's *first* Technique | choose Backdraft or Stonewall |
-| Storm (Lightning+Air) | 8 + 8 + Crosswind Spark, **Tempest Striker 3c 3/3**, Thunderstep, Static Reversal | " | Flash Step or Slipstream |
+| Storm (Lightning+Air) | 7 + 7 + Crosswind Spark ×2, **Tempest Striker 3c 3/3 ×2**, Thunderstep, Static Reversal (1.16.0: `HYBRID_EXTRAS` replaces one Spark Runner and one Breeze Disciple) | " | Flash Step or Slipstream |
 | Bloom (Water+Nature) | 8 + 8 + Rainseed, **Tidelily Guardian 4c 2/5**, Flourishing Current, Reclaiming Tide | " | Undertow or Second Bloom |
 
 - **Prime decks:** 13 units (the 3 types cycle), 7 Techniques (the first and second Technique split as shown) and 1 Response.
@@ -93,9 +104,18 @@ Two fresh 200-seed sets per release:
 | Release | Fire | Water | Nature | Earth | Lightning | Air | Magma | Storm | Bloom | Spread |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 1.13.1 | 47.6 / 48.3 | 50.6 / 51.9 | 46.9 / 47.3 | 52.4 / 50.9 | 53.7 / 50.9 | 46.9 / 49.2 | 53.8 / 52.4 | 51.1 / 51.9 | 47.1 / 47.3 | 6.9 / 5.1 |
-| **1.14.0** | 47.1 / 49.8 | 49.8 / 49.1 | 50.7 / 51.9 | 50.4 / 49.1 | 52.2 / 51.3 | 48.4 / 48.4 | 52.4 / 51.6 | 51.0 / 50.9 | 48.0 / 47.9 | 5.3 / 4.0 |
+| 1.14.0 | 47.1 / 49.8 | 49.8 / 49.1 | 50.7 / 51.9 | 50.4 / 49.1 | 52.2 / 51.3 | 48.4 / 48.4 | 52.4 / 51.6 | 51.0 / 50.9 | 48.0 / 47.9 | 5.3 / 4.0 |
+| 1.15.0 | 49.4 / 49.1 | 50.3 / 49.5 | 52.2 / 50.7 | 49.6 / 50.9 | 52.2 / 51.7 | 48.3 / 47.8 | 50.3 / 50.8 | 48.6 / 49.3 | 49.1 / 50.3 | 3.9 / 3.9 |
+| 1.16.0 | 47.0 / 47.7 | 51.1 / 50.1 | 51.7 / 52.5 | 49.7 / 51.2 | 53.4 / 52.1 | 46.0 / 45.6 | 50.8 / 50.9 | 50.1 / 49.3 | 50.2 / 50.6 | 7.4 / 6.9 |
+| **1.17.0** | 47.0 / 46.3 | 52.7 / 52.3 | 52.9 / 54.4 | 50.5 / 48.1 | 53.2 / 53.9 | 45.2 / 45.8 | 48.2 / 50.4 | 49.0 / 48.1 | 51.3 / 50.6 | 8.0 / 8.6 |
 
 1.13.2 changed no Lab rule, so its numbers equal 1.13.1. The snowball metrics below did not move in 1.14.0 (first player 53.5–54.3%, +1 wins 82%, 16.1 rounds).
+
+**On 1.17.0:**
+- First player wins 52.5% (54.2–54.4% before the mulligan).
+- Hybrid guide combos: Magma 59–61%, Bloom 57%, Storm 47%.
+- Charged released about 71% of the time.
+- **Air sits at the band edge (45.2–45.8%).** Any ±1 Air or Fire stat swings those decks by 8–30 points, so use deck-list or rule levers.
 
 | Snowball and presence metric | 1.13.1 | Before this round (1.11.0) |
 |---|---|---|
@@ -108,4 +128,4 @@ Two fresh 200-seed sets per release:
 | First player wins | 54% | 60% |
 | Average rounds | 16.2 | 14.4 |
 
-**CI gate:** `tests/deck-band-1.13.1.cjs` fails if any deck leaves 45–55% (fixed seeds, deterministic).
+**CI gate:** `tests/deck-band-1.13.1.cjs` fails if any deck leaves 45–55%. It uses fixed seeds and is deterministic; it runs 200 seeds since 1.17.0 (60 before) and takes about 13 s.

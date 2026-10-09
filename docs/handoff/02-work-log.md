@@ -1,4 +1,4 @@
-# 02 · Work log since the Phase 2 exit (PRs #80–#105, 6–9 Oct 2026)
+# 02 · Work log since the Phase 2 exit (PRs #80–#109, 6–9 Oct 2026)
 
 Every item below is merged to `main`. The Claude chat was the implementer for all of it, and the Owner approved and merged each one.
 The issues hold the full reasoning and data: #81 (Phase 3 brainstorm), #83, #88, #91, #93, #95, #96, #99.
@@ -113,6 +113,24 @@ The first task of the new chat (handoff step 1). Report: #103, with two decision
   - Why a deck-list change: any ±1 on Grove Beast moved Nature by 15–25 points (to 35% or 64%).
   - Test: `tests/growth-payoffs-1.14.0.cjs`.
 
+## #103 follow-up package (9 Oct)
+
+The analysis is on #103 (Hybrid combo diagnosis, Charged, draw variance). The Owner approved the full package and it shipped in three PRs:
+
+- **#106 [docs]:** handoff updated to 1.14.0, plus the analysis scripts. Codex review led to anchor checks in every script and the 7-card early-hand cohort.
+- **#107 · 1.15.0 "Resonant Rivals":** a shared Hybrid planner for the Hard rival and the Lab (AI only).
+  - Combos: Magma 4 → 59%, Bloom 6 → 57–59%, Storm 1 → 20%.
+  - Codex finding fixed: the planner now picks the cheapest affordable parent cards.
+- **#108 · 1.16.0 "Live Wires":** the Charged rule change (a Bender Charge is released by any Lightning attack this round), plus Storm's 2nd Tempest Striker and 2nd Crosswind Spark (`HYBRID_EXTRAS`).
+  - Charged released 4 → 69%; Storm combo about 49%.
+  - Codex finding: rival targeting now counts the Charged +1. That pushed Lightning to 56–57%, so the Owner picked Arc Runner 4/3 → 3/3 and Spark Runner stays 2/2; the planned 2/1 was dropped.
+- **#109 · 1.17.0 "Second Chance":** the second-player mulligan.
+  - Shuffle-back version (Owner pick over bottom-of-Deck, which pushed the first player down to 48%).
+  - The rival and Lab mulligan only weak hands (Owner pick).
+  - The CI gate went from 60 to 200 seeds (Owner pick): at 60, Fire and Air read 44.6–44.8% from noise.
+  - First player 54 → 52.5%.
+  - A smoke check I wrote flaked once (a shuffled-back card can be redrawn); fixed with a fixed random source in that check.
+
 ## Owner decisions to remember
 
 - Stat changes: **±1 ATK or HP per card**, no cost changes, unless the Owner says otherwise.
@@ -122,3 +140,6 @@ The first task of the new chat (handoff step 1). Report: #103, with two decision
 - Rally Ward stops attacks only; Techniques still reach a Warded unit.
 - Root Keeper as printed; Grove Beast gets the real +2 bonus, balanced through the deck list (Wild Growth 3 → 2), not stats (9 Oct).
 - A card-text fix that only matches the existing rules (Static Step) is fine inside a hotfix.
+- Hybrid combos should land 25–40%+ of duels. Fix them through AI sequencing and deck lists, not rules that make combos automatic (rejected: "Hybrid cards count as a parent").
+- The mulligan is for the second player only. Shuffle it back. The AI mulligans only weak hands; players may mulligan any hand.
+- The balance gate runs 200 seeds. The band stays 45–55%.
