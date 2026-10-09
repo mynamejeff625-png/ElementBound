@@ -29,7 +29,7 @@
 | Phase 4 · Feel (DESIGN.md §9) | Motion polish, sound (§8), coin flip, result screen, and removing the classic duel screen (`?arena=0`). |
 | Phase 5 | Profiles, cosmetics, App Check. |
 | Unbuilt ideas from #81 | D3 Last Stand (Initiation Token at 10 Vitality or less), D4 adjacency keyword, D5 Rift Tides (opt-in variant mode), D6 Elemental Reactions. D1 and D2 were tested; see 03. |
-| Watch in playtest | Arc Runner 4/3 for 2 Essence is above the cost curve but measured balanced. Also check how Second Wind, Rally Ward, Root Keeper and Grove Beast (+2 per Growth) feel. |
+| Watch in playtest | Check how Second Wind, Rally Ward, Root Keeper, Grove Beast (+2 per Growth), the any-Lightning Charged release and the second-player mulligan feel. Air sits at the band edge (about 45%). |
 | Other audit leftovers (#103, not proposed yet) | Riptide's damage mode fires on about 8% of casts; Burning pays off about 0.28× per application (about 0 in Magma); 60–91% of duels reach Exhaustion. No proposal yet. |
 
 ## Housekeeping
