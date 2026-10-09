@@ -1,4 +1,4 @@
-# 02 · Work log since the Phase 2 exit (PRs #80–#101, 6–7 Oct 2026)
+# 02 · Work log since the Phase 2 exit (PRs #80–#105, 6–9 Oct 2026)
 
 Every item below is merged to `main`. The Claude chat was the implementer for all of it, and the Owner approved and merged each one.
 The issues hold the full reasoning and data: #81 (Phase 3 brainstorm), #83, #88, #91, #93, #95, #96, #99.
@@ -92,6 +92,27 @@ Owner's goal: every deck at 45–55%, balance by deck identity, cards staying on
 - **Lanes re-measured after Second Wind:** strict lanes add only 3–6 points of snowball relief but swing deck balance hugely (Earth and Magma about 70%, Fire and Lightning 25–30%). **Owner: "stat pass first, lanes later."** Lanes are parked; the data is on #99.
 - **#101 · 1.13.1:** stat pass. A greedy ±1 search needed one change: **Arc Runner 3/3 → 4/3**. All 9 decks are now in 45–55%. New CI gate `tests/deck-band-1.13.1.cjs`.
 
+## Audit round: cards, effects and combos (issue #103, 9 Oct)
+
+The first task of the new chat (handoff step 1). Report: #103, with two decision comments.
+
+- **Tools:** `tools/balance/audit.cjs` (per-card, effect, combo and skill-pilot tables) and `mulligan.cjs`.
+- **What it found:** mostly rules bugs, not balance outliers. See 03 for the numbers.
+- **#104 · 1.13.2 "True Rules":**
+  - **Rival bug:** the live rival (`ai()`) summoned its own Response card as a stat-less unit. Its attack set Vitality to `NaN`. The legal-play filter now skips Response cards.
+  - **Engine parity (online duels):**
+    - Static Step now Charges on the *second* card; it used to need a third.
+    - Gale Scout's Crosswind Momentum now counts in the attack that uses it (`attackBonus()` runs before ATK is read).
+    - Tidelily Guardian's Resonance heal now exists online.
+  - **Text:** Static Step says the Charge replaces the Flow.
+  - **Test:** `tests/rules-parity-1.13.2.cjs`. One old fixture assumed the third-card Static Step.
+- **#105 · 1.14.0 "Deep Roots":**
+  - Root Keeper grows when healed. Its text had never been implemented.
+  - Grove Beast gets +2 ATK per Growth. Its old text only restated the general rule.
+  - Nature plays 2 Wild Growth and 5 Verdant Mend.
+  - Why a deck-list change: any ±1 on Grove Beast moved Nature by 15–25 points (to 35% or 64%).
+  - Test: `tests/growth-payoffs-1.14.0.cjs`.
+
 ## Owner decisions to remember
 
 - Stat changes: **±1 ATK or HP per card**, no cost changes, unless the Owner says otherwise.
@@ -99,3 +120,5 @@ Owner's goal: every deck at 45–55%, balance by deck identity, cards staying on
 - Second Wind wording counts **all** cards in hand, the number players can see.
 - Technique damage never overflows to the Bender, in every mode.
 - Rally Ward stops attacks only; Techniques still reach a Warded unit.
+- Root Keeper as printed; Grove Beast gets the real +2 bonus, balanced through the deck list (Wild Growth 3 → 2), not stats (9 Oct).
+- A card-text fix that only matches the existing rules (Static Step) is fine inside a hotfix.

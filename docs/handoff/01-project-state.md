@@ -1,17 +1,18 @@
-# 01 · Project state (main @ 1.13.1, 9 Oct 2026)
+# 01 · Project state (main @ 1.14.0, 9 Oct 2026)
 
-`main` = PR #101 merged. No open PRs. Working tree clean.
+`main` = PR #105 merged. Open: the `[docs]` PR that carries this update and the audit tools.
 
 ## Release identifiers (`js/version.js`)
 
 | Field | Value |
 |---|---|
-| version / label | `1.13.1` · "Even Decks" |
-| engine | `EB-1.4.0` |
-| ruleset | `EB-RULES-1.13.1-BALANCE-PASS` |
-| balanceLab | `Balance Lab XXV` |
+| version / label | `1.14.0` · "Deep Roots" |
+| engine | `EB-1.5.0` |
+| ruleset | `EB-RULES-1.14.0-BALANCE-PASS` |
+| balanceLab | `Balance Lab XXVI` |
 
-Bump `ruleset` and `balanceLab` on any rule or stat change. `tests/crosswind-attack-debuff-0.8.62.cjs` pins both on purpose; update that pin with a one-line reason.
+Bump `ruleset` and `balanceLab` on any rule or stat change. `tests/crosswind-attack-debuff-0.8.62.cjs` pins both on purpose; update that pin with a one-line reason. Three older tests (`balance-pass-0.8.55/56/57`) require the ruleset name to end in `-BALANCE-PASS`.
+Bump `engine` when `lib/gameEngine.js` rules change (1.13.2 and 1.14.0 did).
 
 ## The duel, as it plays now
 
@@ -45,6 +46,9 @@ Bump `ruleset` and `balanceLab` on any rule or stat change. `tests/crosswind-att
   - From round 2, at turn start after the normal draw: if you have fewer Manifestations than the rival **and** (2 or fewer cards in hand **or** 2+ fewer Manifestations), draw 1 extra card.
   - It never draws from an empty Deck.
   - Online it adds a `SECOND_WIND` event; both draws stay private `DRAW` events.
+- **Growth (1.14.0):** each Growth gives +1 ATK; **Grove Beast gets +2**. Reclaiming Tide removes the matching ATK with the Growth.
+- **Root Keeper (1.14.0):** gains 1 Growth whenever it is actually healed (Second Bloom, Rainseed, Flourishing Current, Tidelily Guardian). One heal path per surface: `ebHeal` (live), `simHeal` (Lab), `heal` (engine).
+- **Static Step:** Flow 1, *or*, as your second card this turn, Charge the enemy Bender instead (text fixed in 1.13.2).
 - **Online only:** 60 s turn timer, server clock only; it turns red and blinks at 10 s or less, and pauses during Response windows.
 
 ## Decks (21 cards each)
@@ -53,7 +57,7 @@ Bump `ruleset` and `balanceLab` on any rule or stat change. `tests/crosswind-att
 |---|---|---|---|
 | Fire · Blazing Fist | Cinder Adept 1c 1/2, Ember Guard 2c 2/3 Guard, Flare Hawk 3c 3/3 | Flame Burst 2c (5), **Searing Brand** 1c (2) | Backdraft |
 | Water · Shifting Tide | Mist Adept 1c 1/3, Tide Warden 2c 2/4 Guard, River Serpent 3c 2/4 | Current Shift 1c (4), **Riptide** 2c (3) | Undertow |
-| Nature · Living Path | Sproutling 1c 1/3, Root Keeper 2c 2/4, Grove Beast 4c 2/5 | Verdant Mend 2c (4), **Wild Growth** 2c (3) | Second Bloom |
+| Nature · Living Path | Sproutling 1c 1/3, Root Keeper 2c 2/4 (grows when healed), Grove Beast 4c 2/5 (+2 ATK per Growth) | Verdant Mend 2c (5), **Wild Growth** 2c (2) (1.14.0) | Second Bloom |
 | Earth · Iron Mountain | Stone Initiate 1c 1/3, Earthen Guard 2c 1/5 Guard, Boulder Ram 3c 3/5 | Fortify 2c (4), **Stone Fist** 2c (3) | Stonewall |
 | Lightning · Flash Circuit | Spark Runner 1c 2/2, **Arc Runner 2c 4/3** (1.13.1), Volt Lynx 3c 3/3 | Static Step 1c (5), **Recharge** 1c (2) | Flash Step |
 | Air · Dancing Gale | Breeze Disciple 1c 1/3, Gale Scout 2c 2/3, Sky Raptor 3c 3/3 | Crosswind 1c (4), **Downdraft** 1c (3) | Slipstream |
@@ -84,11 +88,14 @@ Bump `ruleset` and `balanceLab` on any rule or stat change. `tests/crosswind-att
 
 ## Balance status (Balance Lab, Hard rival, 81 matchups)
 
-1.13.1, two fresh 200-seed sets:
+Two fresh 200-seed sets per release:
 
-| Fire | Water | Nature | Earth | Lightning | Air | Magma | Storm | Bloom | Spread |
-|---|---|---|---|---|---|---|---|---|---|
-| 47.6 / 48.3 | 50.6 / 51.9 | 46.9 / 47.3 | 52.4 / 50.9 | 53.7 / 50.9 | 46.9 / 49.2 | 53.8 / 52.4 | 51.1 / 51.9 | 47.1 / 47.3 | 6.9 / 5.1 |
+| Release | Fire | Water | Nature | Earth | Lightning | Air | Magma | Storm | Bloom | Spread |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.13.1 | 47.6 / 48.3 | 50.6 / 51.9 | 46.9 / 47.3 | 52.4 / 50.9 | 53.7 / 50.9 | 46.9 / 49.2 | 53.8 / 52.4 | 51.1 / 51.9 | 47.1 / 47.3 | 6.9 / 5.1 |
+| **1.14.0** | 47.1 / 49.8 | 49.8 / 49.1 | 50.7 / 51.9 | 50.4 / 49.1 | 52.2 / 51.3 | 48.4 / 48.4 | 52.4 / 51.6 | 51.0 / 50.9 | 48.0 / 47.9 | 5.3 / 4.0 |
+
+1.13.2 changed no Lab rule, so its numbers equal 1.13.1. The snowball metrics below did not move in 1.14.0 (first player 53.5–54.3%, +1 wins 82%, 16.1 rounds).
 
 | Snowball and presence metric | 1.13.1 | Before this round (1.11.0) |
 |---|---|---|

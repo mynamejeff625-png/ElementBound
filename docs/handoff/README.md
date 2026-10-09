@@ -1,14 +1,14 @@
-# Handoff: Claude session → new Claude Code chat (9 Oct 2026)
+# Handoff: Claude session → new Claude Code chat (updated 9 Oct 2026, main @ 1.14.0)
 
 This folder hands the Element Bound work from one Claude Code chat to the next.
 Read it **after** `AGENTS.md` (the binding operating rules, loaded automatically through `CLAUDE.md`).
 
 | File | What's in it |
 |---|---|
-| [01-project-state.md](01-project-state.md) | What the game is today (1.13.1): rules, decks, systems, file map additions, balance status |
-| [02-work-log.md](02-work-log.md) | Everything shipped since the Phase 2 exit (PRs #80–#101), with the decisions and reasons |
+| [01-project-state.md](01-project-state.md) | What the game is today (1.14.0): rules, decks, systems, file map additions, balance status |
+| [02-work-log.md](02-work-log.md) | Everything shipped since the Phase 2 exit (PRs #80–#105), with the decisions and reasons |
 | [03-balance-research.md](03-balance-research.md) | All balance findings and measurements, metric definitions, what was tried and rejected, what's parked |
-| [04-next-steps.md](04-next-steps.md) | **The next task: card, effect and combo audit**; full plan, plus the backlog |
+| [04-next-steps.md](04-next-steps.md) | **The next task: the #103 follow-up package** (Hybrid planner, Storm/Charged, second-player mulligan), plus the backlog |
 | [05-environment.md](05-environment.md) | How to work in this environment: git and `gh` quirks, running tests and the smoke, CI, gotchas |
 | [`tools/balance/`](../../tools/balance/README.md) | The analysis scripts used for every balance number here |
 
@@ -33,5 +33,5 @@ Read it **after** `AGENTS.md` (the binding operating rules, loaded automatically
 Copy this block into the new Claude Code chat:
 
 ```
-Read AGENTS.md, then everything in docs/handoff/ (start with README.md) and tools/balance/README.md. You are continuing as the Element Bound implementer, the role the previous Claude chat had. Confirm in 5 bullets what state the game is in (version, rules added in 1.11–1.13, balance status) and what the next task is. Then start docs/handoff/04-next-steps.md step 1, the card, effect and combo audit. Ask me any design or balance questions before changing gameplay, offering options with the recommended one first.
+Read AGENTS.md, then everything in docs/handoff/ (start with README.md) and tools/balance/README.md. You are continuing as the Element Bound implementer, the role the previous Claude chat had. Confirm in 5 bullets what state the game is in (version, rules added in 1.11–1.14, balance status) and what the next task is. Then read issue #103 (latest comments) and continue docs/handoff/04-next-steps.md step 2 with whatever the Owner has picked. Ask me any design or balance questions before changing gameplay, offering options with the recommended one first.
 ```
