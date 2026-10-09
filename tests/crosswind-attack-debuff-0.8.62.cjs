@@ -56,7 +56,8 @@ assert.match(version,/version:'\d+\.\d+\.\d+'/);
 // Card Depletion loss, so the ruleset and Balance Lab identifiers moved on.
 // 1.12.0 (issue #96) added Rally Ward; 1.13.0 (issue #99) added Second Wind; 1.13.1 raised Arc Runner to 4 ATK.
 // 1.14.0 (issue #103): Root Keeper grows when healed, Grove Beast gets +2 ATK per Growth, Nature plays 2 Wild Growth.
+// 1.15.0 (issue #103): the Lab plays Hybrids with the Hard rival's Resonance planner (rules unchanged, Lab identifier moves).
 assert.match(version,/ruleset:'EB-RULES-1\.14\.0-BALANCE-PASS'/);
-assert.match(version,/balanceLab:'Balance Lab XXVI'/);
+assert.match(version,/balanceLab:'Balance Lab XXVII'/);
 assert.match(source,/CROSSWIND-ATTACK-DEBUFF-0\.8\.62/);
 assert.match(index,/both become Weakened/);

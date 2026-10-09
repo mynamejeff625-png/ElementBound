@@ -721,6 +721,28 @@ function secondTechniqueScore(p,e,c){
  if(c.n==='Downdraft')return e.slots.some(m=>m&&!(m.marks||[]).includes('Weakened'))?5:0;
  return 0;
 }
+// Hybrid Resonance planner (1.15.0, issue #103). The Hard rival and the Balance Lab share it so they play Hybrids alike:
+// play the missing parent cards first, hold each deck's Resonance payoffs until Resonance is on, and move a ready Tempest
+// Striker before it attacks. Returns a card, null (hold: play nothing more this turn) or undefined (no opinion: default).
+const EB_RESONANCE_PAYOFFS=Object.freeze({MAGMA:['Molten Channel','Pressure Forge'],STORM:['Crosswind Spark','Thunderstep'],BLOOM:['Rainseed','Flourishing Current']});
+function ebStrikerToMove(p,idOf){let moved=(p.turnState&&p.turnState.moved)||[];return p.slots.find(m=>m&&m.n==='Tempest Striker'&&m.ready&&!m.sick&&!moved.includes(idOf(m)))||null}
+function ebPlanHybridPlay(p,legal,scoreOf,idOf){
+ let h=HYBRIDS[p.el],pay=EB_RESONANCE_PAYOFFS[p.el];if(!h||!pay||!legal.length)return undefined;
+ let rr=(p.turnState&&p.turnState.resonance)||{},free=p.slots.filter(x=>!x).length,best=a=>[...a].sort((x,y)=>scoreOf(y)-scoreOf(x)||x.c-y.c||x.n.localeCompare(y.n))[0];
+ if(p.el==='STORM'){let mover=legal.find(c=>c.n==='Crosswind Spark'||c.n==='Thunderstep');if(mover&&free>0&&ebStrikerToMove(p,idOf))return mover}
+ let held=legal.filter(c=>pay.includes(c.n));
+ if(rr.active)return held.length?best(held):undefined;
+ if(held.length){
+   // Can this turn still reach "parent card(s) + payoff"? Try every pairing of one card per missing parent and keep the
+   // cheapest that fits the free slots (Techniques win ties, saving slots); play its first card now.
+   let need=[];if(!rr.a)need.push(h.parents[0]);if(!rr.b)need.push(h.parents[1]);
+   let combos=[[]];for(const el of need)combos=combos.flatMap(k=>legal.filter(x=>x.el===el&&!k.includes(x)).map(x=>[...k,x]));
+   let units=k=>k.filter(x=>x.type==='MANIFESTATION').length,cost=k=>k.reduce((t,x)=>t+x.c,0);
+   let plan=combos.filter(k=>units(k)<=free).sort((a,b)=>cost(a)-cost(b)||units(a)-units(b))[0];
+   if(plan&&cost(plan)+Math.min(...held.map(c=>c.c))<=p.e)return plan.length?plan[0]:best(held);
+ }
+ let rest=legal.filter(c=>!pay.includes(c.n));return rest.length?best(rest):null;
+}
 function secondTechniqueLegal(p,e,c){
  if(c.n==='Riptide')return e.slots.some(Boolean);
  if(c.n==='Wild Growth'||c.n==='Stone Fist'||c.n==='Downdraft')return p.slots.some(Boolean);
@@ -1010,11 +1032,12 @@ function bodyScore(c){return (c.a||0)*2+(c.h||0)+(c.guard?3:0)-c.c*.4}
 function techScore(c){if(TECH2_NAMES.has(c.n))return secondTechniqueScore(p,e,c);if(HYBRIDS[c.el])return resonant(p)?7:4;if(c.el==='FIRE')return e.slots.some(Boolean)?7:2;if(c.el==='EARTH')return p.slots.some(Boolean)?6:0;if(c.el==='NATURE')return p.slots.some(m=>m&&(m.marks||[]).includes('Seeded')&&(m.growth||0)<3)?7:1;if(c.el==='WATER')return 4;if(c.el==='LIGHTNING')return G.chain>=1?6:3;if(c.el==='AIR')return e.slots.filter(Boolean).length>=2?5:p.slots.some(Boolean)?4:0;return 2}
 for(let step=0;step<budget;step++){let legal=p.hand.filter(c=>c.type!=='RESPONSE'&&c.c<=p.e&&(c.type==='TECHNIQUE'?(c.el!=='AIR'||p.slots.some(Boolean))&&secondTechniqueLegal(p,e,c):p.slots.some(s=>!s)));if(!legal.length)break;let c;
  if(diff==='Easy')c=legal[Math.floor(Math.random()*legal.length)];
- else {let ranked=legal.sort((a,b)=>(b.type==='TECHNIQUE'?techScore(b):bodyScore(b))-(a.type==='TECHNIQUE'?techScore(a):bodyScore(a)));c=(diff==='Medium'&&ranked.length>1&&Math.random()<0.40)?ranked[1]:ranked[0];}
+ else {let plan=diff==='Difficult'?ebPlanHybridPlay(p,legal,x=>x.type==='TECHNIQUE'?techScore(x):bodyScore(x),m=>m.id):undefined;if(plan===null)break;
+  if(plan)c=plan;else{let ranked=legal.sort((a,b)=>(b.type==='TECHNIQUE'?techScore(b):bodyScore(b))-(a.type==='TECHNIQUE'?techScore(a):bodyScore(a)));c=(diff==='Medium'&&ranked.length>1&&Math.random()<0.40)?ranked[1]:ranked[0];}}
  p.e-=c.c;p.hand=p.hand.filter(x=>x.id!==c.id);G.chain++;
  if(c.type==='TECHNIQUE'){sendToWake(p,c,'technique');
    if(TECH2_NAMES.has(c.n)){resolveSecondTechnique(p,e,c,true)}
-   else if(HYBRIDS[c.el]){resolveHybridTechnique(p,e,c,true)}
+   else if(HYBRIDS[c.el]){resolveHybridTechnique(p,e,c,true,(c.n==='Crosswind Spark'||c.n==='Thunderstep')&&ebStrikerToMove(p,m=>m.id)?{friend:ebStrikerToMove(p,m=>m.id)}:null)}
    else if(c.el==='FIRE'){let t=e.slots.filter(Boolean).sort((a,b)=>a.h-b.h)[0];if(t){let d=hit(t,(t.marks||[]).includes('Burning')?3:2);add(`Rival ${c.n}: ${d} damage to ${t.n}`);death(e)}else{let burn=(e.marks||[]).includes('Burning'),d=burn?3:2;e.vit-=d;add(`Rival ${c.n}: ${d} damage${burn?' (Burning bonus)':''}`)}}
    else if(c.el==='EARTH'){let t=p.slots.filter(Boolean).sort((a,b)=>(b.a+b.h)-(a.a+a.h))[0];if(t){let gained=gainArmor(t);add(`Rival Fortify → ${t.n} ${gained?`Armor ${t.armor}`:'already gained Armor this round'}`)}}
    else if(c.el==='NATURE'){let t=p.slots.find(m=>m&&(m.marks||[]).includes('Seeded')&&(m.growth||0)<3);if(t&&grow(t,p)){add(`Rival Verdant Mend: ${t.n} gains Growth ${t.growth}`)}else add('Rival Verdant Mend: no Seeded target · no effect')}
@@ -1897,7 +1920,7 @@ const EB_BALANCE=(()=>{
    else if(c.el==='AIR'){let t=p.slots.find(m=>m&&m.n==='Sky Raptor'&&momentum(m)<3)||p.slots.filter(Boolean).sort((a,b)=>momentum(a)-momentum(b))[0];if(t)addMomentum(st,t);let occupied=e.slots.map((m,i)=>m?i:-1).filter(i=>i>=0);if(occupied.length>=2){let [from,to]=occupied,a=e.slots[from],b=e.slots[to];[e.slots[from],e.slots[to]]=[b,a];simApplyCrosswindWeakness(st,a);simApplyCrosswindWeakness(st,b);p.turnState.airOpening=true;metric(st,'effect','Crosswind swap')}}
    else if(c.el==='MAGMA'){let friend=p.slots.filter(Boolean)[0],damaged=e.slots.find(x=>x&&simDamagedThisTurn(st,owner,x));if(c.n==='Molten Channel'){let burn=damaged&&(!(damaged.marks||[]).includes('Burning')||res);if((res||!burn)&&friend){if(addArmor(st,friend))metric(st,'effect','Molten Channel Armor')}if(burn){mark(damaged,'Burning');metric(st,'effect','Burning applied');metric(st,'effect','Molten Channel Burning')}}else if(c.n==='Pressure Forge'){if(friend&&addArmor(st,friend))metric(st,'effect','Pressure Forge Armor');if(res){let q=e.slots.find(x=>x&&(x.marks||[]).includes('Burning'));if(q){dealBody(st,owner,q,1,c);metric(st,'effect','Pressure Forge damage')}}}else if(c.n==='Eruption Guard'&&friend){friend.quick={kind:'REDUCE',value:1};metric(st,'effect','Eruption Guard armed')}}
    else if(c.el==='STORM'){
-     let t=p.slots.filter(Boolean)[0];
+     let t=((c.n==='Crosswind Spark'||c.n==='Thunderstep')&&ebStrikerToMove(p,m=>m.sid))||p.slots.filter(Boolean)[0];
      if(c.n==='Crosswind Spark'&&t&&simMoveFriendly(p,t)){
        addMomentum(st,t);metric(st,'effect','Crosswind Spark movement');
        if(res){mark(t,'Charged');metric(st,'effect','Charged applied')}
@@ -1914,7 +1937,7 @@ const EB_BALANCE=(()=>{
  // Card choice mirrors the live Hard rival (ai() → techScore/bodyScore) so the Lab measures the opponent players
  // actually face (issue #91). The old flat 4.5 for most Techniques cast them even when they could do nothing.
  function score(c,p,e){if(c.type==='TECHNIQUE'){if(TECH2_NAMES.has(c.n))return secondTechniqueScore(p,e,c);if(HYBRIDS[c.el])return p.turnState.resonance.active?7:4;if(c.el==='FIRE')return e.slots.some(Boolean)?7:2;if(c.el==='EARTH')return p.slots.some(Boolean)?6:0;if(c.el==='NATURE')return p.slots.some(m=>m&&(m.marks||[]).includes('Seeded')&&(m.growth||0)<3)?7:1;if(c.el==='WATER')return 4;if(c.el==='LIGHTNING')return p.chain>=1?6:3;if(c.el==='AIR')return e.slots.filter(Boolean).length>=2?5:p.slots.some(Boolean)?4:0;return 2}return(c.a||0)*2+(c.h||0)+(c.guard?3:0)-c.c*.4}
- function choosePlay(st,owner){let p=st.p[owner],e=st.p[1-owner],legal=p.hand.filter(c=>c.type!=='RESPONSE'&&c.c<=p.e&&(c.type==='TECHNIQUE'?(c.el!=='AIR'||p.slots.some(Boolean))&&secondTechniqueLegal(p,e,c):p.slots.some(x=>!x)));if(!legal.length)return null;legal=[...legal].sort((a,b)=>score(b,p,e)-score(a,p,e)||a.c-b.c||a.n.localeCompare(b.n));return legal[0]}
+ function choosePlay(st,owner){let p=st.p[owner],e=st.p[1-owner],legal=p.hand.filter(c=>c.type!=='RESPONSE'&&c.c<=p.e&&(c.type==='TECHNIQUE'?(c.el!=='AIR'||p.slots.some(Boolean))&&secondTechniqueLegal(p,e,c):p.slots.some(x=>!x)));if(!legal.length)return null;{let plan=ebPlanHybridPlay(p,legal,c=>score(c,p,e),m=>m.sid);if(plan!==undefined)return plan}legal=[...legal].sort((a,b)=>score(b,p,e)-score(a,p,e)||a.c-b.c||a.n.localeCompare(b.n));return legal[0]}
  function doPlay(st,owner,c){let p=st.p[owner];if(st.metrics.initiative.firstPlay===null){st.metrics.initiative.firstPlay=owner;st.metrics.initiative.firstPlayTurn=st.turn}st.metrics.initiative.cardsPlayed[owner]++;st.metrics.initiative.energySpent[owner]+=c.c;p.e-=c.c;p.hand.splice(p.hand.indexOf(c),1);p.chain++;metric(st,'cards',c.n);if(c.type==='TECHNIQUE'){p.wake.push(c);playTechnique(st,owner,c)}else{let i=p.slots.findIndex(x=>!x);if(i<0)return false;c.sick=true;c.ready=true;c._ebHasAttacked=false;c._ebFirstOpportunitySeen=false;c._ebSummonedTurn=st.turn;c.marks=c.marks||[];let ward=ebRallyWardApplies(p,st.p[1-owner],st.turn);p.slots[i]=c;if(ward){mark(c,'Warded');metric(st,'effect','Rally Ward')}st.metrics.initiative.summoned[owner]++;if((p.el==='LIGHTNING'||st.p[1-owner].el==='LIGHTNING')&&st.trace.length<120)st.trace.push({ev:'SUMMON',turn:st.turn,seat:owner,unit:c.n,chain:p.chain,energy:p.e});if(st.metrics.initiative.firstSummon===null){st.metrics.initiative.firstSummon=owner;st.metrics.initiative.firstSummonTurn=st.turn}if(c.guard&&st.metrics.initiative.firstGuard===null){st.metrics.initiative.firstGuard=owner;st.metrics.initiative.firstGuardTurn=st.turn}if(c.el==='FIRE'&&c.n==='Cinder Adept'){mark(st.p[1-owner],'Burning');metric(st,'effect','Burning applied')}if(c.el==='WATER'&&c.n==='Mist Adept')flow(st,owner);if(c.el==='LIGHTNING'&&c.n==='Spark Runner'&&p.chain===2){p.chain++;metric(st,'effect','Spark Runner chain boost')}summonGift(st,owner,c)}affinity(p,c);if(p.turnState.resonance.active)metric(st,'effect','Resonance active');st.actions++;st.metrics.actions++;return true}
  function responseMetric(st,el,key,n=1){let r=st.metrics.responses;r[key]=(r[key]||0)+n;let b=r.byElement[el]||(r.byElement[el]={windows:0,played:0,card:0,token:0,cancelled:0});b[key]=(b[key]||0)+n}
  function simResponseLegal(el,def,att,t,phase='BEFORE'){if(!def||!att||!t)return false;if(phase==='AFTER')return el==='FIRE'&&t.h<t.max;if(el==='FIRE')return false;if(el==='WATER')return def.slots.includes(t)&&def.slots.some(x=>!x);if(el==='NATURE')return def.slots.some(m=>m&&m.h<m.max&&!(m.marks||[]).includes('Second Bloom Used'));if(el==='EARTH')return def.slots.some(Boolean);if(el==='LIGHTNING')return true;if(el==='AIR')return def.slots.filter(Boolean).some(m=>m!==t&&!ebWarded(m));return false}
