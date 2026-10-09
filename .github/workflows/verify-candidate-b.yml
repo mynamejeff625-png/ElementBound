@@ -80,6 +80,8 @@ jobs:
       - run: node tests/growth-payoffs-1.14.0.cjs
       - run: node --check tests/hybrid-planner-1.15.0.cjs
       - run: node tests/hybrid-planner-1.15.0.cjs
+      - run: node --check tests/storm-charged-1.16.0.cjs
+      - run: node tests/storm-charged-1.16.0.cjs
       - run: node --check tests/ui-foundation-1.2.0.cjs
       - run: node tests/ui-foundation-1.2.0.cjs
       - run: node --check js/game.js

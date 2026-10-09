@@ -1,16 +1,16 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.15.0',
-  label:'Resonant Rivals',
-  engine:'EB-1.5.0',
-  balanceLab:'Balance Lab XXVII',
-  ruleset:'EB-RULES-1.14.0-BALANCE-PASS',
-  focus:'The Hard rival builds Resonance before it casts its Hybrid payoffs',
+  version:'1.16.0',
+  label:'Live Wires',
+  engine:'EB-1.6.0',
+  balanceLab:'Balance Lab XXVIII',
+  ruleset:'EB-RULES-1.16.0-BALANCE-PASS',
+  focus:'Charged pays off, and Storm finds its Tempest Striker combo',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
-    'Hard rival: plays a card from each parent element first, then its Resonance payoff',
-    'Hard rival: keeps Resonance payoffs in hand until Resonance is on',
-    'Hard rival (Storm): moves a ready Tempest Striker before it attacks'
+    'Charged rival Bender: your next Lightning attack this round gets +1, whatever it targets',
+    'Storm plays 2 Tempest Striker and 2 Crosswind Spark (one Spark Runner and one Breeze Disciple fewer)',
+    'Spark Runner: 2 → 1 HP'
   ])
 });
 

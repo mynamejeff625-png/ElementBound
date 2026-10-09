@@ -74,5 +74,6 @@ check(JSON.stringify(live.bloom)==='[["Rainseed",true]]'&&live.bloomGrowth>=1,`l
 check(live.strikerSlot===2,`live Hard rival: Crosswind Spark moves Tempest Striker (slot ${live.strikerSlot})`);
 check(live.mediumHand.length===0,'live Medium rival: unchanged, it does not hold Hybrid payoffs');
 
-const version=fs.readFileSync('js/version.js','utf8');check(/version:'1\.15\.0'/.test(version)&&/balanceLab:'Balance Lab XXVII'/.test(version),'release 1.15.0 with a new Balance Lab identifier');
+const version=fs.readFileSync('js/version.js','utf8');// The planner shipped in 1.15.0; later releases keep it (the crosswind pin test tracks the exact Lab identifier).
+check(/version:'1\.(1[5-9]|[2-9]\d)\.\d+'/.test(version),'release 1.15.0 or later');
 console.log(`Hybrid planner 1.15.0: ${checks} checks passed`);

@@ -539,7 +539,7 @@ One page. It sits after Core Terms and is linked from every effect page's label.
 #### Charged
 - **Label:** GLOSSARY · LIGHTNING · glyph `charged`
 - **Archivist:** "Charged is a debt the next Lightning strike collects. Leave it unused and it expires at round end."
-- **Rule:** Lightning's temporary payoff mark. The next Lightning attack that hits a Charged target deals +1 damage, then Charged is used up. Unused Charged is removed at round end.
+- **Rule:** Lightning's temporary payoff mark. The next Lightning attack that hits a Charged Manifestation deals +1 damage. A Charged rival Bender is released by your next Lightning attack this round, whatever it targets (+1). Charged is then used up; unused Charged is removed at round end.
 - **Quick facts:** On: Manifestation or Bender · Lasts: Until used or round end · Stacks: No
 - **Demo:** A bolt glyph on the rival Bender. A Lightning attack lands "+1" and the bolt fades.
 - **Don't confuse with:** [[Chain]], which counts your plays. Charged marks a target.
