@@ -733,11 +733,13 @@ function ebPlanHybridPlay(p,legal,scoreOf,idOf){
  let held=legal.filter(c=>pay.includes(c.n));
  if(rr.active)return held.length?best(held):undefined;
  if(held.length){
-   // Can this turn still reach "parent card(s) + payoff"? Pick the cheapest card per missing parent (units need a free slot).
+   // Can this turn still reach "parent card(s) + payoff"? Try every pairing of one card per missing parent and keep the
+   // cheapest that fits the free slots (Techniques win ties, saving slots); play its first card now.
    let need=[];if(!rr.a)need.push(h.parents[0]);if(!rr.b)need.push(h.parents[1]);
-   let picks=[],cost=0,units=0;
-   for(const el of need){let c=legal.filter(x=>x.el===el&&!picks.includes(x)).sort((a,b)=>(a.type==='MANIFESTATION')-(b.type==='MANIFESTATION')||a.c-b.c).find(x=>x.type!=='MANIFESTATION'||units<free);if(!c){picks=null;break}picks.push(c);cost+=c.c;if(c.type==='MANIFESTATION')units++}
-   if(picks&&cost+Math.min(...held.map(c=>c.c))<=p.e)return picks.length?picks[0]:best(held);
+   let combos=[[]];for(const el of need)combos=combos.flatMap(k=>legal.filter(x=>x.el===el&&!k.includes(x)).map(x=>[...k,x]));
+   let units=k=>k.filter(x=>x.type==='MANIFESTATION').length,cost=k=>k.reduce((t,x)=>t+x.c,0);
+   let plan=combos.filter(k=>units(k)<=free).sort((a,b)=>cost(a)-cost(b)||units(a)-units(b))[0];
+   if(plan&&cost(plan)+Math.min(...held.map(c=>c.c))<=p.e)return plan.length?plan[0]:best(held);
  }
  let rest=legal.filter(c=>!pay.includes(c.n));return rest.length?best(rest):null;
 }

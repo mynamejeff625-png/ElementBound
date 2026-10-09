@@ -27,6 +27,9 @@ const lab=vm.runInContext(`(()=>{const B=EB_BALANCE;let sid=0;
   // Magma with a tempting alternative: Obsidian Ravager (4 Essence) would take the turn; the plan comes first.
   st=B._makeState('MAGMA','FIRE','planner-ravager');p=st.p[0];p.slots=[u('EARTH','Earthen Guard',2,1,5),null,null];p.hand=[u('MAGMA','Obsidian Ravager',4,4,5),t('MAGMA','Molten Channel',2),u('FIRE','Cinder Adept',1,1,2),t('EARTH','Fortify',2)];p.e=5;
   r.ravager=turn(st,0);
+  // Codex review (#107): a cheaper Manifestation beats a Technique when only it makes the plan affordable.
+  st=B._makeState('MAGMA','FIRE','planner-cheapest');p=st.p[0];p.slots=[u('EARTH','Earthen Guard',2,1,5),null,null];p.hand=[t('MAGMA','Molten Channel',2),u('FIRE','Cinder Adept',1,1,2),t('FIRE','Flame Burst',2),t('EARTH','Fortify',2)];p.e=5;p.slots[2]=u('EARTH','Stone Initiate',1,1,3);
+  r.cheapest=turn(st,0);
   // Magma hold: no Earth card, so Molten Channel stays in hand.
   st=B._makeState('MAGMA','FIRE','planner-hold');p=st.p[0];p.slots=[u('EARTH','Earthen Guard',2,1,5),null,null];p.hand=[t('MAGMA','Molten Channel',2),u('FIRE','Flare Hawk',3,3,3)];p.e=5;
   r.hold=turn(st,0);r.holdHand=p.hand.map(c=>c.n);
@@ -42,6 +45,7 @@ const lab=vm.runInContext(`(()=>{const B=EB_BALANCE;let sid=0;
 check(lab.magma.length===3&&lab.magma[2][0]==='Molten Channel'&&lab.magma[2][1]===true,`Lab Magma: two parent cards, then Molten Channel under Resonance (${JSON.stringify(lab.magma)})`);
 check(new Set(lab.magma.slice(0,2).map(x=>x[0])).size===2&&lab.magma.slice(0,2).every(x=>['Cinder Adept','Stone Initiate'].includes(x[0])),'Lab Magma: the two parent cards come first');
 check(lab.ravager.map(x=>x[0]).join()==='Cinder Adept,Fortify,Molten Channel'&&lab.ravager[2][1]===true,`Lab Magma: the Resonance plan beats a bigger card when it fits this turn (${JSON.stringify(lab.ravager)})`);
+check(lab.cheapest.slice(0,3).map(x=>x[0]).join()==='Cinder Adept,Fortify,Molten Channel'&&lab.cheapest[2][1]===true,`Lab Magma: the cheapest affordable plan wins, a unit over a dearer Technique (${JSON.stringify(lab.cheapest)})`);
 check(JSON.stringify(lab.hold)==='[["Flare Hawk",null]]'&&lab.holdHand.join()==='Molten Channel',`Lab Magma: without an Earth card, Molten Channel is held (${JSON.stringify(lab.hold)})`);
 check(lab.bloom.length===3&&lab.bloom[2][0]==='Rainseed'&&lab.bloom[2][1]===true&&lab.bloomGrowth>=1,`Lab Bloom: Rainseed resolves under Resonance and grants Growth (${JSON.stringify(lab.bloom)}, growth ${lab.bloomGrowth})`);
 check(lab.storm[0][0]==='Crosswind Spark'&&lab.strikerSlot===2&&lab.strikerMoved,`Lab Storm: Crosswind Spark moves Tempest Striker (slot ${lab.strikerSlot})`);
