@@ -14,8 +14,9 @@ vm.runInContext(source,ctx);
 
 vm.runInContext(`
 let checks=0;function check(v,msg){if(!v)throw Error(msg);checks++}add=()=>{};render=()=>{};bump=()=>{};ebQueueFx=()=>{};
-// 1.13.1 stat pass (issue #99, Owner-approved ±1 rule) raised Arc Runner to 4 ATK; HP stays 3.
-check(BASE.LIGHTNING[1][2]===4&&BASE.LIGHTNING[1][3]===3,'Arc Runner must be 4 ATK / 3 HP');
+// 1.13.1 stat pass (issue #99, Owner-approved ±1 rule) raised Arc Runner to 4 ATK; 1.16.0 (issue #103, Owner-approved)
+// returned it to 3 ATK once the rival counts the Charged +1 when it aims (Lightning measured 56–57% at 4 ATK).
+check(BASE.LIGHTNING[1][2]===3&&BASE.LIGHTNING[1][3]===3,'Arc Runner must be 3 ATK / 3 HP');
 check(/\\+1 ATK/.test(BASE.LIGHTNING[1][4]),'Arc Runner Chain bonus must remain +1');
 check(BASE.LIGHTNING[2][2]===3&&BASE.LIGHTNING[2][3]===3,'Volt Lynx base stats must remain 3 ATK / 3 HP');
 check(/\\+2 damage/.test(BASE.LIGHTNING[2][4]),'Volt Lynx card text must show +2 damage');

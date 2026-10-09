@@ -10,7 +10,7 @@ window.EB_RELEASE=Object.freeze({
   notes:Object.freeze([
     'Charged rival Bender: your next Lightning attack this round gets +1, whatever it targets',
     'Storm plays 2 Tempest Striker and 2 Crosswind Spark (one Spark Runner and one Breeze Disciple fewer)',
-    'Spark Runner: 2 → 1 HP'
+    'Arc Runner: 4 → 3 ATK (the rival now aims with the Charged bonus in mind)'
   ])
 });
 

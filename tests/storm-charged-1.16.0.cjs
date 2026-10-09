@@ -1,7 +1,7 @@
 // Issue #103 · 1.16.0 (Owner-approved package, PR 2 of 3):
 // - Charged: a Charged enemy Bender is released by the next Lightning attack this round, whatever it targets (+1);
 // - Storm plays a 2nd Tempest Striker and a 2nd Crosswind Spark, replacing one Spark Runner and one Breeze Disciple;
-// - Spark Runner 2/2 → 2/1.
+// - Arc Runner 4/3 → 3/3 (Owner pick after the Codex finding: the rival aims with the Charged +1, so Lightning needs the trim).
 // The engine, live play, the rival AI and the Balance Lab must agree.
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -14,7 +14,8 @@ let checks=0;const check=(value,message)=>{assert.ok(value,message);checks++};
 
 // Card data and deck lists.
 const spark=ElementBoundCards.BASE.LIGHTNING.find(x=>x[0]==='Spark Runner');
-check(spark[1]===1&&spark[2]===2&&spark[3]===1,'Spark Runner is 1-cost 2/1');
+check(spark[1]===1&&spark[2]===2&&spark[3]===2,'Spark Runner stays 1-cost 2/2');
+const arc=ElementBoundCards.BASE.LIGHTNING.find(x=>x[0]==='Arc Runner');check(arc[1]===2&&arc[2]===3&&arc[3]===3,'Arc Runner is 2-cost 3/3');
 check(JSON.stringify(ElementBoundCards.HYBRID_EXTRAS)==='{"STORM":["Tempest Striker","Crosswind Spark"]}','only Storm has extra Hybrid copies');
 const counts=el=>{let n=0;const p=matchFactory.createPlayer({name:'X',element:el,nextId:()=>++n,random:()=>0.5}),all=[...p.deck,...p.hand],c={};all.forEach(x=>c[x.n]=(c[x.n]||0)+1);c.total=all.length;return c};
 const storm=counts('STORM');
@@ -39,7 +40,7 @@ function attack(attackerEl,{benderCharged=true,targetCharged=false}={}){
 
 // Live play, the rival AI and the Balance Lab.
 let source=fs.readFileSync('js/game.js','utf8');
-source=source.slice(0,source.lastIndexOf('\nsetup();')).replace('return Object.freeze({DECKS:','return Object.freeze({_makeState:makeState,_attackBonus:attackBonus,_makeDeck:makeDeck,_rng:rng,DECKS:');
+source=source.slice(0,source.lastIndexOf('\nsetup();')).replace('return Object.freeze({DECKS:','return Object.freeze({_makeState:makeState,_attackBonus:attackBonus,_attackOne:attackOne,_makeDeck:makeDeck,_rng:rng,DECKS:');
 const ctx=vm.createContext({console,Math,window:{ElementBoundCards,ElementBoundMatchFactory:matchFactory,ElementBoundEngine:engine},document:{getElementById:()=>null,querySelector:()=>null,querySelectorAll:()=>[]},setTimeout:()=>0,clearTimeout(){},requestAnimationFrame(){}});
 vm.runInContext(source,ctx);
 vm.runInContext(`add=()=>{};render=()=>{};bump=()=>{};ebQueueFx=()=>{};modal=()=>{};hideModal=()=>{};`,ctx);
@@ -55,11 +56,23 @@ check(live.rivalBonus===1&&live.rivalCleared,'rival AI: its Lightning attack dra
 const sim=vm.runInContext(`(()=>{const B=EB_BALANCE;let st=B._makeState('LIGHTNING','FIRE','charged-1160'),e=st.p[1];e.marks=['Charged'];
   let att={el:'LIGHTNING',n:'Arc Runner',a:4,h:3,marks:[]},t={el:'FIRE',n:'Target',a:1,h:9,marks:[]};let first=B._attackBonus(st,0,att,t),cleared=!e.marks.includes('Charged'),second=B._attackBonus(st,0,att,t);
   let d=B._makeDeck('STORM',B._rng('storm-1160')).cards,c={};d.forEach(x=>c[x.n]=(c[x.n]||0)+1);
-  let l=B._makeDeck('LIGHTNING',B._rng('l-1160')).cards.find(x=>x.n==='Spark Runner');
+  let l=B._makeDeck('LIGHTNING',B._rng('l-1160')).cards.find(x=>x.n==='Arc Runner');
   return{first,cleared,second,total:d.length,striker:c['Tempest Striker'],spark:c['Crosswind Spark'],runner:c['Spark Runner'],breeze:c['Breeze Disciple'],sparkRunner:[l.a,l.h]}})()`,ctx);
 check(sim.first===1&&sim.cleared&&sim.second===0,`Balance Lab: the same Charge rule (${JSON.stringify(sim)})`);
 check(sim.total===21&&sim.striker===2&&sim.spark===2&&sim.runner===2&&sim.breeze===2,'Balance Lab Storm deck matches the online deck');
-check(sim.sparkRunner.join()==='2,1','Balance Lab Spark Runner is 2/1');
+check(sim.sparkRunner.join()==='3,3','Balance Lab Arc Runner is 3/3');
+
+// Codex review (#108): rival target choice counts the pending Bender Charge, so it sees the kill it now makes.
+const aim=vm.runInContext(`(()=>{diff='Difficult';let you=player('You','FIRE'),rival=player('Rival','LIGHTNING');let low=mk('FIRE','Low',1,0,3),threat=mk('FIRE','Threat',3,4,5);you.slots=[low,threat,null];let noCharge=ebPickAITarget({a:2},[low,threat],()=>0)===threat;you.marks=['Charged'];you.deck=[mk('FIRE','D',1,1,1)];
+  let runner=mk('LIGHTNING','Spark Runner',1,2,1);runner.ready=true;runner.sick=false;rival.slots=[runner,null,null];rival.hand=[];rival.e=0;rival.deck=[];
+  G={p:[you,rival],active:1,startSeat:0,turn:3,chain:0,logs:[],winner:null,trial:null,rev:0};EB_INIT_LOCK=false;ai();
+  let liveKill=!you.slots.includes(low)&&you.slots.includes(threat);
+  const B=EB_BALANCE;let st=B._makeState('LIGHTNING','FIRE','aim-1160'),e=st.p[1];let l2={el:'FIRE',n:'Low',a:0,h:3,max:3,marks:[],armor:0,sid:'l2'},t2={el:'FIRE',n:'Threat',a:4,h:5,max:5,marks:[],armor:0,sid:'t2'};e.slots=[l2,t2,null];e.marks=['Charged'];e.hand=[];e.initiationToken=false;
+  let att={el:'LIGHTNING',n:'Spark Runner',a:2,h:1,max:1,marks:[],sid:'a1',ready:true};st.p[0].slots=[att,null,null];st.active=0;B._attackOne(st,0,att);
+  return{liveKill,labKill:!e.slots.includes(l2)&&e.slots.includes(t2),noCharge}})()`,ctx);
+check(aim.noCharge,'without a Charge, a 2-ATK attacker prefers the bigger threat');
+check(aim.liveKill,'live Hard rival: with your Bender Charged, its 2-ATK Lightning attacker takes the 3-HP kill');
+check(aim.labKill,'Balance Lab: the same target choice');
 
 // The Tome and the in-duel glossary explain the new Charged rule (the two Tome files stay mirrored by tome-1.7.0).
 const tome=require('../js/tomeData.js'),page=tome.pages.find(p=>p.title==='Charged');
