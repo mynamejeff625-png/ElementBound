@@ -24,6 +24,7 @@ const TYPES = {
 };
 const MAX_BLOCKED_INLINE_STYLES = Number(process.env.EB_MAX_BLOCKED_INLINE_STYLES ?? 0);
 const VIEWPORTS = [
+  { name: 'narrow-phone', width: 360, height: 740 },
   { name: 'iphone-se', width: 375, height: 667 },
   { name: 'iphone-14', width: 390, height: 844 }
 ];
@@ -223,6 +224,12 @@ async function run() {
       assert.deepEqual(homeLayout,{vertical:true,horizontal:true,logo:[720,509],rightEdge:true,bottomEdge:true},'main menu fits and the corrected logo crop reaches both outer edge strips');checks++;
       const whatsNewBox=await page.locator('#whatsNewButton').boundingBox();
       assert.ok(whatsNewBox&&whatsNewBox.x>=0&&whatsNewBox.y>=0&&whatsNewBox.x+whatsNewBox.width<=vp.width&&whatsNewBox.y+whatsNewBox.height<=vp.height,'What\'s New stays inside the top-right viewport');checks++;
+      const pixelPicked=await page.evaluate(()=>{const badge=document.querySelector('.pp-badge-link').getBoundingClientRect(),image=document.querySelector('.pp-badge img').getBoundingClientRect(),news=document.getElementById('whatsNewButton').getBoundingClientRect(),logo=document.querySelector('.main-logo').getBoundingClientRect(),overlaps=(a,b)=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;return{visible:!!(badge.width&&badge.height),badge:{left:badge.left,top:badge.top,right:badge.right,bottom:badge.bottom,height:badge.height},imageHeight:image.height,aligned:Math.abs(badge.top-news.top)<.5,overlapNews:overlaps(badge,news),overlapLogo:overlaps(badge,logo)}});
+      assert.equal(pixelPicked.visible,true,'PixelPicked badge is visible on Home');checks++;
+      assert.equal(pixelPicked.badge.height,48,'PixelPicked badge keeps the 48 px menu-button height');checks++;
+      assert.equal(pixelPicked.imageHeight,vp.width<=360?26:32,'PixelPicked badge image scales for the phone width');checks++;
+      assert.equal(pixelPicked.aligned,true,'PixelPicked and What\'s New align across the top corners');checks++;
+      assert.deepEqual({news:pixelPicked.overlapNews,logo:pixelPicked.overlapLogo},{news:false,logo:false},'PixelPicked badge overlaps neither What\'s New nor the logo');checks++;
       await page.waitForFunction(()=>window.__ebHomeCalmAt!==null,null,{timeout:10000});
       assert.ok(await page.evaluate(()=>window.__ebHomeCalmAt-(performance.getEntriesByType('navigation')[0]?.domContentLoadedEventEnd||0))>=1000,'full menu art holds for over a second before it calms');checks++;
       const homeArt=await page.evaluate(()=>getComputedStyle(document.getElementById('home'),'::before').backgroundImage);
@@ -576,6 +583,7 @@ async function run() {
 
       await menuPush({trigger:'.home-play',from:'#home',to:'#setup',label:'Home to deck select'});
       await visible('#setup .deckselect-shell .codex-card','deck select cards');
+      assert.equal(await page.locator('.pp-badge').isVisible(),false,'PixelPicked badge is hidden outside Home in deck select');checks++;
       await page.locator('#setup .codex-guide-icon').click();await page.locator('.tome-peek-backdrop.is-open').waitFor({timeout:5000});
       assert.equal(await page.locator('.deck-guide-plan li').count(),3,'deck select opens the same deck guide from its header');checks++;
       await page.keyboard.press('Escape');await page.locator('.tome-peek-backdrop').waitFor({state:'detached',timeout:5000});
@@ -674,6 +682,7 @@ async function run() {
       await page.locator('.deckselect-main').click();
       await visible('#battle.on', 'duel screen');
       assert.equal(await page.evaluate(()=>document.getElementById('battle').classList.contains('arena')),true,'the Arena is the default duel screen (1.10.0)');checks++;
+      assert.equal(await page.locator('.pp-badge').isVisible(),false,'PixelPicked badge is hidden outside Home in a duel');checks++;
       await calmBackground('Duel');
       await navUnlocked();
       // The initiative coin flip starts shortly after the duel opens. Wait for it,

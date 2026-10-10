@@ -28,6 +28,8 @@ jobs:
       - run: node --check js/mainMenu.js
       - run: node --check tests/main-menu-1.5.0.cjs
       - run: node tests/main-menu-1.5.0.cjs
+      - run: node --check tests/pixelpicked-badge-1.17.2.cjs
+      - run: node tests/pixelpicked-badge-1.17.2.cjs
       - run: node --check tests/menu-transitions-1.5.1.cjs
       - run: node tests/menu-transitions-1.5.1.cjs
       - run: node --check js/tomeData.js
