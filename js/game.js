@@ -1356,10 +1356,13 @@ function renderSelectionOnly(){
  let hint=document.getElementById('recycleHint');if(hint)hint.textContent=c?`${c.n} selected · ${c.type==='TECHNIQUE'?'use ACTIVATE to play, double-tap for details, or use Card Re-cycle':'drag/tap an open slot to play, double-tap for details, or use Card Re-cycle'}`:'Tap a Hand card to select it. Double-tap any card for details.';
  document.querySelectorAll('#hand .card').forEach(el=>el.classList.remove('tech-selected','tech-activating'));
  document.querySelectorAll('#hand .eb-tech-activate,#battle .actions .eb-tech-activate').forEach(b=>b.remove());
- if(c&&c.type==='TECHNIQUE'&&playable(c)){let el=document.querySelector(`#hand .card[data-id="${c.id}"]`);if(el){el.classList.add('tech-selected');let b=document.createElement('button');b.className='eb-tech-activate';b.type='button';b.textContent='ACTIVATE';let activate=ev=>{ev.preventDefault();ev.stopPropagation();if(b.dataset.firing==='1'||!G||G.active!==0||G.winner||ebMpInputLocked())return;b.dataset.firing='1';let cardId=c.id;if(EB_MP.enabled){EB_MP.input.beginInteraction();EB_MP.input.endInteraction()}let live=me().hand.find(card=>card.id===cardId);if(!live||!playable(live)){b.dataset.firing='';return}el.classList.add('tech-activating');selectedCardId=null;play(live)};b.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();if(EB_MP.enabled)EB_MP.input.beginInteraction()},{passive:false});b.addEventListener('pointerup',activate,{passive:false});b.addEventListener('pointercancel',ev=>{ev.stopPropagation();if(EB_MP.enabled)EB_MP.input.endInteraction()});b.addEventListener('dblclick',ev=>{ev.preventDefault();ev.stopPropagation()});b.onclick=ev=>{if(b.dataset.firing!=='1')activate(ev)};el.appendChild(b)}}
+ if(c&&c.type==='TECHNIQUE'&&playable(c)){let el=document.querySelector(`#hand .card[data-id="${c.id}"]`);if(el){el.classList.add('tech-selected');let b=document.createElement('button');b.className='eb-tech-activate';b.type='button';b.textContent='ACTIVATE';let activate=ev=>{ev.preventDefault();ev.stopPropagation();if(EB_MP.enabled)EB_MP.input.endInteraction();if(b.dataset.firing==='1'||!G||G.active!==0||G.winner||ebMpInputLocked())return;b.dataset.firing='1';setTimeout(()=>{b.dataset.firing=''},600);if(ev.type==='pointerup')ebSwallowNextClick();let cardId=c.id;let live=me().hand.find(card=>card.id===cardId);if(!live||!playable(live)){b.dataset.firing='';return}el.classList.add('tech-activating');selectedCardId=null;play(live)};b.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();if(EB_MP.enabled)EB_MP.input.beginInteraction()},{passive:false});b.addEventListener('pointerup',activate,{passive:false});b.addEventListener('pointercancel',ev=>{ev.stopPropagation();if(EB_MP.enabled)EB_MP.input.endInteraction()});b.addEventListener('dblclick',ev=>{ev.preventDefault();ev.stopPropagation()});b.onclick=ev=>{if(b.dataset.firing!=='1')activate(ev)};el.appendChild(b)}}
  let rb=document.getElementById('recycle');if(rb){rb.textContent=EB_MP.enabled?'Card Re-cycle unavailable online':`Card Re-cycle ${me().recycles??0}/3`;rb.disabled=EB_MP.enabled||!!G.trial||G.active!==0||!!G.winner||(me().recycles??0)<=0;}
  window.EB_Arena?.enabled()&&EB_Arena.afterSelection();
 }
+// Issue #111: ACTIVATE fires on pointer-up and may open the target panel under the finger; the phone's follow-up
+// click would then land on a panel button (Cancel, or a target the player never chose). Swallow that one click.
+function ebSwallowNextClick(ms=500){let until=performance.now()+ms,eat=event=>{document.removeEventListener('click',eat,true);if(performance.now()<=until){event.preventDefault();event.stopPropagation()}};document.addEventListener('click',eat,true);setTimeout(()=>document.removeEventListener('click',eat,true),ms)}
 function wireDropSlots(){document.querySelectorAll('#pslots .slot').forEach(slot=>{slot.onclick=()=>{if(selectedCardId===null)return;let c=me().hand.find(x=>x.id===selectedCardId),i=+slot.dataset.slot;if(c&&!me().slots[i]){selectedCardId=null;play(c,i)}}});renderSelectionOnly()}
 // Arena hand (Phase 3 · 3-2): the fan owns the gesture; these keep the same guards as beginCardDrag.
 function ebArenaHandCard(id){return G?me().hand.find(card=>card.id===id)||null:null}
@@ -1570,9 +1573,9 @@ function ebMpHandleTurnTimer(){
    if(left===0&&!G.pendingResponse&&EB_MP.turnExpiryKey!==key){EB_MP.turnExpiryKey=key;ebMpSubmit('TURN_EXPIRED',{}, {kind:'TURN_EXPIRY'}).then(result=>{if(result?.error==='TURN_NOT_EXPIRED'){let wait=Math.max(100,Number(result.detail?.remainingMs)||300);setTimeout(()=>{if(EB_MP.turnExpiryKey===key)EB_MP.turnExpiryKey=null},wait)}else if(result&&!result.ok&&result.error==='MOVE_PENDING')EB_MP.turnExpiryKey=null})}};
  tick();EB_MP.turnTimer=setInterval(tick,250);
 }
-function ebMpApplyView(state){
+function ebMpApplyView(state,options={}){
  let apply=ebMpRenderAuthoritativeView;
- let force=window.ElementBoundMultiplayer.shouldForceWaitingView(G,state);
+ let force=!!options.force||window.ElementBoundMultiplayer.shouldForceWaitingView(G,state);
  if(!EB_MP.input)apply(state);else EB_MP.input.receiveView(state,force);
 }
 function ebMpPendingChanged(pending){if(!G)return;selectedCardId=null;render()}
@@ -1582,6 +1585,8 @@ async function ebMpSubmit(type,payload={},pendingMeta={kind:type}){
  if(!EB_MP.input.beginMove(pendingMeta,Number(G?.rev||0))){if(type==='RESPOND'||type==='PASS'){let retry=type==='PASS'?'tap Pass again':'tap your response again';ebMpStatus({kind:'pending',text:`Still sending your last move — ${retry}`,onClick:ebMpOpenResponsePrompt});ebMpOpenResponsePrompt()}return {ok:false,error:'MOVE_PENDING'}}
  let result=await EB_MP.client.submit({v:1,type,rev:Number(G?.rev||0),payload:JSON.parse(JSON.stringify(payload))});
  result=EB_MP.input.resolveMove(result);
+ // Issue #111: the move was built on an old board; show any board update parked during a press right away.
+ if(result.error==='REVISION_MISMATCH')EB_MP.input.endInteraction();
  if(type==='RESOLVE_EXPIRED'&&result.error==='RESPONSE_NOT_EXPIRED'){
    EB_MP.responseExpirySent=true;let wait=Math.max(50,Number(result.detail?.remainingMs)||250);
    clearTimeout(EB_MP.responseRetryTimer);EB_MP.responseRetryTimer=setTimeout(()=>{EB_MP.responseRetryTimer=null;EB_MP.responseExpirySent=false;ebMpHandleResponseWindow()},wait);
@@ -1603,7 +1608,7 @@ function ebStartMultiplayer({roomId,user,db,fetchImpl=window.fetch.bind(window)}
  if(!roomId||!user?.uid||typeof user.getIdToken!=='function'||!db)throw new Error('Authenticated user, roomId, and Firestore are required');
  EB_MP.client?.stop();let newVisualRoom=EB_MP.visualRoomId!==roomId;EB_MP.enabled=true;EB_MP.roomId=roomId;EB_MP.uid=user.uid;if(newVisualRoom){EB_MP.visualRoomId=roomId;EB_MP.lastAnimatedSeq=null;EB_MP.initiativeShown=false;EB_MP.attackFxContext=null;EB_VIS=null;EB_INIT_LOCK=false;ebInitiativeCancelPresentation();document.getElementById('initiativeOverlay')?.classList.add('hide')}
  EB_MP.serverClockOffset=0;EB_MP.serverClockReady=false;
- EB_MP.input=window.ElementBoundMultiplayer.createInputCoordinator({onView:ebMpRenderAuthoritativeView,onPending:ebMpPendingChanged,onPendingTimeout:()=>{ebMpStatus({kind:'pending',text:'Connection slow — refreshing the board…'});EB_MP.client?.resync()}});
+ EB_MP.input=window.ElementBoundMultiplayer.createInputCoordinator({onView:ebMpRenderAuthoritativeView,onPending:ebMpPendingChanged,onPendingTimeout:()=>{ebMpStatus({kind:'pending',text:'Connection slow — refreshing the board…'});EB_MP.input?.endInteraction();EB_MP.client?.resync(true)}});
  EB_MP.inputSafetyCleanup?.();EB_MP.inputSafetyCleanup=window.ElementBoundMultiplayer.bindInteractionSafety(EB_MP.input,document,ebCancelActivePointerInteraction);
  EB_MP.client=window.ElementBoundMultiplayer.createMultiplayerClient({roomId,uid:user.uid,getIdToken:()=>user.getIdToken(),subscribeView:ebMpSubscribeCompat(db),fetchView:ebMpFetchView(db),onTiming:ebMpRecordTiming,fetchImpl,onView:ebMpApplyView,onMessage:ebMpStatus});
  if(!EB_MP.visibilityBound){EB_MP.visibilityBound=true;document.addEventListener('visibilitychange',()=>{if(!document.hidden&&EB_MP.enabled)EB_MP.client?.resync()})}

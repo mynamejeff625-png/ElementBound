@@ -770,6 +770,19 @@ async function run() {
         await page.waitForFunction(({id,slot})=>me().slots[slot]?.id===id,dragPlan,{timeout:5000});checks++;
         assert.equal(await page.locator('.arena-ghost').count(),0,'the drag ghost is removed after the drop');checks++;
       }
+      // Issue #111: tapping ACTIVATE opens the target panel under the finger; the phone's follow-up click must not
+      // close it or pick a target the player never chose.
+      const techPlan=await page.evaluate(()=>{const z=ElementBoundCards.TECH.FIRE,e=foe();for(let i=0;i<2;i++)if(!e.slots[i])e.slots[i]=mk('FIRE','Smoke Target',1,1,5);
+        const t={id:90111,el:'FIRE',n:z[0],c:0,type:'TECHNIQUE',text:z[1],tip:z[2],marks:[]};me().hand.push(t);render();selectHandCard(t);
+        const b=document.querySelector('#battle .actions .eb-tech-activate');if(!b)return null;const r=b.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2,hp:e.slots.map(m=>m&&m.h),vit:e.vit}});
+      assert.ok(techPlan,'a selected Technique shows ACTIVATE');checks++;
+      // A phone tap: pointerdown/pointerup on ACTIVATE, then the follow-up click on whatever is now under the finger.
+      await page.evaluate(({x,y})=>{const b=document.querySelector('#battle .actions .eb-tech-activate'),o={bubbles:true,cancelable:true,pointerId:7,pointerType:'touch',isPrimary:true,clientX:x,clientY:y};
+        b.dispatchEvent(new PointerEvent('pointerdown',o));b.dispatchEvent(new PointerEvent('pointerup',o));document.elementFromPoint(x,y)?.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,clientX:x,clientY:y}))},techPlan);
+      await page.waitForTimeout(300);
+      const techPanel=await page.evaluate(()=>({open:!!EB_Arena.panelOpen,options:[...document.querySelectorAll('#arenaPanel .arena-panel-btn')].length,inHand:me().hand.some(c=>c.id===90111),hp:foe().slots.map(m=>m&&m.h),vit:foe().vit}));
+      assert.ok(techPanel.open&&techPanel.options>=3&&techPanel.inHand&&JSON.stringify(techPanel.hp)===JSON.stringify(techPlan.hp)&&techPanel.vit===techPlan.vit,`a tap on ACTIVATE leaves the target panel open with nothing chosen (${JSON.stringify(techPanel)})`);checks++;
+      await page.evaluate(()=>{hideModal();me().hand=me().hand.filter(c=>c.id!==90111);selectedCardId=null;render()});
       // 3-3 · attacking: a ready Manifestation aims at targets with a damage preview; tapping a target attacks.
       await page.evaluate(()=>{const unit=me().slots.find(Boolean);if(unit){unit.sick=false;unit.ready=true}render()});
       const aimPlan=await page.evaluate(()=>{const el=document.querySelector('#pslots .arena-card');if(!el)return null;const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}});

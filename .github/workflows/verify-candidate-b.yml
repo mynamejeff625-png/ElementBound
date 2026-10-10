@@ -58,6 +58,8 @@ jobs:
       - run: node tests/rule-experiments-1.9.1.cjs
       - run: node --check tests/online-speed-1.10.1.cjs
       - run: node tests/online-speed-1.10.1.cjs
+      - run: node --check tests/online-technique-freeze-1.17.1.cjs
+      - run: node tests/online-technique-freeze-1.17.1.cjs
       - run: node --check tests/turn-timer-1.10.2.cjs
       - run: node tests/turn-timer-1.10.2.cjs
       - run: node --check tests/sim-ai-fidelity-1.10.3.cjs
