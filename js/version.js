@@ -1,16 +1,17 @@
 /* Element Bound release metadata — update this file first for every new release. */
 window.EB_RELEASE=Object.freeze({
-  version:'1.17.1',
-  label:'Steady Link',
+  version:'1.17.2',
+  label:'PixelPicked Verified',
   engine:'EB-1.7.0',
   balanceLab:'Balance Lab XXIX',
   ruleset:'EB-RULES-1.17.0-BALANCE-PASS',
-  focus:'Online Techniques no longer freeze the board',
+  focus:'PixelPicked approval badge on the main menu',
   audience:'Prime & Hybrid Benders',
   notes:Object.freeze([
+    'Element Bound is now on PixelPicked.',
     'Tapping ACTIVATE no longer closes the target panel or picks a target for you',
     'After a rejected online move the board refreshes at once instead of staying stale until the turn ends',
-    'The online status line stops saying "waiting" once the board is up to date'
+    'The online status line stops saying \"waiting\" once the board is up to date'
   ])
 });
 
