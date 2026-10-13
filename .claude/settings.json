@@ -13,6 +13,7 @@
       "Edit(/package-lock.json)",
       "Edit(/.gitignore)",
       "Edit(/AGENTS.md)",
+      "Edit(/docs/AGENT_GUIDE.md)",
       "Edit(/CLAUDE.md)",
       "Bash(git push *)",
       "Bash(git * push *)",
