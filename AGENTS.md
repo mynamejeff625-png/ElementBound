@@ -102,6 +102,7 @@ Facts:
 | `tests/*.cjs` | Regression tests. Only tests listed in the workflow run in CI |
 | `tests/e2e/smoke.cjs` | Browser smoke test (CI job `browser-smoke`): real Chromium at 375×667 and 390×844, fails on page errors; phone screenshots are attached to each CI run |
 | `.github/workflows/verify-candidate-b.yml` | Main CI; runs on every PR to `main` |
+| `.github/dependabot.yml` | Monthly Dependabot version updates for npm and GitHub Actions (7-day cooldown); the Owner reviews every Dependabot PR |
 | `.github/pull_request_template.md` | Required PR description format |
 | `.claude/settings.json` | Claude Code guard: asks before editing security-sensitive files (including `index.html`, which holds the CSP) or pushing; blocks reading `.env` and key files. Accident prevention only; the GitHub ruleset is the real lock |
 | `.gitignore` | Untracked and generated files Git should ignore (dependencies, secrets, logs) |
@@ -180,6 +181,8 @@ Every PR fills in `.github/pull_request_template.md` completely. Do not delete
 sections; write "N/A" with a reason instead. PR title format:
 - Release PRs: `[X.Y.Z] type: short summary` (e.g. `[1.1.2] fix: reconnect window`)
 - Non-release PRs: `[docs] short summary`, `[test] short summary`, or `[ci] short summary`
+- Dependabot PRs keep the titles Dependabot gives them (e.g. `chore(deps): bump …`);
+  this title format applies to PRs opened by people and agents.
 
 Deleting a branch after merge is the Owner's repository-maintenance task.
 
