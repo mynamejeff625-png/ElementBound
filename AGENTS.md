@@ -103,7 +103,7 @@ Facts:
 | `tests/e2e/smoke.cjs` | Browser smoke test (CI job `browser-smoke`): real Chromium at 375×667 and 390×844, fails on page errors; phone screenshots are attached to each CI run |
 | `.github/workflows/verify-candidate-b.yml` | Main CI; runs on every PR to `main` |
 | `.github/pull_request_template.md` | Required PR description format |
-| `.claude/settings.json` | Claude Code guard: asks before editing security-sensitive files or pushing; blocks reading `.env` and key files. Accident prevention only; the GitHub ruleset is the real lock |
+| `.claude/settings.json` | Claude Code guard: asks before editing security-sensitive files (including `index.html`, which holds the CSP) or pushing; blocks reading `.env` and key files. Accident prevention only; the GitHub ruleset is the real lock |
 | `.gitignore` | Untracked and generated files Git should ignore (dependencies, secrets, logs) |
 | `package.json`, `package-lock.json` | Server and test dependencies |
 | `README.md` | Multiplayer deployment and environment setup |

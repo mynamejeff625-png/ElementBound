@@ -6,6 +6,7 @@
       "Edit(/api/**)",
       "Edit(/lib/firebaseAdmin.js)",
       "Edit(/lib/playerView.js)",
+      "Edit(/index.html)",
       "Edit(/.github/**)",
       "Edit(/.claude/**)",
       "Edit(/package.json)",
@@ -14,6 +15,7 @@
       "Edit(/AGENTS.md)",
       "Edit(/CLAUDE.md)",
       "Bash(git push *)",
+      "Bash(git * push *)",
       "Bash(npm install *)"
     ],
     "deny": [
