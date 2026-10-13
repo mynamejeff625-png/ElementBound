@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "ask": [
+      "Edit(/firestore.rules)",
+      "Edit(/firebase.json)",
+      "Edit(/api/**)",
+      "Edit(/lib/firebaseAdmin.js)",
+      "Edit(/lib/playerView.js)",
+      "Edit(/index.html)",
+      "Edit(/.github/**)",
+      "Edit(/.claude/**)",
+      "Edit(/package.json)",
+      "Edit(/package-lock.json)",
+      "Edit(/.gitignore)",
+      "Edit(/AGENTS.md)",
+      "Edit(/CLAUDE.md)",
+      "Bash(git push *)",
+      "Bash(git * push *)",
+      "Bash(npm install *)"
+    ],
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*service-account*.json)",
+      "Read(**/*firebase-adminsdk*.json)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Edit(**/.env)",
+      "Edit(**/.env.*)"
+    ]
+  }
+}
