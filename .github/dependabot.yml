@@ -1,0 +1,21 @@
+# Dependabot version updates (security updates are enabled in repo settings
+# and arrive whenever a fix exists, regardless of this schedule).
+# Monthly to keep noise low; the 7-day cooldown skips brand-new releases,
+# the window in which malicious package versions are usually caught.
+# The Owner reviews and merges every Dependabot PR like any other (AGENTS.md §2, §8).
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 3
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 3
