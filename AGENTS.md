@@ -81,9 +81,9 @@ change. Docs-, test- and CI-only PRs never bump. Never change `package.json`
 ## 6. Branches, commits, and PRs
 
 - Branches: release work `type/short-name-X.Y.Z` (`feature`, `fix`, `hotfix`,
-  `refactor`); other work `docs/`, `test/` or `ci/short-name`. No agent-named
-  prefixes (`claude/`, `codex/`, `chatgpt/`), except Owner-supplied,
-  platform-provided or existing historical branch names.
+  `refactor`); other work `docs/short-name`, `test/short-name` or
+  `ci/short-name` (no version suffix). No agent-named prefixes (`claude/`,
+  `codex/`, `chatgpt/`) except Owner-supplied, platform or historical names.
 - Commits: focused, clear messages; stage files explicitly (never `git add -A`
   or `git add .` with unrelated changes). Never commit `node_modules/`, logs,
   `.env` files, keys or debug output; check `git status` first; never edit
