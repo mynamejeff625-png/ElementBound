@@ -174,6 +174,8 @@ Every PR fills in `.github/pull_request_template.md` completely. Do not delete
 sections; write "N/A" with a reason instead. PR title format:
 - Release PRs: `[X.Y.Z] type: short summary` (e.g. `[1.1.2] fix: reconnect window`)
 - Non-release PRs: `[docs] short summary`, `[test] short summary`, or `[ci] short summary`
+- Dependabot PRs keep the titles Dependabot gives them (e.g. `chore(deps): bump …`);
+  this title format applies to PRs opened by people and agents.
 
 Deleting a branch after merge is the Owner's repository-maintenance task.
 
