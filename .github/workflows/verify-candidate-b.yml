@@ -147,7 +147,7 @@ jobs:
         env:
           NODE_PATH: ${{ runner.temp }}/pw/node_modules
       - if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: phone-screenshots
           path: test-results/screenshots/
